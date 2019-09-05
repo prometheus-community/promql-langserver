@@ -19,3 +19,13 @@ Most language insight features are not really useful for a query language.
 ## Maybe useful for PromQL
 * Find references (e.g. of a specific label)
 * Document Formatting Requests (e.g. beautifying)
+
+## Some concrete examples
+* Complain about syntax errors before the request has been submitted
+* Offer autocompletition for labels and values
+* Complain if a request does not match anything
+* Warn about request such as `http_requests_total{status="^4..$"}` or `rate(sum(...))`
+* Show documentation of functions on hover
+
+## How could this be implemented
+* There exist various implementation of LSP. 
