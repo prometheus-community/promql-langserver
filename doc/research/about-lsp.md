@@ -6,10 +6,17 @@ From their homepage:
 
 * Standardized protocol supported by a lot of IDEs and languages
 * Originally created for VS Code.
+* Red Hat announced adoption in 2016
 * Creating an LSP server for PromQL would add these features to most development environments.
 
-## What can LSP do?
-Most language insight features are not really useful for a query language.
+# What can LSP do?
+Many language insight features are not really useful for a query language.
+
+## Not useful for PromQL
+* Go to (definition|typeDefinition|declaration|implementation)
+* renaming
+* folding
+* Workspaces
 
 ## Useful for PromQL
 * Diagnostics (e.g. linting and syntax errors)
@@ -26,6 +33,3 @@ Most language insight features are not really useful for a query language.
 * Complain if a request does not match anything
 * Warn about request such as `http_requests_total{status="^4..$"}` or `rate(sum(...))`
 * Show documentation of functions on hover
-
-## How could this be implemented
-* There exist various implementation of LSP. 
