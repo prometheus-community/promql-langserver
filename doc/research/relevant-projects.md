@@ -4,7 +4,7 @@
 ## LSP implementations written in go
 
 * [gopls](https://github.com/golang/tools/tree/master/internal/lsp), for go, Written by the Go Team itself.
-* [sourcegraph-go](https://github.com/sourcegraph/go-langserver), for go,
+* [sourcegraph-go](https://github.com/sourcegraph/go-langserver), for go, _deprecated in favor of gopls_
 * [terraform-lsp](https://github.com/juliosueiras/terraform-lsp), for terraform, based on sourcegraph-go, still experimental
 
 ## LSP implentations for query languages
