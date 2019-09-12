@@ -68,7 +68,7 @@ Notify the server about File Changes. Mandatory to be able to inspect the conten
 
 Send Errors and Warnings to the Client. These are used to show syntax errors and linting. The linter warns about common errors such as `rate(sum(...))` or `http_requests_total{status="^5..$"}`.
 
-#### Language Capabilties: _some!_
+#### Language Capabilities: _some!_
 
 The core part of the language server. Some of these, e.g. Go to (definition|typeDefinition|declaration|implementation), renaming and folding are not useful for PromQL itself. Implemented are:
 
@@ -94,7 +94,7 @@ There isn't that much formatting changes that could be done, other than ensuring
 
 ### JSON-RPC
 
-The LSP Protocol is based on the [JSON-RPC 2.0 Protocol ](https://www.jsonrpc.org/specification). The transport layer is not specified by the protocol. For IDEs it's usually stdin/stdout, over a Network it could be HTTP. Thus the JSON-RPC implementation used by PromQL should abstract over the transport layer.
+The LSP Protocol is based on the [JSON-RPC 2.0 Protocol](https://www.jsonrpc.org/specification). The transport layer is not specified by the protocol. For IDEs it's usually stdin/stdout, over a Network it could be HTTP. Thus the JSON-RPC implementation used by PromQL should abstract over the transport layer.
 
 ## Open Questions
 
