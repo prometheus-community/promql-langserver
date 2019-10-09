@@ -2,6 +2,8 @@ package langserver
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
@@ -12,8 +14,25 @@ type Server struct {
 	client protocol.Client
 }
 
+func (s *Server) Run(ctx context.Context) error {
+	return s.Conn.Run(ctx)
+}
+
+func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Context, *Server) {
+	s := &Server{}
+	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
+	return ctx, s
+}
+
+func StdioServer(ctx context.Context) (context.Context, *Server) {
+	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
+	return ServerFromStream(ctx, stream)
+}
+
 func notImplemented(method string) *jsonrpc2.Error {
-	return jsonrpc2.NewErrorf(jsonrpc2.CodeMethodNotFound, "method %q no yet implemented", method)
+	err := jsonrpc2.NewErrorf(jsonrpc2.CodeMethodNotFound, "method %q no yet implemented", method)
+	fmt.Fprint(os.Stderr, err.Error())
+	return err
 }
 func (s *Server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidChangeWorkspaceFoldersParams) error {
 	return notImplemented("DidChangeWorkspaceFolders")
