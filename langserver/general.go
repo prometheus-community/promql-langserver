@@ -18,10 +18,6 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 	s.state = serverInitializing
 	s.stateMu.Unlock()
 
-	s.stateMu.Lock()
-	s.state = serverInitialized
-	s.stateMu.Unlock()
-
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
 			TextDocumentSync: nil,
@@ -95,4 +91,12 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 		},
 	}, nil
 
+}
+
+func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) error {
+	s.stateMu.Lock()
+	s.state = serverInitialized
+	s.stateMu.Unlock()
+
+	return nil
 }

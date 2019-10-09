@@ -39,6 +39,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Cont
 
 func StdioServer(ctx context.Context) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
+	stream = protocol.LoggingStream(stream, os.Stderr)
 	return ServerFromStream(ctx, stream)
 }
 
@@ -49,10 +50,6 @@ func notImplemented(method string) *jsonrpc2.Error {
 }
 func (s *Server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidChangeWorkspaceFoldersParams) error {
 	return notImplemented("DidChangeWorkspaceFolders")
-}
-
-func (s *Server) Initialized(_ context.Context, _ *protocol.InitializedParams) error {
-	return notImplemented("Initialized")
 }
 
 func (s *Server) Exit(_ context.Context) error {
