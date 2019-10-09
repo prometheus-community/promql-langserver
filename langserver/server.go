@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
@@ -12,7 +13,19 @@ import (
 type Server struct {
 	Conn   *jsonrpc2.Conn
 	client protocol.Client
+
+	state   serverState
+	stateMu sync.Mutex
 }
+
+type serverState int
+
+const (
+	serverCreated      = serverState(iota)
+	serverInitializing // set once the server has received "initialize" request
+	serverInitialized  // set once the server has received "initialized" request
+	serverShutDown
+)
 
 func (s *Server) Run(ctx context.Context) error {
 	return s.Conn.Run(ctx)
@@ -112,10 +125,6 @@ func (s *Server) Declaration(_ context.Context, _ *protocol.DeclarationParams) (
 
 func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
 	return nil, notImplemented("SelectionRange")
-}
-
-func (s *Server) Initialize(_ context.Context, _ *protocol.ParamInitia) (*protocol.InitializeResult, error) {
-	return nil, notImplemented("Initialize")
 }
 
 func (s *Server) Shutdown(_ context.Context) error {
