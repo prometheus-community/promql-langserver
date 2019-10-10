@@ -15,28 +15,21 @@ import (
 const maxDocumentSize = 1000000
 
 type documentCache struct {
-	fileSet           *token.FileSet
-	freePositionAreas chan positionArea
+	fileSet *token.FileSet
 
 	documents   map[protocol.DocumentURI]*document
 	documentsMu sync.RWMutex
 }
 
-type positionArea struct {
-	base int
-	size int
-}
-
 type document struct {
 	posData *token.File
 	doc     *protocol.TextDocumentItem
+	docMu   sync.RWMutex
 }
 
 // Initializes a document cache
 func (c *documentCache) init() {
 	c.fileSet = token.NewFileSet()
-	c.freePositionAreas = make(chan positionArea)
-
 	c.documentsMu.Lock()
 	c.documents = make(map[protocol.DocumentURI]*document)
 	c.documentsMu.Unlock()
@@ -44,20 +37,8 @@ func (c *documentCache) init() {
 
 // Add a document to the cache
 func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) {
-	var base int
-	var size int
-
-	select {
-	case free := <-c.freePositionAreas:
-		base = free.base
-		size = free.size
-	default:
-		base = -1
-		size = maxDocumentSize
-	}
-
 	// TODO (slrtbtfs): Catch panic if the fileSet runs out of position space, i.e. to many files are open at once
-	file := c.fileSet.AddFile(doc.URI, base, size)
+	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
 
 	c.documentsMu.Lock()
 	c.documents[doc.URI] = &document{
@@ -76,14 +57,8 @@ func (c *documentCache) getDocument(uri protocol.DocumentUri) *document {
 
 // Remove a document from the cache
 func (c *documentCache) removeDocument(uri protocol.DocumentURI) {
-	doc := c.getDocument(uri)
-
 	c.documentsMu.Lock()
 	delete(c.documents, uri)
 	c.documentsMu.Unlock()
 
-	c.freePositionAreas <- positionArea{
-		base: doc.posData.Base(),
-		size: doc.posData.Size(),
-	}
 }
