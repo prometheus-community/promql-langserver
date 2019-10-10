@@ -2,6 +2,7 @@ package langserver
 
 import (
 	"context"
+	"os"
 
 	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
@@ -88,5 +89,25 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 	s.state = serverInitialized
 	s.stateMu.Unlock()
 
+	return nil
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.stateMu.Lock()
+	defer s.stateMu.Unlock()
+	if s.state < serverInitialized {
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not initialized")
+	}
+
+	s.state = serverShutDown
+	return nil
+}
+func (s *Server) Exit(ctx context.Context) error {
+	s.stateMu.Lock()
+	defer s.stateMu.Unlock()
+	if s.state != serverShutDown {
+		os.Exit(1)
+	}
+	os.Exit(0)
 	return nil
 }

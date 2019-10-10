@@ -52,10 +52,6 @@ func (s *Server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidCha
 	return notImplemented("DidChangeWorkspaceFolders")
 }
 
-func (s *Server) Exit(_ context.Context) error {
-	return notImplemented("Exit")
-}
-
 func (s *Server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChangeConfigurationParams) error {
 	return notImplemented("DidChangeConfiguration")
 }
@@ -122,10 +118,6 @@ func (s *Server) Declaration(_ context.Context, _ *protocol.DeclarationParams) (
 
 func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
 	return nil, notImplemented("SelectionRange")
-}
-
-func (s *Server) Shutdown(_ context.Context) error {
-	return notImplemented("Shutdown")
 }
 
 func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDocumentParams) ([]protocol.TextEdit, error) {
