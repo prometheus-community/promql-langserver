@@ -54,13 +54,8 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 				FirstTriggerCharacter: "",
 				MoreTriggerCharacter:  nil,
 			},
-			RenameProvider: nil,
-			DocumentLinkProvider: &protocol.DocumentLinkOptions{
-				ResolveProvider: false,
-				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
-					WorkDoneProgress: false,
-				},
-			},
+			RenameProvider:       nil,
+			DocumentLinkProvider: nil,
 			ExecuteCommandProvider: &protocol.ExecuteCommandOptions{
 				Commands: nil,
 				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
