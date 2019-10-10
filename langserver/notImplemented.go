@@ -22,16 +22,8 @@ func (s *Server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChange
 	return notImplemented("DidChangeConfiguration")
 }
 
-func (s *Server) DidOpen(_ context.Context, _ *protocol.DidOpenTextDocumentParams) error {
-	return notImplemented("DidOpen")
-}
-
 func (s *Server) DidChange(_ context.Context, _ *protocol.DidChangeTextDocumentParams) error {
 	return notImplemented("DidChange")
-}
-
-func (s *Server) DidClose(_ context.Context, _ *protocol.DidCloseTextDocumentParams) error {
-	return notImplemented("DidClose")
 }
 
 func (s *Server) DidSave(_ context.Context, _ *protocol.DidSaveTextDocumentParams) error {

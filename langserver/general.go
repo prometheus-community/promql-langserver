@@ -23,8 +23,10 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
-			TextDocumentSync: nil,
-			HoverProvider:    false,
+			TextDocumentSync: &protocol.TextDocumentSyncOptions{
+				OpenClose: true,
+			},
+			HoverProvider: false,
 			CompletionProvider: &protocol.CompletionOptions{
 				TriggerCharacters:   nil,
 				AllCommitCharacters: nil,
