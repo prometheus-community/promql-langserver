@@ -15,6 +15,8 @@ type Server struct {
 
 	state   serverState
 	stateMu sync.Mutex
+
+	cache documentCache
 }
 
 type serverState int

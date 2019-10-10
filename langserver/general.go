@@ -19,6 +19,8 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 	s.state = serverInitializing
 	s.stateMu.Unlock()
 
+	s.cache.init()
+
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
 			TextDocumentSync: nil,
