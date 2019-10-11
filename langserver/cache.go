@@ -4,6 +4,7 @@ import (
 	"go/token"
 	"sync"
 
+	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 )
 
@@ -24,7 +25,7 @@ type documentCache struct {
 type document struct {
 	posData *token.File
 	doc     *protocol.TextDocumentItem
-	docMu   sync.RWMutex
+	Mu      sync.RWMutex
 }
 
 // Initializes a document cache
@@ -36,9 +37,21 @@ func (c *documentCache) init() {
 }
 
 // Add a document to the cache
-func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) {
-	// TODO (slrtbtfs): Catch panic if the fileSet runs out of position space, i.e. to many files are open at once
+func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) error {
+	if len(doc.Text) > maxDocumentSize {
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided document to large.")
+	}
+
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
+	if r := recover(); r != nil {
+		var ok bool
+		_, ok = r.(error)
+		if !ok {
+			return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", r)
+		}
+	}
+
+	file.SetLinesForContent([]byte(doc.Text))
 
 	c.documentsMu.Lock()
 	c.documents[doc.URI] = &document{
@@ -46,19 +59,24 @@ func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) {
 		doc:     doc,
 	}
 	c.documentsMu.Unlock()
+	return nil
 }
 
-func (c *documentCache) getDocument(uri protocol.DocumentUri) *document {
+// retrieve a document from the cache
+func (c *documentCache) getDocument(uri protocol.DocumentUri) (*document, error) {
 	c.documentsMu.RLock()
-	ret := c.documents[uri]
+	ret, ok := c.documents[uri]
 	c.documentsMu.RUnlock()
-	return ret
+	if !ok {
+		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
+	}
+	return ret, nil
 }
 
 // Remove a document from the cache
-func (c *documentCache) removeDocument(uri protocol.DocumentURI) {
+func (c *documentCache) removeDocument(uri protocol.DocumentURI) error {
 	c.documentsMu.Lock()
 	delete(c.documents, uri)
 	c.documentsMu.Unlock()
-
+	return nil
 }

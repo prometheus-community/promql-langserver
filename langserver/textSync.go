@@ -7,11 +7,9 @@ import (
 )
 
 func (s *Server) DidOpen(_ context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	s.cache.addDocument(&params.TextDocument)
-	return nil
+	return s.cache.addDocument(&params.TextDocument)
 }
 
 func (s *Server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
-	s.cache.removeDocument(params.TextDocument.URI)
-	return nil
+	return s.cache.removeDocument(params.TextDocument.URI)
 }
