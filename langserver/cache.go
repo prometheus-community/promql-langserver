@@ -108,7 +108,7 @@ func (d *document) setContent(content string, version float64) error {
 }
 
 // Retrive the Content of a Document
-func (d *document) getContent(content string) string {
+func (d *document) getContent() string {
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()
 	return d.doc.Text

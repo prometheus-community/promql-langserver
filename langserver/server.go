@@ -42,7 +42,7 @@ type serverState int
 
 const (
 	serverCreated      = serverState(iota)
-}
+	serverInitializing
 	serverInitialized  // set once the server has received "initialized" request
 	serverShutDown
 )

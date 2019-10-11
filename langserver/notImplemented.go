@@ -35,10 +35,6 @@ func (s *Server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChange
 	return notImplemented("DidChangeConfiguration")
 }
 
-func (s *Server) DidChange(_ context.Context, _ *protocol.DidChangeTextDocumentParams) error {
-	return notImplemented("DidChange")
-}
-
 func (s *Server) DidSave(_ context.Context, _ *protocol.DidSaveTextDocumentParams) error {
 	return notImplemented("DidSave")
 }

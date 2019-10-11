@@ -38,16 +38,11 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 		Capabilities: protocol.ServerCapabilities{
 			TextDocumentSync: &protocol.TextDocumentSyncOptions{
 				OpenClose: true,
+				// Support incremental changes
+				Change: 2, 
 			},
 			HoverProvider: false,
-			CompletionProvider: &protocol.CompletionOptions{
-				TriggerCharacters:   nil,
-				AllCommitCharacters: nil,
-				ResolveProvider:     false,
-				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
-					WorkDoneProgress: false,
-				},
-			},
+			CompletionProvider: nil,
 			SignatureHelpProvider: &protocol.SignatureHelpOptions{
 				TriggerCharacters: nil,
 				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
