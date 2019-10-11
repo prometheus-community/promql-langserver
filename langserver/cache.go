@@ -93,3 +93,23 @@ func (c *documentCache) removeDocument(uri protocol.DocumentURI) error {
 	c.documentsMu.Unlock()
 	return nil
 }
+
+// Set the content after an update send by the client. Must increase the version number
+func (d *document) setContent(content string, version float64) error {
+	d.Mu.Lock()
+	defer d.Mu.Unlock()
+	if version <= d.doc.Version {
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
+	}
+	d.doc.Text = content
+	d.doc.Version = version
+	d.posData.SetLinesForContent([]byte(content))
+	return nil
+}
+
+// Retrive the Content of a Document
+func (d *document) getContent(content string) string {
+	d.Mu.RLock()
+	defer d.Mu.RUnlock()
+	return d.doc.Text
+}
