@@ -17,6 +17,7 @@ import (
 	"context"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
+	"github.com/slrtbtfs/go-tools-vendored/span"
 	"github.com/slrtbtfs/prometheus/promql"
 )
 
@@ -25,6 +26,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 	//defer done()
 	doc.Mu.RLock()
 	uri := doc.doc.URI
+	// TODO deep copy to avoid data races
 	file := doc.posData
 	content := doc.doc.Text
 	version := doc.doc.Version
@@ -48,8 +50,16 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 			if !ok {
 				return
 			}
-			line := parseErr.Position.Line - 1
+			line := parseErr.Position.Line
 			char := parseErr.Position.Column - 1
+
+			// Convert to the Postions as described in the LSP Spec
+			point := span.NewPoint(line, char, int(file.LineStart(line)))
+			char, err = span.ToUTF16Column(point, []byte(content))
+			if err != nil {
+				return
+			}
+			line = line - 1
 
 			message := protocol.Diagnostic{
 				Range: protocol.Range{
