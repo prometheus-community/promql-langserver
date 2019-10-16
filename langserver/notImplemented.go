@@ -32,7 +32,9 @@ func (s *Server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidCha
 }
 
 func (s *Server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChangeConfigurationParams) error {
-	return notImplemented("DidChangeConfiguration")
+	//return notImplemented("DidChangeConfiguration")
+	// For ycmd
+	return nil
 }
 
 func (s *Server) DidSave(_ context.Context, _ *protocol.DidSaveTextDocumentParams) error {
@@ -92,7 +94,13 @@ func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDo
 }
 
 func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	return nil, notImplemented("Completion")
+	//	return nil, notImplemented("Completion")
+	// For ycmd
+	return &protocol.CompletionList{
+		IsIncomplete: true,
+		Items:        nil,
+	}, nil
+
 }
 
 func (s *Server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protocol.CompletionItem, error) {

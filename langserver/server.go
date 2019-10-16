@@ -46,8 +46,8 @@ const (
 	serverShutDown
 )
 
-func (s *Server) Run(ctx context.Context) error {
-	return s.Conn.Run(ctx)
+func (s *Server) Run(_ context.Context) error {
+	return s.Conn.Run(context.Background())
 }
 
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Context, *Server) {
