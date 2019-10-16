@@ -60,6 +60,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 				return
 			}
 			line = line - 1
+			char = char - 1
 
 			message := protocol.Diagnostic{
 				Range: protocol.Range{
