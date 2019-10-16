@@ -29,49 +29,50 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 	content := doc.doc.Text
 	version := doc.doc.Version
 	doc.Mu.RUnlock()
+	var diagnostics *protocol.PublishDiagnosticsParams
 	switch doc.doc.LanguageID {
 	case "promql":
 		_, err := promql.ParseFile(content, file)
 
 		// Everything is fine
 		if err == nil {
-			return
-		}
+			diagnostics = &protocol.PublishDiagnosticsParams{
+				URI:         uri,
+				Version:     version,
+				Diagnostics: []protocol.Diagnostic{},
+			}
+		} else {
+			parseErr, ok := err.(*promql.ParseErr)
 
-		s.client.ShowMessage(ctx, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
-			Message: "Found Error",
-		})
-		parseErr, ok := err.(*promql.ParseErr)
+			// TODO (slrtbtfs) Maybe give some more feedback here
+			if !ok {
+				return
+			}
+			line := parseErr.Position.Line - 1
+			char := parseErr.Position.Column - 1
 
-		// TODO (slrtbtfs) Maybe give some more feedback here
-		if !ok {
-			return
-		}
-		line := parseErr.Position.Line - 1
-		char := parseErr.Position.Column - 1
-
-		message := protocol.Diagnostic{
-			Range: protocol.Range{
-				Start: protocol.Position{
-					Line:      float64(line),
-					Character: float64(char),
+			message := protocol.Diagnostic{
+				Range: protocol.Range{
+					Start: protocol.Position{
+						Line:      float64(line),
+						Character: float64(char),
+					},
+					End: protocol.Position{
+						Line:      float64(line) + 1,
+						Character: 0,
+					},
 				},
-				End: protocol.Position{
-					Line:      float64(line) + 1,
-					Character: 0,
-				},
-			},
-			Severity: 1, // Error
-			Source:   "promql-lsp",
-			Message:  parseErr.Err.Error(),
-			Code:     "promql-parseerr",
-			//Tags:    []protocol.DiagnosticTag{},
-		}
-		diagnostics := &protocol.PublishDiagnosticsParams{
-			URI:         uri,
-			Version:     version,
-			Diagnostics: []protocol.Diagnostic{message},
+				Severity: 1, // Error
+				Source:   "promql-lsp",
+				Message:  parseErr.Err.Error(),
+				Code:     "promql-parseerr",
+				//Tags:    []protocol.DiagnosticTag{},
+			}
+			diagnostics = &protocol.PublishDiagnosticsParams{
+				URI:         uri,
+				Version:     version,
+				Diagnostics: []protocol.Diagnostic{message},
+			}
 		}
 		doc.Mu.RLock()
 		newVersion := doc.doc.Version
