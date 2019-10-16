@@ -1,7 +1,23 @@
 package langserver
 
 import (
-	_ "github.com/slrtbtfs/prometheus/promql"
+	"go/token"
+
+	"github.com/slrtbtfs/prometheus/promql"
 )
 
-func Stub() {}
+func getSmallestSourroundingNode(ast promql.Node, pos token.Pos) promql.Node {
+	ret := ast
+BIG_LOOP:
+	for {
+		for _, child := range ret.Childs() {
+			if child.Pos() <= pos && child.EndPos() > pos {
+				ret = child
+				continue BIG_LOOP
+			}
+		}
+		break
+	}
+
+	return ret
+}
