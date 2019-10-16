@@ -23,8 +23,8 @@ import (
 
 // We need this so we can reserve a certain position range in the FileSet
 // for each document.
-// Anything that is larger than 1MB probably is an attempt to bring down the Server anyways
-// The bad thing is, that it adds an 2000 file limit (no of open files per connection)
+// Anything that is larger than 1MB would probably not work with reasonable performance anyway
+// The bad thing is, that it adds an 2000 file limit (no of files per connection)
 // on 32bit systems
 const maxDocumentSize = 1000000
 
