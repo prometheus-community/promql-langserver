@@ -107,10 +107,6 @@ func (s *Server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protoc
 	return nil, notImplemented("Resolve")
 }
 
-func (s *Server) Hover(_ context.Context, _ *protocol.HoverParams) (*protocol.Hover, error) {
-	return nil, notImplemented("Hover")
-}
-
 func (s *Server) SignatureHelp(_ context.Context, _ *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	return nil, notImplemented("SignatureHelp")
 }
