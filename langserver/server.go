@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // This File includes code from the go/tools project which is governed by the following license:
 // Copyright 2019 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -41,9 +40,9 @@ type Server struct {
 type serverState int
 
 const (
-	serverCreated      = serverState(iota)
+	serverCreated = serverState(iota)
 	serverInitializing
-	serverInitialized  // set once the server has received "initialized" request
+	serverInitialized // set once the server has received "initialized" request
 	serverShutDown
 )
 

@@ -50,9 +50,9 @@ func (c *documentCache) init() {
 }
 
 // Add a document to the cache
-func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) error {
+func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) (*document, error) {
 	if len(doc.Text) > maxDocumentSize {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided document to large.")
+		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided document to large.")
 	}
 
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
@@ -60,19 +60,20 @@ func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) error {
 		var ok bool
 		_, ok = r.(error)
 		if !ok {
-			return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", r)
+			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", r)
 		}
 	}
 
 	file.SetLinesForContent([]byte(doc.Text))
 
-	c.documentsMu.Lock()
-	c.documents[doc.URI] = &document{
+	docu := &document{
 		posData: file,
 		doc:     doc,
 	}
+	c.documentsMu.Lock()
+	c.documents[doc.URI] = docu
 	c.documentsMu.Unlock()
-	return nil
+	return docu, nil
 }
 
 // retrieve a document from the cache

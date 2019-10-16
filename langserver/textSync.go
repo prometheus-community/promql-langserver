@@ -21,16 +21,20 @@ package langserver
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/go-tools-vendored/span"
 )
 
-func (s *Server) DidOpen(_ context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	return s.cache.addDocument(&params.TextDocument)
+func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
+	doc, err := s.cache.addDocument(&params.TextDocument)
+	if err != nil {
+		return err
+	}
+
+	go s.diagnostics(ctx, doc)
+	return nil
 }
 
 func (s *Server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
@@ -68,7 +72,7 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 		return err
 	}
 
-	// TODO (slrtbtfs) Run diagnostics
+	go s.diagnostics(ctx, doc)
 	return nil
 }
 func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool) {
@@ -115,7 +119,7 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 		buf.WriteString(change.Text)
 		buf.Write(content[end:])
 		content = buf.Bytes()
-		fmt.Fprintf(os.Stderr, string(content))
+		//fmt.Fprintf(os.Stderr, string(content))
 	}
 	return string(content), nil
 }

@@ -41,7 +41,7 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 				// Support incremental changes
 				Change: 2, 
 			},
-			HoverProvider: false,
+			HoverProvider:      false,
 			CompletionProvider: nil,
 			SignatureHelpProvider: &protocol.SignatureHelpOptions{
 				TriggerCharacters: nil,
