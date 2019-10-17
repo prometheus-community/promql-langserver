@@ -116,6 +116,21 @@ func (doc *document) positionToProtocolPostion(version float64, pos token.Positi
 		Character: float64(char),
 	}, true
 }
+func (doc *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+	doc.Mu.RLock()
+	defer doc.Mu.RUnlock()
+	// protocol.Position is 0 based
+	line := int(pos.Line) + 1
+	char := int(pos.Character)
+	point := span.NewPoint(line, 1, int(doc.posData.LineStart(line)))
+	point, err := span.FromUTF16Column(point, char, []byte(doc.doc.Text))
+	if err != nil {
+		return token.NoPos, err
+	}
+	char = point.Column()
+	return doc.posData.LineStart(line) + token.Pos(char), nil
+
+}
 
 func endOfLine(p protocol.Position) protocol.Position {
 	return protocol.Position{
