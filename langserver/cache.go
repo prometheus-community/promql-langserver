@@ -19,6 +19,7 @@ import (
 
 	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
+	"github.com/slrtbtfs/prometheus/promql"
 )
 
 // We need this so we can reserve a certain position range in the FileSet
@@ -39,6 +40,17 @@ type document struct {
 	posData *token.File
 	doc     *protocol.TextDocumentItem
 	Mu      sync.RWMutex
+
+	compileResult compileResult
+
+	// Wait for this before accessing  compileResults
+	compilers sync.WaitGroup
+}
+
+// TODO make this more generic
+type compileResult struct {
+	ast promql.Node
+	err *promql.ParseErr
 }
 
 // Initializes a document cache

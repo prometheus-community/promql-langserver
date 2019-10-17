@@ -32,9 +32,9 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 	if err != nil {
 		return err
 	}
-
+	doc.compilers.Add(1)
 	go s.diagnostics(context.Background(), doc)
-	return nil
+	return err
 }
 
 func (s *Server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
@@ -71,8 +71,9 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	if err != nil {
 		return err
 	}
-
+	doc.compilers.Add(1)
 	go s.diagnostics(context.Background(), doc)
+
 	return nil
 }
 func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool) {

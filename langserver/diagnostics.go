@@ -15,6 +15,7 @@ package langserver
 
 import (
 	"context"
+	"go/token"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/go-tools-vendored/span"
@@ -22,11 +23,8 @@ import (
 )
 
 func (s *Server) diagnostics(ctx context.Context, doc *document) {
-	//	ctx, done := trace.StartSpan(ctx, "lsp:background-worker")
-	//defer done()
 	doc.Mu.RLock()
 	uri := doc.doc.URI
-	// TODO deep copy to avoid data races
 	file := doc.posData
 	content := doc.doc.Text
 	version := doc.doc.Version
@@ -34,44 +32,40 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 	var diagnostics *protocol.PublishDiagnosticsParams
 	switch doc.doc.LanguageID {
 	case "promql":
-		_, err := promql.ParseFile(content, file)
+		ast, err := promql.ParseFile(content, file)
 
-		// Everything is fine
-		if err == nil {
-			diagnostics = &protocol.PublishDiagnosticsParams{
-				URI:         uri,
-				Version:     version,
-				Diagnostics: []protocol.Diagnostic{},
-			}
-		} else {
-			parseErr, ok := err.(*promql.ParseErr)
-
+		var parseErr *promql.ParseErr = nil
+		var ok bool
+		if err != nil {
+			parseErr, ok = err.(*promql.ParseErr)
 			// TODO (slrtbtfs) Maybe give some more feedback here
 			if !ok {
 				return
 			}
-			line := parseErr.Position.Line
-			char := parseErr.Position.Column - 1
+		}
 
-			// Convert to the Postions as described in the LSP Spec
-			point := span.NewPoint(line, char, int(file.LineStart(line)))
-			char, err = span.ToUTF16Column(point, []byte(content))
-			if err != nil {
+		recent := doc.updateCompileData(version, ast, parseErr)
+		if !recent {
+			return
+		}
+
+		// Everything is fine
+		diagnostics = &protocol.PublishDiagnosticsParams{
+			URI:         uri,
+			Version:     version,
+			Diagnostics: []protocol.Diagnostic{},
+		}
+		if err != nil {
+			var pos protocol.Position
+			pos, ok = doc.positionToProtocolPostion(version, parseErr.Position)
+			if !ok {
 				return
 			}
-			line = line - 1
-			char = char - 1
 
 			message := protocol.Diagnostic{
 				Range: protocol.Range{
-					Start: protocol.Position{
-						Line:      float64(line),
-						Character: float64(char),
-					},
-					End: protocol.Position{
-						Line:      float64(line) + 1,
-						Character: 0,
-					},
+					Start: pos,
+					End:   endOfLine(pos),
 				},
 				Severity: 1, // Error
 				Source:   "promql-lsp",
@@ -79,21 +73,53 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 				Code:     "promql-parseerr",
 				//Tags:    []protocol.DiagnosticTag{},
 			}
-			diagnostics = &protocol.PublishDiagnosticsParams{
-				URI:         uri,
-				Version:     version,
-				Diagnostics: []protocol.Diagnostic{message},
-			}
-		}
-		doc.Mu.RLock()
-		newVersion := doc.doc.Version
-		doc.Mu.RUnlock()
-		// There is no point in publishing our diagnostics if they are already outdated
-		if newVersion > version {
-			return
+			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
 		}
 		s.client.PublishDiagnostics(ctx, diagnostics)
-
+	default:
+		doc.updateCompileData(version, nil, nil)
 	}
 
+}
+
+// Updates the compilation Results of a document. Returns true if the Results were still recent
+func (doc *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
+	doc.Mu.Lock()
+	defer doc.Mu.Unlock()
+	defer doc.compilers.Done()
+	if doc.doc.Version > version {
+		return false
+	}
+	doc.compileResult = compileResult{ast, err}
+	return true
+}
+
+func (doc *document) positionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
+	doc.Mu.RLock()
+	defer doc.Mu.RUnlock()
+	if doc.doc.Version > version {
+		return protocol.Position{}, false
+	}
+	line := pos.Line
+	char := pos.Column
+	// Convert to the Postions as described in the LSP Spec
+	point := span.NewPoint(line, char, int(doc.posData.LineStart(line)))
+	var err error
+	char, err = span.ToUTF16Column(point, []byte(doc.doc.Text))
+	char = char - 1
+	if err != nil {
+		return protocol.Position{}, false
+	}
+	line = line - 1
+	return protocol.Position{
+		Line:      float64(line),
+		Character: float64(char),
+	}, true
+}
+
+func endOfLine(p protocol.Position) protocol.Position {
+	return protocol.Position{
+		Line:      p.Line + 1,
+		Character: 0,
+	}
 }
