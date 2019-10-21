@@ -15,5 +15,4 @@ clean:
 statik: $(patsubst %, %-statik/statik.go, $(STATIK_SRCS))
 
 %-statik/statik.go: $(wildcard %/*)
-	echo $*
 	statik -src "$*" -dest "$*-statik" -p $(notdir b$*-statik) -f
