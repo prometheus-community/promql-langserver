@@ -22,7 +22,7 @@
 
 * identified issue preventing requests from being sent successfully: request context was cancelled prematurely
 * can now successfully send error messages to client and display them in VSCode
-* will use go-bindata or statyk to compile documentation strings into the binary
+* will use go-bindata or statik to compile documentation strings into the binary
 * have working example of `label_replace` hover text
 * VSCode's monaco is >2mb minified, may need to find alternative language client implementation for Prometheus frontend
 
