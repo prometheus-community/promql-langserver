@@ -9,10 +9,11 @@ build: statik
 
 .PHONY: clean
 clean: 
-	git clean -f .
+	rm -f $(patsubst %, %-statik/statik.go, $(STATIK_SRCS))
+	rm -f $(patsubst cmd/%.go, %, $(wildcard cmd/*))
 
 .PHONY: statik
 statik: $(patsubst %, %-statik/statik.go, $(STATIK_SRCS))
 
 %-statik/statik.go: $(wildcard %/*)
-	statik -src "$*" -dest $(dir $*) -p $(notdir b$*-statik) -f
+	statik -src "$*" -dest $(dir $*) -p $(notdir $*-statik) -f
