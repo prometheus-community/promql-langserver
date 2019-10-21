@@ -4,11 +4,27 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"strings"
 
+	"github.com/rakyll/statik/fs"
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
+
+	// Do not remove! Side effects of init() needed
+	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
 )
+
+var functionDocumentationFS http.FileSystem
+
+func init() {
+	var err error
+	functionDocumentationFS, err = fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	doc, err := s.cache.getDocument(params.TextDocumentPositionParams.TextDocument.URI)
@@ -53,8 +69,12 @@ func nodeToDocMarkdown(node promql.Node) string {
 	var call *promql.Call
 	call, ok = node.(*promql.Call)
 	if ok {
-		doc := funcDocStrings(strings.ToLower(call.Func.Name))
+		doc := funcDocStrings(call.Func.Name)
 		_, err := ret.WriteString(doc)
+		if err != nil {
+			return ""
+		}
+		err = ret.WriteByte('\n')
 		if err != nil {
 			return ""
 		}
@@ -63,17 +83,20 @@ func nodeToDocMarkdown(node promql.Node) string {
 }
 
 func funcDocStrings(name string) string {
-	// TODO
-	/*
-		matcher = regexp.MustCompile("^## `"+name+"(?m).*?^##")
-		file :=
-		documentation = string(ioutil.Read)
-	*/
-	//stub
-	if name == "label_replace" {
-		return "## `label_replace()`\n\nFor each timeseries in `v`, `label_replace(v instant-vector, dst_label string,\nreplacement string, src_label string, regex string)` matches the regular\nexpression `regex` against the label `src_label`.  If it matches, then the\ntimeseries is returned with the label `dst_label` replaced by the expansion of\n`replacement`. `$1` is replaced with the first matching subgroup, `$2` with the\nsecond etc. If the regular expression doesn't match then the timeseries is\nreturned unchanged.\n\nThis example will return a vector with each time series having a `foo`\nlabel with the value `a` added to it:\n\n```\nlabel_replace(up{job=\"api-server\",service=\"a:c\"}, \"foo\", \"$1\", \"service\", \"(.*):.*\")\n```\n"
-	} else {
+	name = strings.ToLower(name)
+	file, err := functionDocumentationFS.Open(fmt.Sprintf("/%s.md", name))
+	if err != nil {
 		return ""
 	}
-
+	defer file.Close()
+	stat, err := file.Stat()
+	if err != nil {
+		return ""
+	}
+	ret := make([]byte, stat.Size())
+	_, err = file.Read(ret)
+	if err != nil {
+		return ""
+	}
+	return string(ret)
 }
