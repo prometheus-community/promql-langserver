@@ -9,11 +9,11 @@ build: statik
 
 .PHONY: clean
 clean: 
-	rm -f $(patsubst %, %-statik/statik.go, $(STATIK_SRCS))
+	rm -f $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 	rm -f $(patsubst cmd/%.go, %, $(wildcard cmd/*))
 
 .PHONY: statik
-statik: $(patsubst %, %-statik/statik.go, $(STATIK_SRCS))
+statik: $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 
-%-statik/statik.go: $(wildcard %/*)
-	statik -src "$*" -dest $(dir $*) -p $(notdir $*-statik) -f
+%_statik/statik.go: $(wildcard %/*)
+	statik -src "$*" -dest $(dir $*) -p $(notdir $*_statik) -f
