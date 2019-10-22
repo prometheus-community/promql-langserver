@@ -2,6 +2,8 @@ package langserver
 
 import (
 	"go/token"
+	"os"
+	"fmt"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/go-tools-vendored/span"
@@ -16,14 +18,16 @@ func (doc *document) positionToProtocolPostion(version float64, pos token.Positi
 	line := pos.Line
 	char := pos.Column
 	// Convert to the Postions as described in the LSP Spec
-	point := span.NewPoint(line, char, int(doc.posData.LineStart(line)))
+	point := span.NewPoint(line, char, int(doc.posData.LineStart(line))+char-1)
 	var err error
 	char, err = span.ToUTF16Column(point, []byte(doc.doc.Text))
+	// Protocol has zero based positions
 	char = char - 1
+	line = line - 1
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		return protocol.Position{}, false
 	}
-	line = line - 1
 	return protocol.Position{
 		Line:      float64(line),
 		Character: float64(char),

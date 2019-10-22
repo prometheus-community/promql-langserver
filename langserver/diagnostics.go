@@ -15,6 +15,8 @@ package langserver
 
 import (
 	"context"
+	"os"
+	"fmt"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
@@ -57,6 +59,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 			var pos protocol.Position
 			pos, ok = doc.positionToProtocolPostion(version, parseErr.Position)
 			if !ok {
+				fmt.Fprintf(os.Stderr, "Conversion failed\n")
 				return
 			}
 
