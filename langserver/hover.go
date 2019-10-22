@@ -40,10 +40,13 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 	if err != nil {
 		return nil, err
 	}
-	node := getSmallestSourroundingNode(doc.compileResult.ast, pos)
 
-	markdown := nodeToDocMarkdown(node)
+	markdown := ""
+	if doc.compileResult.err == nil {
+		node := getSmallestSourroundingNode(doc.compileResult.ast, pos)
 
+		markdown = nodeToDocMarkdown(node)
+	}
 	if markdown != "" {
 		return &protocol.Hover{
 			Contents: protocol.MarkupContent{
