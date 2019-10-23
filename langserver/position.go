@@ -22,7 +22,7 @@ func (doc *document) positionToProtocolPostion(version float64, pos token.Positi
 	// Can happen when parsing empty files
 	if line < 1 {
 		return protocol.Position{
-			Line: 0,
+			Line:      0,
 			Character: 0,
 		}, true
 	}
