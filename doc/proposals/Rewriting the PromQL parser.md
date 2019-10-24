@@ -111,4 +111,27 @@ Given that features that are required for the language server, like handling of 
 
 ## How is the new parser supposed to look like?
 
+TL;DR: It's supposed to solve all the issues with the current parser that are mentioned above.
+
+### Basic design
+The new Parser will be kind of a state Machine which will gradually build up a syntax tree in the process. The state will look roughly like this:
+
+    type Parser struct {
+        // State of the lexer. Includes the current position in the source code
+        Lexer
+        // All the errors that have occurred so far. Might be more than one, if the first error was not fatal (e.g a Type Error)
+        Errors [] ParseErr
+        // Current position in the Syntax Tree as a path starting at the root
+        ASTPos []*Node
+    }
+
+For doing the actual parsing all recursive calls go to the same function
+
+    // Parses a (sub)expression and checks that is has one of the Types in expected.  
+    func (p *Parser) parse(expected []Type) {
+        for t := range expected
+
+
+    }
+
 ## How do we get there?
