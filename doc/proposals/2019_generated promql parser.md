@@ -76,7 +76,7 @@ Yacc relies on getting a stream of tokens from  a lexer. The new parser will kee
 
 The core part of the parser is a formal grammar of PromQL which is the input for the parser Generator.
 
-The grammar is able to recognize all valid PromQL Queries as well as incomplete Queries. A
+The grammar is able to recognize all valid PromQL Queries as well as incomplete Queries.
 
 As an example the part of the grammar recognizing an instant vector selector will look roughly like this:
 
