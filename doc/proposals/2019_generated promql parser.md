@@ -81,16 +81,16 @@ The grammar is able to recognize all valid PromQL Queries as well as incomplete 
 As an example the part of the grammar recognizing an instant vector selector will look roughly like this:
 
     selector:
-        metricIdentifier                          {$$ = VectorSelector(nil, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE          RBRACE   {$$ = VectorSelector(nil, $1, $2, nil, $4)}
-        metricIdentifier LBRACE matchers RBRACE   {$$ = VectorSelector(nil, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE matchers anything {$$ = VectorSelector([]ErrCodes{
+        metricIdentifier                          {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
+        metricIdentifier LBRACE          RBRACE   {$$ = newVectorSelector(nil, $1, $2, nil, $4)}
+        metricIdentifier LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
+        metricIdentifier LBRACE matchers anything {$$ = newVectorSelector([]ErrCodes{
                                                                             ErrNoClosingBrace,
                                                                         }, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE anything RBRACE   {$$ = VectorSelector([]ErrCodes{
+        metricIdentifier LBRACE anything RBRACE   {$$ = newVectorSelector([]ErrCodes{
                                                                             ErrWrongType,
                                                                         }, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE anything          {$$ = VectorSelector([]ErrCodes{
+        metricIdentifier LBRACE anything          {$$ = newVectorSelector([]ErrCodes{
                                                                             ErrNoClosingBrace,
                                                                             ErrWrongType,
                                                                         }, $1, $2, $3,  $4)}
