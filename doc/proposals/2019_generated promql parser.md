@@ -1,3 +1,10 @@
+---
+title: Replacing the PromQL Parser with a generated parser
+type: Proposal
+menu: proposals
+status: WIP
+owner: slrtbtfs
+---
 # Replacing the PromQL Parser with a generated parser
 
 ## Motivation
