@@ -9,7 +9,7 @@ owner: slrtbtfs
 
 ## Motivation
 
-The upcoming PromQl language Server (see [proposal](https://github.com/sl>rtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md)) it is necessary to analyze PromQL queries.
+The upcoming PromQL language Server (see [proposal](https://github.com/sl>rtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md)) it is necessary to analyze PromQL queries.
 
 For this it is intended to use the same PromQL parser as prometheus. To enable that use case, changes to the parser have been [proposed](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-parser-improvements.md). These mainly concern the _output_ of the parser and have already partly implemented.
 
