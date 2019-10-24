@@ -94,12 +94,14 @@ func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDo
 }
 
 func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	//	return nil, notImplemented("Completion")
+		return nil, notImplemented("Completion")
 	// For ycmd
+	/*
 	return &protocol.CompletionList{
 		IsIncomplete: true,
 		Items:        nil,
 	}, nil
+	*/
 
 }
 
