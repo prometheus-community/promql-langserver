@@ -15,7 +15,7 @@ For this it is intended to use the same PromQL parser as prometheus. To enable t
 
 This proposal is about replacing the _implementation_ of the parser. It has already been decided that the parser should be eventually replaced by a generated parser, which aligns with this proposal.
 
-### Problems with existing parser 
+### Problems with the existing parser 
 
 #### The Abstract Syntax Tree is too flat for syntax analysis
 
