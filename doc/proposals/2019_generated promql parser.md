@@ -123,16 +123,16 @@ All Syntax tree nodes satisfy the `Expr` interface which will at least implement
 
     type Expr interface {
         // A string representation
-        String() string
+        String()     string
         // Position
-        Pos() token.Pos
-        EndPos() token.Pos
+        Pos()        token.Pos
+        EndPos()     token.Pos
         // Errors in the respective subtree
-        Errors() []*ParseErr
+        Errors()     []*ParseErr
         // The Type of the Expr
-        Type() ExprType
+        Type()       ExprType
         // Simplifies the subtree to allow fast Evaluation by the PromQL engine
-        Simplify() *Expr
+        Simplify()   *Expr
         // Reports if the subtree is already simplified. If yes, the subtree is 
         // skipped by Simplify() for performance reasons
         Simplified() bool
