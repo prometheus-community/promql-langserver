@@ -83,10 +83,15 @@ As an example the part of the grammar recognizing an instant vector selector wil
     selector:
         IDENTIFIER                          {$$ = newVectorSelector(nil, $1}
       | IDENTIFIER LBRACE          RBRACE   {$$ = newVectorSelector(nil, $1, $2, nil, $3)}
-      | IDENTIFIER LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
+      | IDENTIFIER LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, nil, $1, $2, $3}
+      |            LBRACE          RBRACE   {$$ = newVectorSelector(nil, nil, $1, nil, $2)}
+      |            LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
       | IDENTIFIER LBRACE matchers anything {$$ = newVectorSelector([]ErrCodes{
                                                                             ErrNoClosingBrace,
                                                                         }, $1, $2, $3,  $4)}
+      |            LBRACE matchers anything {$$ = newVectorSelector([]ErrCodes{
+                                                                            ErrNoClosingBrace,
+                                                                        }, nil, $1, $2, $3)}
 
     matchers:
         matchers COMMA matcher              {$$ = newMatchers(nil, $1, $2, $3)}
