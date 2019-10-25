@@ -1,4 +1,3 @@
-
 ## `<aggregation>_over_time()`
 
 The following functions allow aggregating each series of a given range vector
