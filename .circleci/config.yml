@@ -8,6 +8,6 @@ jobs:
       - image: circleci/golang:1.13-node
     steps:
       - checkout
-      - run: go get go get github.com/rakyll/statik
+      - run: go get github.com/rakyll/statik
       - run: make
       
