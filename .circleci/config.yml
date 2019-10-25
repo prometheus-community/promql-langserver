@@ -5,7 +5,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      -image: circleci/golang:1.13-node
+      - image: circleci/golang:1.13-node
     steps:
       - checkout
       - run: go get go get github.com/rakyll/statik
