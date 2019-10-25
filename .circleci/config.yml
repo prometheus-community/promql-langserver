@@ -19,7 +19,7 @@ jobs:
     steps:
       - checkout
       - run: go get github.com/rakyll/statik
-      - run: apt-get install git
+      - run: sudo apt-get install git
       - run: make clean
       - run: make generated
       - run: "[[`git diff | wc -l` != 0 ]] && exit 1"
