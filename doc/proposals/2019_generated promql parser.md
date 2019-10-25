@@ -81,30 +81,37 @@ The grammar is able to recognize all valid PromQL Queries as well as incomplete 
 As an example the part of the grammar recognizing an instant vector selector will look roughly like this:
 
     selector:
-        metricIdentifier                          {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE          RBRACE   {$$ = newVectorSelector(nil, $1, $2, nil, $4)}
-        metricIdentifier LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE matchers anything {$$ = newVectorSelector([]ErrCodes{
+        IDENTIFIER                          {$$ = newVectorSelector(nil, $1}
+      | IDENTIFIER LBRACE          RBRACE   {$$ = newVectorSelector(nil, $1, $2, nil, $3)}
+      | IDENTIFIER LBRACE matchers RBRACE   {$$ = newVectorSelector(nil, $1, $2, $3,  $4)}
+      | IDENTIFIER LBRACE matchers anything {$$ = newVectorSelector([]ErrCodes{
                                                                             ErrNoClosingBrace,
-                                                                        }, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE anything RBRACE   {$$ = newVectorSelector([]ErrCodes{
-                                                                            ErrWrongType,
-                                                                        }, $1, $2, $3,  $4)}
-        metricIdentifier LBRACE anything          {$$ = newVectorSelector([]ErrCodes{
-                                                                            ErrNoClosingBrace,
-                                                                            ErrWrongType,
                                                                         }, $1, $2, $3,  $4)}
 
-    metricIdentifier:
-            IDENTIFIER                            {$$ = $1}
-        |   METRIC_IDENTIFIER                     {$$ = $1}
-    
     matchers:
-        ...
+        matchers COMMA matcher              {$$ = newMatchers(nil, $1, $2, $3)}
+      | matcher                             {$$ = newMatchers(nil, $1)}
+
+    matcher:
+        IDENTIFIER matchOp STRING           {$$ = newMatcher(nil, $1, $2, $3)}
+      | IDENTIFIER matchOp anything         {$$ = newMatcher([]ErrCodes{
+                                                                        ErrWrongType,
+                                                                }, $1, $2, $3)}
+      | IDENTIFIER anything                 {$$ = newMatcher([]ErrCodes{
+                                                                        ErrNoMatchOp,
+                                                                }, $1, $2, $3)}
+
+    matchOp:
+        EQ                                  {$$ = $1}
+      | NEQ                                 {$$ = $1}
+      | REGEQ                               {$$ = $1}
+      | REGNEQ                              {$$ = $1}
+
     
     anything:
         // All valid PromQL Syntax Elements
         ...
+        EOF
         error
 
 ### Building up the Abstract Syntax Tree (AST)
