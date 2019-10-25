@@ -12,5 +12,5 @@ jobs:
       - run: go get github.com/rakyll/statik
       - run: go get github.com/slrtbtfs/go-tools-vendored/...
       - run: go get github.com/slrtbtfs/prometheus/promql
-      - run: make
+      - run: go build cmd/
       
