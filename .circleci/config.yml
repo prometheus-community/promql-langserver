@@ -1,7 +1,6 @@
 ---
 version: 2.1
 
-
 jobs:
   build:
     docker:
@@ -12,8 +11,8 @@ jobs:
       - run: go get github.com/slrtbtfs/go-tools-vendored/...
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: go build cmd/
-      
-  build:
+
+  test_if_generated_files_in_sync:
     docker:
       - image: circleci/golang:1.13-node
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
@@ -22,5 +21,4 @@ jobs:
       - run: go get github.com/rakyll/statik
       - run: make clean
       - run: make generated
-      - run: '[[`git diff | wc -l` != 0 ]] && exit 1'
-
+      - run: "[[`git diff | wc -l` != 0 ]] && exit 1"
