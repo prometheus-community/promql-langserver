@@ -111,8 +111,8 @@ As an example the part of the grammar recognizing an instant vector selector wil
     anything:
         // All valid PromQL Syntax Elements
         ...
-        EOF
-        error
+      | EOF
+      | error
 
 ### Building up the Abstract Syntax Tree (AST)
 
