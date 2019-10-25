@@ -99,7 +99,7 @@ As an example the part of the grammar recognizing an instant vector selector wil
                                                                 }, $1, $2, $3)}
       | IDENTIFIER anything                 {$$ = newMatcher([]ErrCodes{
                                                                         ErrNoMatchOp,
-                                                                }, $1, $2, $3)}
+                                                                }, $1, $2)}
 
     matchOp:
         EQ                                  {$$ = $1}
