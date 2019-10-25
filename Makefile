@@ -10,6 +10,8 @@ BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES))
 
 all: build
 
+generated: $(STATIK_FILES)
+
 # Allows running things such as make <binary_name>
 $(BINARYS): build
 
