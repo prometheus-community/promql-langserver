@@ -13,7 +13,7 @@ jobs:
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: go build cmd/
       
-  generated_file_in_sync:
+  build:
     docker:
       - image: circleci/golang:1.13-node
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
