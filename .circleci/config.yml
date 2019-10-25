@@ -1,14 +1,13 @@
 ---
 version: 2.1
 
-executors:
-  golang:
-    docker:
-      -image: circleci/golang:1.13-node
+
 jobs:
   build:
-    executor: golang
+    docker:
+      -image: circleci/golang:1.13-node
     steps:
       - checkout
+      - run: go get go get github.com/rakyll/statik
       - run: make
       
