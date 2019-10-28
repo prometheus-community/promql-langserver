@@ -31,6 +31,10 @@ clean:
 fmt:
 	go fmt ./...
 
+.PHONY: test
+test:
+	go test ./langserver/...
+
 .PHONY: update_internal_packages
 update_internal_packages:
 	for dir in `ls -d vendored/*/`;                                           \

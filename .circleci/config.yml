@@ -12,6 +12,16 @@ jobs:
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: go build cmd/
 
+  test:
+    docker:
+      - image: circleci/golang:1.13-node
+    working_directory: /go/src/github.com/slrtbtfs/promql-lsp
+    steps:
+      - checkout
+      - run: go get github.com/slrtbtfs/go-tools-vendored/...
+      - run: go get github.com/slrtbtfs/prometheus/promql
+      - run: make test
+
   check_repo_consistency:
     docker:
       - image: circleci/golang:1.13-node
@@ -32,3 +42,4 @@ workflows:
     jobs:
       - check_repo_consistency
       - build
+      - test
