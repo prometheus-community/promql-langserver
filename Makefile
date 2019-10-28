@@ -44,8 +44,8 @@ update_internal_packages:
 	    echo "File cmd: " $$FCMD;                                             \
 	    DIRS=`cat vendored/$$NAME.dirs`;                                      \
 	    echo "Directories: " $$DIRS;                                          \
-	    VERSION=`cat vendored/$$NAME.version`                                 \
-	    echo "Version" $$VERSION;                                             \
+	    VERSION=`cat vendored/$$NAME.version`;                                \
+	    echo "Version: " $$VERSION;                                           \
 	    echo "Cleaning up";                                                   \
 	    rm -rf $$dir*;                                                        \
 	    TMPDIR=`mktemp -d`;                                                   \
