@@ -21,6 +21,8 @@ import (
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 )
 
+// Call from the Client to initialize the server
+// required by the protocol.Server interface
 func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
 	state := s.state
@@ -83,6 +85,8 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 
 }
 
+// Confirmation by the client that the connection has been initialized
+// required by the protocol.Server interface
 func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) error {
 	s.stateMu.Lock()
 	s.state = serverInitialized
@@ -91,6 +95,8 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 	return nil
 }
 
+// Call from the client to shutdown the connection
+// required by the protocol.Server interface
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
@@ -101,6 +107,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	s.state = serverShutDown
 	return nil
 }
+
+//End the connection
+// required by the protocol.Server interface
 func (s *Server) Exit(ctx context.Context) error {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()

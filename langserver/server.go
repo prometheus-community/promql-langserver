@@ -50,12 +50,14 @@ func (s *Server) Run(_ context.Context) error {
 	return s.Conn.Run(context.Background())
 }
 
+// Generates a Server from a jsonrpc2.Stream
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Context, *Server) {
 	s := &Server{}
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	return ctx, s
 }
 
+// Generates a Server talking to stdio
 func StdioServer(ctx context.Context) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
 	stream = protocol.LoggingStream(stream, os.Stderr)
