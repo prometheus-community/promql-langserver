@@ -20,7 +20,7 @@ jobs:
       - checkout
       - run: go get github.com/rakyll/statik
       - run: make clean
-      - run: PATH=$GOPATH/make generated
+      - run: make generated
       - run: "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make generated' and commit again ; exit 1 )"
   check_gofmt:
     docker:
