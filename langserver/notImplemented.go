@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 func notImplemented(method string) *jsonrpc2.Error {
@@ -58,6 +58,11 @@ func (s *Server) DidChangeWatchedFiles(_ context.Context, _ *protocol.DidChangeW
 // Progress is required by the protocol.Server interface
 func (s *Server) Progress(_ context.Context, _ *protocol.ProgressParams) error {
 	return notImplemented("Progress")
+}
+
+// SelectionRange is required by the protocol.Server interface
+func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
+	return nil, notImplemented("SelectionRange")
 }
 
 // SetTraceNotification is required by the protocol.Server interface

@@ -22,9 +22,9 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
-	"github.com/slrtbtfs/go-tools-vendored/span"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
 // DidOpen receives a call from the Client, telling that a files has been opened

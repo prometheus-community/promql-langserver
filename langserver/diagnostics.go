@@ -15,10 +15,11 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 func (s *Server) diagnostics(ctx context.Context, doc *document) {

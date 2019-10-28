@@ -17,9 +17,9 @@ import (
 	"go/token"
 	"sync"
 
-	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // We need this so we can reserve a certain position range in the FileSet
