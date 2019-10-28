@@ -1,0 +1,9 @@
+package badstmt
+
+import (
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo"
+)
+
+func _() {
+	go foo. //@complete(" //", Foo, IntFoo, StructFoo)
+}
