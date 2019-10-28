@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/prometheus/prometheus/tree/master.svg?style=shield)][circleci]
+![CircleCI](https://circleci.com/gh/prometheus/prometheus/tree/master.svg?style=shield)
 
 # promql-lsp
 
