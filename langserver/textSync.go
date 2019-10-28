@@ -27,7 +27,7 @@ import (
 	"github.com/slrtbtfs/go-tools-vendored/span"
 )
 
-// Call from the Client, telling that a files has been opened
+// DidOpen receives a call from the Client, telling that a files has been opened
 // required by the protocol.Server interface
 func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	doc, err := s.cache.addDocument(&params.TextDocument)
@@ -39,13 +39,13 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 	return err
 }
 
-// Call from the Client, telling that a files has been closed
+// DidClose receives a call from the Client, telling that a files has been closed
 // required by the protocol.Server interface
 func (s *Server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
 	return s.cache.removeDocument(params.TextDocument.URI)
 }
 
-// Call from the Client, telling that a files has been changed
+// DidChange receives a call from the Client, telling that a files has been changed
 // required by the protocol.Server interface
 func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
 	//options := s.session.Options()

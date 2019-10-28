@@ -15,7 +15,7 @@ package langserver
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"os"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
@@ -34,7 +34,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
-		var parseErr *promql.ParseErr = nil
+		var parseErr *promql.ParseErr
 		var ok bool
 		if err != nil {
 			parseErr, ok = err.(*promql.ParseErr)
