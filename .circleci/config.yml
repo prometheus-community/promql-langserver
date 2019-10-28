@@ -8,7 +8,6 @@ jobs:
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
     steps:
       - checkout
-      - run: go get github.com/slrtbtfs/go-tools-vendored/...
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: go build cmd/
 
@@ -18,7 +17,6 @@ jobs:
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
     steps:
       - checkout
-      - run: go get github.com/slrtbtfs/go-tools-vendored/...
       - run: go get github.com/rakyll/statik
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: make test
