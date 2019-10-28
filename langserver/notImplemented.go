@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 func notImplemented(method string) *jsonrpc2.Error {

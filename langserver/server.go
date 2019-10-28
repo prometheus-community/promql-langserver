@@ -23,8 +23,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/slrtbtfs/go-tools-vendored/jsonrpc2"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // Server is a language server instance that can connect to exactly on client

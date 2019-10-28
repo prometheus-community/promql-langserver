@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/rakyll/statik/fs"
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 
 	// Do not remove! Side effects of init() needed
 	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"

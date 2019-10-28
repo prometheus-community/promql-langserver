@@ -5,8 +5,8 @@ import (
 	"go/token"
 	"os"
 
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
-	"github.com/slrtbtfs/go-tools-vendored/span"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
 // TODO(slrtbtfs) Some panics can happen here -> recover these
