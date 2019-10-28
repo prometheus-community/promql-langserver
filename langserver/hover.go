@@ -26,7 +26,7 @@ func init() {
 	}
 }
 
-// Show documentation on hover
+// Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	doc, err := s.cache.getDocument(params.TextDocumentPositionParams.TextDocument.URI)
@@ -56,9 +56,9 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 				Value: markdown,
 			},
 		}, nil
-	} else {
-		return nil, nil
 	}
+	return nil, nil
+
 }
 
 func nodeToDocMarkdown(node promql.Node) string {

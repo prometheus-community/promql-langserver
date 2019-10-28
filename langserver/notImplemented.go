@@ -27,89 +27,85 @@ func notImplemented(method string) *jsonrpc2.Error {
 	fmt.Fprint(os.Stderr, err.Error())
 	return err
 }
-// required by the protocol.Server interface
+
+// DidChangeWorkspaceFolders is required by the protocol.Server interface
 func (s *Server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidChangeWorkspaceFoldersParams) error {
 	return notImplemented("DidChangeWorkspaceFolders")
 }
 
-// required by the protocol.Server interface
+// DidChangeConfiguration is required by the protocol.Server interface
 func (s *Server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChangeConfigurationParams) error {
 	//return notImplemented("DidChangeConfiguration")
 	// For ycmd
 	return nil
 }
 
-// required by the protocol.Server interface
+// DidSave is required by the protocol.Server interface
 func (s *Server) DidSave(_ context.Context, _ *protocol.DidSaveTextDocumentParams) error {
 	return notImplemented("DidSave")
 }
 
-// required by the protocol.Server interface
+// WillSave is required by the protocol.Server interface
 func (s *Server) WillSave(_ context.Context, _ *protocol.WillSaveTextDocumentParams) error {
 	return notImplemented("WillSave")
 }
 
-// required by the protocol.Server interface
+// DidChangeWatchedFiles is required by the protocol.Server interface
 func (s *Server) DidChangeWatchedFiles(_ context.Context, _ *protocol.DidChangeWatchedFilesParams) error {
 	return notImplemented("DidChangeWatchedFiles")
 }
 
-// required by the protocol.Server interface
+// Progress is required by the protocol.Server interface
 func (s *Server) Progress(_ context.Context, _ *protocol.ProgressParams) error {
 	return notImplemented("Progress")
 }
 
-// required by the protocol.Server interface
+// SetTraceNotification is required by the protocol.Server interface
 func (s *Server) SetTraceNotification(_ context.Context, _ *protocol.SetTraceParams) error {
 	return notImplemented("SetTraceNotification")
 }
 
-// required by the protocol.Server interface
+// LogTraceNotification is required by the protocol.Server interface
 func (s *Server) LogTraceNotification(_ context.Context, _ *protocol.LogTraceParams) error {
 	return notImplemented("LogTraceNotification")
 }
 
-// required by the protocol.Server interface
+// Implementation is required by the protocol.Server interface
 func (s *Server) Implementation(_ context.Context, _ *protocol.ImplementationParams) ([]protocol.Location, error) {
 	return nil, notImplemented("Implementation")
 }
 
-// required by the protocol.Server interface
+// TypeDefinition is required by the protocol.Server interface
 func (s *Server) TypeDefinition(_ context.Context, _ *protocol.TypeDefinitionParams) ([]protocol.Location, error) {
 	return nil, notImplemented("TypeDefinition")
 }
 
-// required by the protocol.Server interface
+// DocumentColor is required by the protocol.Server interface
 func (s *Server) DocumentColor(_ context.Context, _ *protocol.DocumentColorParams) ([]protocol.ColorInformation, error) {
 	return nil, notImplemented("DocumentColor")
 }
 
-// required by the protocol.Server interface
+// ColorPresentation is required by the protocol.Server interface
 func (s *Server) ColorPresentation(_ context.Context, _ *protocol.ColorPresentationParams) ([]protocol.ColorPresentation, error) {
 	return nil, notImplemented("ColorPresentation")
 }
 
-// required by the protocol.Server interface
+// FoldingRange is required by the protocol.Server interface
 func (s *Server) FoldingRange(_ context.Context, _ *protocol.FoldingRangeParams) ([]protocol.FoldingRange, error) {
 	return nil, notImplemented("FoldingRange")
 }
 
-	return nil, notImplemented("Completion")
+// Declaration is required by the protocol.Server interface
 func (s *Server) Declaration(_ context.Context, _ *protocol.DeclarationParams) ([]protocol.DeclarationLink, error) {
 	return nil, notImplemented("Declaration")
-		return &protocol.CompletionList{
-			IsIncomplete: true,
-			Items:        nil,
-		}, nil
-	return nil, notImplemented("SelectionRange")
 }
 
-// required by the protocol.Server interface
+// WillSaveWaitUntil is required by the protocol.Server interface
 func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDocumentParams) ([]protocol.TextEdit, error) {
 	return nil, notImplemented("WillSaveWaitUntil")
 }
 
-// required by the protocol.Server interface
+// Completion is required by the protocol.Server interface
 func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
 	return nil, notImplemented("Completion")
 	// For ycmd
@@ -122,92 +118,92 @@ func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*p
 
 }
 
-// required by the protocol.Server interface
+// Resolve is required by the protocol.Server interface
 func (s *Server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protocol.CompletionItem, error) {
 	return nil, notImplemented("Resolve")
 }
 
-// required by the protocol.Server interface
+// SignatureHelp is required by the protocol.Server interface
 func (s *Server) SignatureHelp(_ context.Context, _ *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	return nil, notImplemented("SignatureHelp")
 }
 
-// required by the protocol.Server interface
+// Definition is required by the protocol.Server interface
 func (s *Server) Definition(_ context.Context, _ *protocol.DefinitionParams) ([]protocol.Location, error) {
 	return nil, notImplemented("Definition")
 }
 
+// References is required by the protocol.Server interface
 func (s *Server) References(_ context.Context, _ *protocol.ReferenceParams) ([]protocol.Location, error) {
-// required by the protocol.Server interface
 	return nil, notImplemented("References")
 }
 
-// required by the protocol.Server interface
+// DocumentHighlight is required by the protocol.Server interface
 func (s *Server) DocumentHighlight(_ context.Context, _ *protocol.DocumentHighlightParams) ([]protocol.DocumentHighlight, error) {
 	return nil, notImplemented("DocumentHighlight")
 }
 
-// required by the protocol.Server interface
+// DocumentSymbol is required by the protocol.Server interface
 func (s *Server) DocumentSymbol(_ context.Context, _ *protocol.DocumentSymbolParams) ([]protocol.DocumentSymbol, error) {
 	return nil, notImplemented("DocumentSymbol")
 }
 
-// required by the protocol.Server interface
+// CodeAction is required by the protocol.Server interface
 func (s *Server) CodeAction(_ context.Context, _ *protocol.CodeActionParams) ([]protocol.CodeAction, error) {
 	return nil, notImplemented("CodeAction")
 }
 
-// required by the protocol.Server interface
+// Symbol is required by the protocol.Server interface
 func (s *Server) Symbol(_ context.Context, _ *protocol.WorkspaceSymbolParams) ([]protocol.SymbolInformation, error) {
 	return nil, notImplemented("Symbol")
 }
 
-// required by the protocol.Server interface
+// CodeLens is required by the protocol.Server interface
 func (s *Server) CodeLens(_ context.Context, _ *protocol.CodeLensParams) ([]protocol.CodeLens, error) {
 	return nil, notImplemented("CodeLens")
 }
 
-// required by the protocol.Server interface
+// ResolveCodeLens is required by the protocol.Server interface
 func (s *Server) ResolveCodeLens(_ context.Context, _ *protocol.CodeLens) (*protocol.CodeLens, error) {
 	return nil, notImplemented("ResolveCodeLens")
 }
 
-// required by the protocol.Server interface
+// Formatting is required by the protocol.Server interface
 func (s *Server) Formatting(_ context.Context, _ *protocol.DocumentFormattingParams) ([]protocol.TextEdit, error) {
 	return nil, notImplemented("Formatting")
 }
 
-// required by the protocol.Server interface
+// RangeFormatting is required by the protocol.Server interface
 func (s *Server) RangeFormatting(_ context.Context, _ *protocol.DocumentRangeFormattingParams) ([]protocol.TextEdit, error) {
 	return nil, notImplemented("RangeFormatting")
 }
 
-// required by the protocol.Server interface
+// OnTypeFormatting is required by the protocol.Server interface
 func (s *Server) OnTypeFormatting(_ context.Context, _ *protocol.DocumentOnTypeFormattingParams) ([]protocol.TextEdit, error) {
 	return nil, notImplemented("OnTypeFormatting")
 }
 
-// required by the protocol.Server interface
+// Rename is required by the protocol.Server interface
 func (s *Server) Rename(_ context.Context, _ *protocol.RenameParams) (*protocol.WorkspaceEdit, error) {
 	return nil, notImplemented("Rename")
 }
 
-// required by the protocol.Server interface
+// PrepareRename is required by the protocol.Server interface
 func (s *Server) PrepareRename(_ context.Context, _ *protocol.PrepareRenameParams) (*protocol.Range, error) {
 	return nil, notImplemented("PrepareRename")
 }
 
-// required by the protocol.Server interface
+// DocumentLink is required by the protocol.Server interface
 func (s *Server) DocumentLink(_ context.Context, _ *protocol.DocumentLinkParams) ([]protocol.DocumentLink, error) {
 	return nil, notImplemented("DocumentLink")
 }
 
-// required by the protocol.Server interface
+// ResolveDocumentLink is required by the protocol.Server interface
 func (s *Server) ResolveDocumentLink(_ context.Context, _ *protocol.DocumentLink) (*protocol.DocumentLink, error) {
 	return nil, notImplemented("ResolveDocumentLink")
 }
 
-// required by the protocol.Server interface
+// ExecuteCommand is required by the protocol.Server interface
 func (s *Server) ExecuteCommand(_ context.Context, _ *protocol.ExecuteCommandParams) (interface{}, error) {
 	return nil, notImplemented("ExecuteCommand")
 }
