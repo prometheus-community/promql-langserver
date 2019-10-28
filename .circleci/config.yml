@@ -8,13 +8,13 @@ jobs:
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
     steps:
       - checkout
-      - run: go get github.com/slrtbtfs/prometheus/promql
+      - run: go get github.com/slrtbtfs/prometheus/promql@wip/childs
       - run: go build cmd/
 
   test:
     docker:
       - image: circleci/golang:1.13-node
-    working_directory: /go/src/github.com/slrtbtfs/promql-lsp
+    working_directory: /go/src/github.com/slrtbtfs/promql-lsp@wip/childs
     steps:
       - checkout
       - run: go get github.com/rakyll/statik
