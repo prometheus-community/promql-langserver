@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/slrtbtfs/promql-lsp/tree/master.svg?style=shield)][circleci]
+[![CircleCI](https://circleci.com/gh/slrtbtfs/promql-lsp/tree/master.svg?style=shield)](https://circleci.com/gh/slrtbtfs/promql-lsp)
 
 # promql-lsp
 
