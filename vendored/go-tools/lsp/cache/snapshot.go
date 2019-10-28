@@ -5,10 +5,10 @@ import (
 	"os"
 	"sync"
 
-	"golang.org/x/tools/go/analysis"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"golang.org/x/tools/go/analysis"
 )
 
 type snapshot struct {

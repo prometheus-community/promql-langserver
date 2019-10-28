@@ -15,7 +15,6 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/tools/go/packages/packagestest"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/fuzzy"
@@ -24,6 +23,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"golang.org/x/tools/go/packages/packagestest"
 	errors "golang.org/x/xerrors"
 )
 

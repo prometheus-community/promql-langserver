@@ -15,7 +15,6 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/tools/go/packages"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/imports"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -23,6 +22,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
+	"golang.org/x/tools/go/packages"
 	errors "golang.org/x/xerrors"
 )
 

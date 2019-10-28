@@ -9,6 +9,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/myers"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/asmdecl"
 	"golang.org/x/tools/go/analysis/passes/assign"
@@ -33,10 +37,6 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unreachable"
 	"golang.org/x/tools/go/analysis/passes/unsafeptr"
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/myers"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
 	errors "golang.org/x/xerrors"
 )
 

@@ -12,10 +12,10 @@ import (
 	"os"
 	"strings"
 
-	guru "golang.org/x/tools/cmd/guru/serial"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	guru "golang.org/x/tools/cmd/guru/serial"
 	errors "golang.org/x/xerrors"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"go/ast"
 
-	"golang.org/x/tools/go/packages"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"golang.org/x/tools/go/packages"
 )
 
 type builtinPkg struct {

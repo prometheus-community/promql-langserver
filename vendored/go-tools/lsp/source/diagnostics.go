@@ -8,12 +8,12 @@ import (
 	"context"
 	"fmt"
 
-	"golang.org/x/tools/go/analysis"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"golang.org/x/tools/go/analysis"
 )
 
 type Diagnostic struct {

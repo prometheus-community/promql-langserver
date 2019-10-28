@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"go/types"
 
-	"golang.org/x/tools/go/packages"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"golang.org/x/tools/go/packages"
 	errors "golang.org/x/xerrors"
 )
 

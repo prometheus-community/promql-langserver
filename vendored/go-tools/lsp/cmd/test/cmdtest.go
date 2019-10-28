@@ -15,11 +15,11 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/tools/go/packages/packagestest"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"golang.org/x/tools/go/packages/packagestest"
 )
 
 type runner struct {

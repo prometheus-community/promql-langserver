@@ -9,11 +9,11 @@ import (
 	"sort"
 	"sync"
 
-	"golang.org/x/sync/errgroup"
-	"golang.org/x/tools/go/analysis"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/memoize"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/tools/go/analysis"
 	errors "golang.org/x/xerrors"
 )
 

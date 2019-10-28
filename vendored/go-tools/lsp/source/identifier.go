@@ -11,10 +11,10 @@ import (
 	"go/types"
 	"strconv"
 
-	"golang.org/x/tools/go/ast/astutil"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"golang.org/x/tools/go/ast/astutil"
 	errors "golang.org/x/xerrors"
 )
 

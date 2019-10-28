@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/tools/go/ast/astutil"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/imports"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/fuzzy"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -21,6 +20,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"golang.org/x/tools/go/ast/astutil"
 	errors "golang.org/x/xerrors"
 )
 

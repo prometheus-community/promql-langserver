@@ -12,12 +12,12 @@ import (
 	"runtime"
 	"testing"
 
-	"golang.org/x/tools/go/packages/packagestest"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd"
 	cmdtest "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd/test"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"golang.org/x/tools/go/packages/packagestest"
 )
 
 func TestMain(m *testing.M) {
