@@ -64,4 +64,5 @@ update_internal_packages:
 	        bash -c "$$CMD";                                                  \
 	    done;                                                                 \
 	    rm -rf $$TMPDIR;                                                      \
+	    make fmt;                                                             \
 	done
