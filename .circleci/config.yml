@@ -33,7 +33,6 @@ jobs:
       - run: "[[ `git diff | wc -l` -eq 0 ]] || { echo Please run 'make fmt' and commit again && exit 1 }" 
 
 workflows:
-  version: 2.1
   all:
     jobs:
       - check_if_generated_files_in_sync
