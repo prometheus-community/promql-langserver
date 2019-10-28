@@ -60,6 +60,11 @@ func (s *Server) Progress(_ context.Context, _ *protocol.ProgressParams) error {
 	return notImplemented("Progress")
 }
 
+// SelectionRange is required by the protocol.Server interface
+func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
+	return nil, notImplemented("SelectionRange")
+}
+
 // SetTraceNotification is required by the protocol.Server interface
 func (s *Server) SetTraceNotification(_ context.Context, _ *protocol.SetTraceParams) error {
 	return notImplemented("SetTraceNotification")

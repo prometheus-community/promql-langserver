@@ -15,6 +15,7 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
