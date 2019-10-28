@@ -22,7 +22,7 @@ jobs:
       - run: sudo apt-get install git
       - run: make clean
       - run: make generated
-      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make generated' and commit again"
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make generated' and commit again && exit 1"
   check_gofmt:
     docker:
       - image: circleci/golang:1.13-node
@@ -30,7 +30,7 @@ jobs:
     steps:
       - checkout
       - run: make fmt
-      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make fmt' and commit again"
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make fmt' and commit again && exit 1" 
 
 workflows:
   version: 2.1
