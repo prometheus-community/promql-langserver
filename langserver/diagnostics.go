@@ -16,7 +16,6 @@ package langserver
 import (
 	"context"
 	"os"
-	"os"
 
 	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/prometheus/promql"
