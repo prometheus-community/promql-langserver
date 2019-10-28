@@ -19,10 +19,9 @@ jobs:
     steps:
       - checkout
       - run: go get github.com/rakyll/statik
-      - run: sudo apt-get install git
       - run: make clean
-      - run: make generated
-      - run: "[[ `git diff | wc -l` -eq 0 ]] || ( git diff; echo Please run 'make generated' and commit again ; exit 1 )"
+      - run: PATH=$GOPATH/make generated
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make generated' and commit again ; exit 1 )"
   check_gofmt:
     docker:
       - image: circleci/golang:1.13-node
@@ -30,7 +29,7 @@ jobs:
     steps:
       - checkout
       - run: make fmt
-      - run: "[[ `git diff | wc -l` -eq 0 ]] || ( git diff; echo Please run 'make fmt' and commit again ; exit 1 )" 
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make fmt' and commit again ; exit 1 )" 
 
 workflows:
   all:
