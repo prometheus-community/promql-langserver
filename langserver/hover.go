@@ -45,7 +45,7 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 
 	markdown := ""
 	if doc.compileResult.err == nil {
-		node := getSmallestSourroundingNode(doc.compileResult.ast, pos)
+		node := getSmallestSurroundingNode(doc.compileResult.ast, pos)
 
 		markdown = nodeToDocMarkdown(node)
 	}

@@ -6,7 +6,7 @@ import (
 	"github.com/slrtbtfs/prometheus/promql"
 )
 
-func getSmallestSourroundingNode(ast promql.Node, pos token.Pos) promql.Node {
+func getSmallestSurroundingNod(ast promql.Node, pos token.Pos) promql.Node {
 	ret := ast
 BIG_LOOP:
 	for {
