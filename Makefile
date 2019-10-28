@@ -26,3 +26,7 @@ clean:
 
 %_statik/statik.go: $(wildcard $*/*)
 	statik -src "$*" -dest $(dir $*) -p $(notdir $*_statik) -f
+
+.PHONY: fmt
+fmt:
+	go fmt ./...

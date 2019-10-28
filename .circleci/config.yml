@@ -12,7 +12,7 @@ jobs:
       - run: go get github.com/slrtbtfs/prometheus/promql
       - run: go build cmd/
 
-  test_if_generated_files_in_sync:
+  check_if_generated_files_in_sync:
     docker:
       - image: circleci/golang:1.13-node
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
@@ -22,7 +22,15 @@ jobs:
       - run: sudo apt-get install git
       - run: make clean
       - run: make generated
-      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run make and commit again"
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make generated' and commit again"
+  check_gofmt:
+    docker:
+      - image: circleci/golang:1.13-node
+    working_directory: /go/src/github.com/slrtbtfs/promql-lsp
+    steps:
+      - checkout
+      - run: make fmt
+      - run: "[[ `git diff | wc -l` -eq 0 ]] || echo Please run 'make fmt' and commit again"
 
 workflows:
   version: 2.1
