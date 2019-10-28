@@ -25,7 +25,7 @@ clean:
 	rm -f $(BINARYS)
 
 %_statik/statik.go: $(wildcard $*/*)
-	statik -src "$*" -dest $(dir $*) -p $(notdir $*_statik) -f -Z
+	statik -src "$*" -dest $(dir $*) -p $(notdir $*_statik) -f -Z -m
 
 .PHONY: fmt
 fmt:
