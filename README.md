@@ -1,4 +1,3 @@
-[![CircleCI](https://circleci.com/gh/slrtbtfs/promql-lsp/tree/master.svg?style=shield)](https://circleci.com/gh/slrtbtfs/promql-lsp)
 [![Go Report Card](https://goreportcard.com/badge/github.com/slrtbtfs/promql-lsp)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
 [![Build Status](https://cloud.drone.io/api/badges/slrtbtfs/promql-lsp/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp)
 

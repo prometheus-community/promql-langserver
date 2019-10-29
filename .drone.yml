@@ -28,3 +28,7 @@ steps:
     commands:
       - go get ./cmd/...
       - make test
+  - name: lint
+    image: golang:1.13
+    commands:
+      - make lint
