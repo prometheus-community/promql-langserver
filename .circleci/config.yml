@@ -8,7 +8,7 @@ jobs:
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
     steps:
       - checkout
-      - run: go get github.com/slrtbtfs/prometheus/promql
+      - run: go get ./cmd/
       - run: go build cmd/
 
   test:
@@ -17,8 +17,7 @@ jobs:
     working_directory: /go/src/github.com/slrtbtfs/promql-lsp
     steps:
       - checkout
-      - run: go get github.com/rakyll/statik
-      - run: go get github.com/slrtbtfs/prometheus/promql
+      - run: go get ./cmd/
       - run: make test
 
   check_repo_consistency:
