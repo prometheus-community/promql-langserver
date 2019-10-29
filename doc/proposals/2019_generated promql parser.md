@@ -9,21 +9,35 @@ owner: slrtbtfs
 
 ## Motivation
 
-The upcoming PromQL language Server (see [proposal](https://github.com/sl>rtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md)) it is necessary to analyze PromQL queries.
+### Current state of the parser
 
-For this it is intended to use the same PromQL parser as prometheus. To enable that use case, changes to the parser have been [proposed](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-parser-improvements.md). These mainly concern the _output_ of the parser and have already partly implemented.
+Currently the PromQL utilizes a handwritten recursive descent parser, that has been written five years ago and hasn't seen large changes since then. It seems that none of the active members of the Prometheus project has a deep understanding of the parser code and is willing to maintain it or review complex PRs on it (based on the discussion of <https://github.com/prometheus/prometheus/pull/6061>).
 
-This proposal is about replacing the _implementation_ of the parser. It has already been decided that the parser should be eventually replaced by a generated parser, which aligns with this proposal.
+Also there seem to be some hidden features and edge cases that nobody is aware of (See <https://github.com/prometheus/prometheus/pull/6198> and <https://github.com/prometheus/prometheus/issues/6065>).
 
-### Problems with the existing parser 
+The code seems to be far more complex than necessary and before continuing feature development on it, major refactoring would be needed.
 
-#### The Abstract Syntax Tree is too flat for syntax analysis
+### Using the parser for the upcoming language server 
+
+For the upcoming PromQL language Server (see [proposal](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md)) it is necessary to analyze PromQL queries.
+
+For this it is intended to use the same PromQL parser as prometheus. To enable that use case, changes to the parser have been [proposed](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-parser-improvements.md). These mainly concern the _output_ of the parser and have already been partly implemented.
+
+However some of the features described there, like error recovery, would be quite hard to implement with the current parser.
+
+#### Producing a deeper syntax tree
 
 Consider the query:
 
     metric{label=="value", foo~="ba."}[5m] offset 3h
 
-One would expect a the structure of the respective syntax tree approximately look like this:
+This is how the corresponding syntax tree looks like with the current parser:
+
+    |---- MatrixSelector: metric{label=="value", foo~="ba."}[5m] offset 3h
+
+This is ok if all we want to do is evaluating PromQL queries. Actually the PromQL query engine expects this simplified format.
+
+However, for using the data from the parser for things like autocompletion that works almost anywhere in the code, generating helpful error messages, showing function signatures and documentation while editing queries, etc., it isn't. Here a structure like this would be more appropriate:
 
     |---- OffsetModifier: metric{label=="value", foo~="ba."}[5m] offset 3h
     . . . |---- MatrixSelector: metric{label=="value", foo~="ba."}[5m]
@@ -35,26 +49,31 @@ One would expect a the structure of the respective syntax tree approximately loo
     . . . . . . . . . . . . |---- Label: foo 
     . . . . . . . . . . . . |---- Value: "ba."
 
-This is how it actually looks like with the current parser:
+### Advantages of a generated parser
 
-    |---- MatrixSelector: metric{label=="value", foo~="ba."}[5m] offset 3h
+#### Easier to maintain
 
-This is ok if all we want to do is evaluating PromQL queries. 
+The complex task of recognizing the PromQL syntax is done by generated code. Humans only have to deal with a comparably readable formal grammar and the code that builds up a syntax tree from already well structured input.
 
-For using the data from the parser for things like autocompletion that works almost anywhere in the code, generating helpful error messages, showing function signatures and documentation while editing queries, etc., it isn't.
+#### There exists a written down formal grammar of promql
 
+A formal grammar provides a human and machine readable definition of what is a correct PromQL query. This would eliminate edge cases and unknown features as described above.
 
-#### It is not really documented how a valid query looks like
+#### It is possible to handle incomplete expressions
 
-While the documentation list examples of valid queries, but there are still undocumented features in the language (e.g. comments, see  #6198). Currently the only reliable way to figure out whether a query is valid is to check if the  parser accepts it.
+Consider this input from a user:
 
-#### The current parser does not return any results on incomplete expressions
+    some_metric{la
 
-For the features like completion it is necessary to still get results from the parser if the expression is not complete. The current parser does not have this feature.
+By adding syntax rules for incomplete expressions the parser can figure out, that it got an incomplete vector selector with a certain structure. A language server can use this information to offer completions for all labels that occur together with `some_metric` and start with `la`.
 
-## Technical Summary of the generated parser
+#### It is easier to provide helpful error messages
 
-It is proposed to replace the current PromQL parser with one that is generated by [goyacc](https://godoc.org/golang.org/x/tools/cmd/goyacc). 
+For adding a new error message all that needs to be done is to add a grammar rule that recognizes this specific error class and add some code that handles this error when building up the syntax tree.
+
+## Proposal
+
+It is proposed to replace the current PromQL parser with one that is generated by [goyacc](https://godoc.org/golang.org/x/tools/cmd/goyacc). Goyacc was choosen because yacc generated parsers have been successfully used for decades and none of the few alternatives for generating go parsers seemed to be on par.
 
 The new parser is able to output two syntax tree formats:
 
@@ -64,7 +83,7 @@ The new parser is able to output two syntax tree formats:
 
 The parser is able to parse incomplete expressions.
 
-The changes proposed in a [previous proposal](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md) remain valid.
+The changes proposed in a [previous proposal](https://github.com/slrtbtfs/promql-lsp/blob/master/doc/proposals/2019_promql-language-server.md) remain valid. The changes in the syntax tree and lexer that have already been implemented can be still used with the new parser. The remaining changes i.e. incomplete expression parsing and having an error list are will be implemented with the suggested new parser anyway.
 
 ## Architecture
 
@@ -74,9 +93,9 @@ Yacc relies on getting a stream of tokens from  a lexer. The new parser will kee
 
 ### yacc grammar
 
-The core part of the parser is a formal grammar of PromQL which is the input for the parser Generator.
+The core part of the parser is a formal grammar of PromQL which is the input for the parser generator and provides a precise definition of the PromQL syntax. For every class of error and incomplete expressions that we want to handle, an extra rule has to be declared.
 
-The grammar is able to recognize all valid PromQL Queries as well as incomplete Queries.
+The grammar is able to recognize all valid PromQL queries as well as common cases of incomplete or otherwise wrong queries.
 
 As an example the part of the grammar recognizing an instant vector selector will look roughly like this:
 
@@ -116,12 +135,12 @@ As an example the part of the grammar recognizing an instant vector selector wil
     anything:
         // All valid PromQL Syntax Elements
         ...
-      | EOF
-      | error
+      | EOF                                 {$$ = $1}
+      | error                               {$$ = $1}
 
 ### Building up the Abstract Syntax Tree (AST)
 
-Every match in the grammar calls a function of the following type:
+Every match in the grammar calls a function of the following type or simply returns the token if no special action is required:
 
     func ([]ErrCodes, ...*Expr) *Expr
 
@@ -150,19 +169,33 @@ All Syntax tree nodes satisfy the `Expr` interface which will at least implement
         Simplified() bool
     }
 
-### AST simplifying
+### AST simplifying and backwards compatibility
 
-The originally generated syntax tree provides a accurate and detailed representation of the query.
+The generated syntax tree provides an accurate and detailed representation of the query.
 
-When evaluating queries in the PromQL engine, it is better to have a less complex syntax tree. For that reason the `Expr` interface has a function `Simplify()` that recurses through the subtree and tries to reduce the depth of the Tree. 
+When evaluating queries in the PromQL engine, it is better to have a less complex syntax tree. For matrix and vector selectors the PromQL engine expects getting a single node with all information instead of a complex tree.
 
-For example a Matrix Selector is simplified to the single Node format that is currently used and expected by the PromQL engine.
+To avoid breaking the query engine and other users of the PromQL parser the `Expr` interface has a function `Simplify()` that recourses through the subtree, tries to reduce the depth of the tree and changes matrix and vector selector to the format that the query engine and potential other existing callers of the parser expect. 
 
-It is possible to implement additional optimizations like pre evaluation of scalar expressions.
+To get this simplified, backwards compatible syntax tree format, it suffices to call `Simplify()` on the root node.
+
+It is possible to implement additional optimizations like pre evaluation of scalar expressions in that method.
 
 
-## Scope of the change
+### Scope of the change
 
 The parser will obviously be completely rewritten.
 
-The changes to the engine will be restricted to some refactoring due to interface and name changes in the AST.
+In the lexer the output format and token naming conventions will be changed to fit the conventions and interfaces of yacc. Most of the actual logic will remain unchanged.
+
+The changes to the engine can be minimized thanks to the AST Simplification mechanism. The changes will be confined to some name changes in types and interfaces.
+
+### Possible regressions
+
+By Rice's theorem it might be impossible be sure whether the new parser accepts exactly the same syntax as the old one.
+
+Less academically it is possible that there is an edge case in the current parser that the new parser doesn't handle because one knows about it. It is likely impossible to completely mitigate the risk of accidentally introducing a breaking incompatibility here.
+
+This is a consequence of the fact that no formal definition of PromQL exists, yet.
+
+To reduce this risk, it is planned to collect a large list of queries that work with the current parser and test the new parser against each of them.
