@@ -35,6 +35,10 @@ fmt:
 test:
 	go test ./langserver/
 
+.PHONY: lint
+lint:
+	golangci-lint run -v --enable-all ./langeserver/
+
 .PHONY: update_internal_packages
 update_internal_packages:
 	for dir in `ls -d vendored/*/`;                                           \
