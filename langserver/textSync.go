@@ -92,7 +92,7 @@ func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool
 	}
 	return "", false
 }
-func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) {
+func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
 	d.Mu.RLock()
 	if version <= d.doc.Version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")

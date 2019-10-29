@@ -16,7 +16,8 @@ import (
 	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
 )
 
-var functionDocumentationFS http.FileSystem = initializeFunctionDocumentation()
+//nolint: gochecknoglobals
+var functionDocumentationFS = initializeFunctionDocumentation()
 
 func initializeFunctionDocumentation() http.FileSystem {
 	ret, err := fs.New()

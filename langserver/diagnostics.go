@@ -22,6 +22,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
+// nolint:funlen
 func (s *Server) diagnostics(ctx context.Context, doc *document) {
 	doc.Mu.RLock()
 	uri := doc.doc.URI

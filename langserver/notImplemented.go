@@ -61,7 +61,7 @@ func (s *Server) Progress(_ context.Context, _ *protocol.ProgressParams) error {
 }
 
 // SelectionRange is required by the protocol.Server interface
-func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
+func (s *Server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) { // nolint:lll
 	return nil, notImplemented("SelectionRange")
 }
 
@@ -86,12 +86,12 @@ func (s *Server) TypeDefinition(_ context.Context, _ *protocol.TypeDefinitionPar
 }
 
 // DocumentColor is required by the protocol.Server interface
-func (s *Server) DocumentColor(_ context.Context, _ *protocol.DocumentColorParams) ([]protocol.ColorInformation, error) {
+func (s *Server) DocumentColor(_ context.Context, _ *protocol.DocumentColorParams) ([]protocol.ColorInformation, error) { //nolint:lll
 	return nil, notImplemented("DocumentColor")
 }
 
 // ColorPresentation is required by the protocol.Server interface
-func (s *Server) ColorPresentation(_ context.Context, _ *protocol.ColorPresentationParams) ([]protocol.ColorPresentation, error) {
+func (s *Server) ColorPresentation(_ context.Context, _ *protocol.ColorPresentationParams) ([]protocol.ColorPresentation, error) { //nolint:lll
 	return nil, notImplemented("ColorPresentation")
 }
 
@@ -106,7 +106,7 @@ func (s *Server) Declaration(_ context.Context, _ *protocol.DeclarationParams) (
 }
 
 // WillSaveWaitUntil is required by the protocol.Server interface
-func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDocumentParams) ([]protocol.TextEdit, error) {
+func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDocumentParams) ([]protocol.TextEdit, error) { //nolint:lll
 	return nil, notImplemented("WillSaveWaitUntil")
 }
 
@@ -144,12 +144,12 @@ func (s *Server) References(_ context.Context, _ *protocol.ReferenceParams) ([]p
 }
 
 // DocumentHighlight is required by the protocol.Server interface
-func (s *Server) DocumentHighlight(_ context.Context, _ *protocol.DocumentHighlightParams) ([]protocol.DocumentHighlight, error) {
+func (s *Server) DocumentHighlight(_ context.Context, _ *protocol.DocumentHighlightParams) ([]protocol.DocumentHighlight, error) { //nolint:lll
 	return nil, notImplemented("DocumentHighlight")
 }
 
 // DocumentSymbol is required by the protocol.Server interface
-func (s *Server) DocumentSymbol(_ context.Context, _ *protocol.DocumentSymbolParams) ([]protocol.DocumentSymbol, error) {
+func (s *Server) DocumentSymbol(_ context.Context, _ *protocol.DocumentSymbolParams) ([]protocol.DocumentSymbol, error) { //nolint:lll
 	return nil, notImplemented("DocumentSymbol")
 }
 
@@ -179,12 +179,12 @@ func (s *Server) Formatting(_ context.Context, _ *protocol.DocumentFormattingPar
 }
 
 // RangeFormatting is required by the protocol.Server interface
-func (s *Server) RangeFormatting(_ context.Context, _ *protocol.DocumentRangeFormattingParams) ([]protocol.TextEdit, error) {
+func (s *Server) RangeFormatting(_ context.Context, _ *protocol.DocumentRangeFormattingParams) ([]protocol.TextEdit, error) { //nolint:lll
 	return nil, notImplemented("RangeFormatting")
 }
 
 // OnTypeFormatting is required by the protocol.Server interface
-func (s *Server) OnTypeFormatting(_ context.Context, _ *protocol.DocumentOnTypeFormattingParams) ([]protocol.TextEdit, error) {
+func (s *Server) OnTypeFormatting(_ context.Context, _ *protocol.DocumentOnTypeFormattingParams) ([]protocol.TextEdit, error) { // nolint:lll
 	return nil, notImplemented("OnTypeFormatting")
 }
 
