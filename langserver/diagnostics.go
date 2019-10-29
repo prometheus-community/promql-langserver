@@ -76,7 +76,11 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 			}
 			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
 		}
-		s.client.PublishDiagnostics(ctx, diagnostics)
+		err = s.client.PublishDiagnostics(ctx, diagnostics)
+		if err != nil {
+			// TODO Something is wrong in this case. It might make sense to shutdown the server
+			fmt.Fprintln(os.Stderr, err.Error())
+		}
 	default:
 		doc.updateCompileData(version, nil, nil)
 	}

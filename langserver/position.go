@@ -33,8 +33,8 @@ func (doc *document) positionToProtocolPostion(version float64, pos token.Positi
 	var err error
 	char, err = span.ToUTF16Column(point, []byte(doc.doc.Text))
 	// Protocol has zero based positions
-	char = char - 1
-	line = line - 1
+	char--
+	line--
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return protocol.Position{}, false

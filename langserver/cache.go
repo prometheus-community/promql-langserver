@@ -119,10 +119,3 @@ func (d *document) setContent(content string, version float64) error {
 	d.posData.SetLinesForContent([]byte(content))
 	return nil
 }
-
-// Retrive the Content of a Document
-func (d *document) getContent() string {
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
-	return d.doc.Text
-}

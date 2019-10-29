@@ -27,7 +27,7 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 	s.stateMu.Lock()
 	state := s.state
 	s.stateMu.Unlock()
-	if state >= serverInitializing {
+	if state != serverCreated {
 		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
 	}
 	s.stateMu.Lock()

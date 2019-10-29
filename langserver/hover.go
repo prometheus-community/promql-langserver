@@ -16,14 +16,14 @@ import (
 	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
 )
 
-var functionDocumentationFS http.FileSystem
+var functionDocumentationFS http.FileSystem = initializeFunctionDocumentation()
 
-func init() {
-	var err error
-	functionDocumentationFS, err = fs.New()
+func initializeFunctionDocumentation() http.FileSystem {
+	ret, err := fs.New()
 	if err != nil {
 		log.Fatal(err)
 	}
+	return ret
 }
 
 // Hover shows documentation on hover
@@ -84,7 +84,7 @@ func nodeToDocMarkdown(node promql.Node) string {
 			return ""
 		}
 	}
-	return string(ret.Bytes())
+	return ret.String()
 }
 
 func funcDocStrings(name string) string {
