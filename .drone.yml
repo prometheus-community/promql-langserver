@@ -15,4 +15,13 @@ steps:
       - bash -c "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make fmt' and commit again ; exit 1 )"
       - make update_internal_packages
       - bash -c "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make update_internal_packages' and commit again ; exit 1 )"
-      
+  - name: build
+    image: golang:1.13
+    commands:
+      - go get ./cmd/
+      - go build cmd/
+  - name: test
+    image: golang:1.13
+    commands:
+      - go get ./cmd/
+      - make test
