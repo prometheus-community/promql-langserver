@@ -18,10 +18,8 @@ steps:
   - name: build
     image: golang:1.13
     commands:
-      - go get ./cmd/
       - go build cmd/
   - name: test
     image: golang:1.13
     commands:
-      - go get ./cmd/
       - make test
