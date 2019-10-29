@@ -33,7 +33,7 @@ fmt:
 
 .PHONY: test
 test:
-	go test -race -v ./langserver/
+	go test -race -v -cover ./langserver/
 
 .PHONY: lint
 lint:
