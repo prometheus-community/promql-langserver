@@ -1,0 +1,18 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: check_repo_consistency
+    image: golang:1.13
+    commands:
+      - go get github.com/rakyll/statik
+      - make clean
+      - make generated
+      - "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make generated' and commit again ; exit 1 )"
+      - make fmt
+      - "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make fmt' and commit again ; exit 1 )"
+      - make update_internal_packages
+      - "[[ `git diff | wc -l` -eq 0 ]] || ( git --no-pager diff; echo Please run 'make update_internal_packages' and commit again ; exit 1 )"
+      
