@@ -62,7 +62,7 @@ func (d *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos,
 	offset := int(d.posData.LineStart(line)) - d.posData.Base()
 	point := span.NewPoint(line, 1, offset)
 	point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
-	
+
 	if err != nil {
 		return token.NoPos, err
 	}
