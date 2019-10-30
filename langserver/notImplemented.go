@@ -112,7 +112,6 @@ func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDo
 
 // Completion is required by the protocol.Server interface
 func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	return nil, notImplemented("Completion")
 	// For ycmd
 	/*
 		return &protocol.CompletionList{
@@ -120,6 +119,7 @@ func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*p
 			Items:        nil,
 		}, nil
 	*/
+	return nil, notImplemented("Completion")
 }
 
 // Resolve is required by the protocol.Server interface

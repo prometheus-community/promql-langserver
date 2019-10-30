@@ -75,11 +75,11 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	}
 
 	// Cache the new file content
-	err = doc.setContent(text, params.TextDocument.Version)
-	if err != nil {
+	if err = doc.setContent(text, params.TextDocument.Version); err != nil {
 		return err
 	}
 	doc.compilers.Add(1)
+
 	go s.diagnostics(context.Background(), doc)
 
 	return nil
@@ -96,6 +96,7 @@ func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool
 }
 func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
 	d.Mu.RLock()
+
 	if version <= d.doc.Version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
@@ -103,6 +104,7 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 	uri := d.doc.URI
 
 	d.Mu.RUnlock()
+
 	for _, change := range changes {
 		// Update column mapper along with the content.
 		converter := span.NewContentConverter(uri, content)
@@ -132,7 +134,6 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 		buf.Write(content[end:])
 
 		content = buf.Bytes()
-		//fmt.Fprintf(os.Stderr, string(content))
 	}
 	return string(content), nil
 }

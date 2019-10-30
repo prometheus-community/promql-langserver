@@ -27,9 +27,11 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 	s.stateMu.Lock()
 	state := s.state
 	s.stateMu.Unlock()
+
 	if state != serverCreated {
 		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
 	}
+
 	s.stateMu.Lock()
 	s.state = serverInitializing
 	s.stateMu.Unlock()
@@ -99,11 +101,13 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
+
 	if s.state < serverInitialized {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not initialized")
 	}
 
 	s.state = serverShutDown
+
 	return nil
 }
 
@@ -111,10 +115,14 @@ func (s *Server) Shutdown(ctx context.Context) error {
 // required by the protocol.Server interface
 func (s *Server) Exit(ctx context.Context) error {
 	s.stateMu.Lock()
+
 	defer s.stateMu.Unlock()
+
 	if s.state != serverShutDown {
 		os.Exit(1)
 	}
+
 	os.Exit(0)
+
 	return nil
 }

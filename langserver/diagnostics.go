@@ -81,8 +81,8 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			}
 			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
 		}
-		err = s.client.PublishDiagnostics(ctx, diagnostics)
-		if err != nil {
+
+		if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
 			// TODO Something is wrong in this case. It might make sense to shutdown the server
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
@@ -95,10 +95,14 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 func (d *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
 	d.Mu.Lock()
 	defer d.Mu.Unlock()
+
 	defer d.compilers.Done()
+
 	if d.doc.Version > version {
 		return false
 	}
+
 	d.compileResult = compileResult{ast, err}
+
 	return true
 }
