@@ -25,6 +25,7 @@ import (
 func notImplemented(method string) *jsonrpc2.Error {
 	err := jsonrpc2.NewErrorf(jsonrpc2.CodeMethodNotFound, "method %q no yet implemented", method)
 	fmt.Fprint(os.Stderr, err.Error())
+
 	return err
 }
 

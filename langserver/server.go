@@ -56,6 +56,7 @@ func (s *Server) Run(_ context.Context) error {
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Context, *Server) {
 	s := &Server{}
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
+
 	return ctx, s
 }
 
@@ -63,5 +64,6 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Cont
 func StdioServer(ctx context.Context) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
 	stream = protocol.LoggingStream(stream, os.Stderr)
+
 	return ServerFromStream(ctx, stream)
 }

@@ -28,6 +28,7 @@ func TestSmallestSurroundingNode(t *testing.T) {
 		if err != nil {
 			panic("Parser should not have failed on " + test.input)
 		}
+
 		node := getSmallestSurroundingNode(parseResult, test.pos)
 
 		if !reflect.DeepEqual(node, parseResult) {
@@ -48,6 +49,7 @@ func TestSmallestSurroundingNode(t *testing.T) {
 			if node == nil && (int(parseResult.Pos()) > pos || int(parseResult.EndPos()) >= pos) {
 				continue
 			}
+
 			if int(node.Pos()) > pos || int(node.EndPos()) <= pos {
 				panic("The smallestSurroundingNode is not actually surrounding for input " + test +
 					" and pos " + fmt.Sprintln(pos) + "Got: " + fmt.Sprintln(node) +
