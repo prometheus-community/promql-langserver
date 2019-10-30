@@ -23,15 +23,15 @@ import (
 )
 
 // nolint:funlen
-func (s *Server) diagnostics(ctx context.Context, doc *document) {
-	doc.Mu.RLock()
-	uri := doc.doc.URI
-	file := doc.posData
-	content := doc.doc.Text
-	version := doc.doc.Version
-	doc.Mu.RUnlock()
+func (s *Server) diagnostics(ctx context.Context, d *document) {
+	d.Mu.RLock()
+	uri := d.doc.URI
+	file := d.posData
+	content := d.doc.Text
+	version := d.doc.Version
+	d.Mu.RUnlock()
 	var diagnostics *protocol.PublishDiagnosticsParams
-	switch doc.doc.LanguageID {
+	switch d.doc.LanguageID {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
@@ -45,7 +45,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 			}
 		}
 
-		recent := doc.updateCompileData(version, ast, parseErr)
+		recent := d.updateCompileData(version, ast, parseErr)
 		if !recent {
 			return
 		}
@@ -58,7 +58,7 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 		}
 		if err != nil {
 			var pos protocol.Position
-			pos, ok = doc.positionToProtocolPostion(version, parseErr.Position)
+			pos, ok = d.positionToProtocolPostion(version, parseErr.Position)
 			if !ok {
 				fmt.Fprintf(os.Stderr, "Conversion failed\n")
 				return
@@ -83,19 +83,18 @@ func (s *Server) diagnostics(ctx context.Context, doc *document) {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
 	default:
-		doc.updateCompileData(version, nil, nil)
+		d.updateCompileData(version, nil, nil)
 	}
-
 }
 
 // Updates the compilation Results of a document. Returns true if the Results were still recent
-func (doc *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
-	doc.Mu.Lock()
-	defer doc.Mu.Unlock()
-	defer doc.compilers.Done()
-	if doc.doc.Version > version {
+func (d *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
+	d.Mu.Lock()
+	defer d.Mu.Unlock()
+	defer d.compilers.Done()
+	if d.doc.Version > version {
 		return false
 	}
-	doc.compileResult = compileResult{ast, err}
+	d.compileResult = compileResult{ast, err}
 	return true
 }
