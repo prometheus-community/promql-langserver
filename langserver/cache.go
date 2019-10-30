@@ -47,7 +47,6 @@ type document struct {
 	compilers sync.WaitGroup
 }
 
-// TODO make this more generic
 type compileResult struct {
 	ast promql.Node
 	err *promql.ParseErr
