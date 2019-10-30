@@ -35,12 +35,14 @@ func TestSmallestSurroundingNode(t *testing.T) {
 		}
 
 	}
+
 	for _, test := range testExpressions {
 		parseResult, err := promql.ParseExpr(test)
 		if err != nil {
 			// We're currently only interested in correct expressions
 			continue
 		}
+
 		for pos := 1; pos <= len(test); pos++ {
 			node := getSmallestSurroundingNode(parseResult, token.Pos(pos))
 			// If we are outside the outermost Expression, nothing should be matched
