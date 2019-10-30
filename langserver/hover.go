@@ -41,7 +41,8 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 
 	defer doc.Mu.RUnlock()
 
-	if pos, err := doc.protocolPositionToTokenPos(params.TextDocumentPositionParams.Position); err != nil {
+	pos, err := doc.protocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
+	if err != nil {
 		return nil, err
 	}
 
@@ -75,9 +76,7 @@ func nodeToDocMarkdown(node promql.Node) string {
 		}
 	}
 
-	var call *promql.Call
-	call, ok = node.(*promql.Call)
-	if ok {
+	if call, ok := node.(*promql.Call); ok {
 		doc := funcDocStrings(call.Func.Name)
 		_, err := ret.WriteString(doc)
 		if err != nil {
@@ -94,7 +93,8 @@ func nodeToDocMarkdown(node promql.Node) string {
 func funcDocStrings(name string) string {
 	name = strings.ToLower(name)
 
-	if file, err := functionDocumentationFS.Open(fmt.Sprintf("/%s.md", name)); err != nil {
+	file, err := functionDocumentationFS.Open(fmt.Sprintf("/%s.md", name))
+	if err != nil {
 		return ""
 	}
 
