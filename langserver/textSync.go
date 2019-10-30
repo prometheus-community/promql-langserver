@@ -35,7 +35,9 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 		return err
 	}
 	doc.compilers.Add(1)
+
 	go s.diagnostics(context.Background(), doc)
+
 	return err
 }
 
@@ -117,14 +119,18 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 		if !spn.HasOffset() {
 			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
 		}
+
 		start, end := spn.Start().Offset(), spn.End().Offset()
 		if end < start {
 			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
 		}
+
 		var buf bytes.Buffer
+
 		buf.Write(content[:start])
 		buf.WriteString(change.Text)
 		buf.Write(content[end:])
+
 		content = buf.Bytes()
 		//fmt.Fprintf(os.Stderr, string(content))
 	}
