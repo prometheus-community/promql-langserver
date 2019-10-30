@@ -43,6 +43,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 
 		if err != nil {
 			parseErr, ok = err.(*promql.ParseErr)
+
 			// TODO (slrtbtfs) Maybe give some more feedback here
 			if !ok {
 				return
