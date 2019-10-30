@@ -120,7 +120,6 @@ func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*p
 			Items:        nil,
 		}, nil
 	*/
-
 }
 
 // Resolve is required by the protocol.Server interface

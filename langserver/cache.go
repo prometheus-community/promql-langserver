@@ -69,10 +69,8 @@ func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) (*document, 
 
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
 	if r := recover(); r != nil {
-		var ok bool
-		_, ok = r.(error)
-		if !ok {
-			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", r)
+		if err, ok := r.(error); !ok {
+			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", err)
 		}
 	}
 
@@ -82,9 +80,11 @@ func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) (*document, 
 		posData: file,
 		doc:     doc,
 	}
+
 	c.documentsMu.Lock()
 	c.documents[doc.URI] = docu
 	c.documentsMu.Unlock()
+
 	return docu, nil
 }
 
@@ -93,9 +93,11 @@ func (c *documentCache) getDocument(uri protocol.DocumentUri) (*document, error)
 	c.documentsMu.RLock()
 	ret, ok := c.documents[uri]
 	c.documentsMu.RUnlock()
+
 	if !ok {
 		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
 	}
+
 	return ret, nil
 }
 
@@ -104,6 +106,7 @@ func (c *documentCache) removeDocument(uri protocol.DocumentURI) error {
 	c.documentsMu.Lock()
 	delete(c.documents, uri)
 	c.documentsMu.Unlock()
+
 	return nil
 }
 
@@ -117,5 +120,6 @@ func (d *document) setContent(content string, version float64) error {
 	d.doc.Text = content
 	d.doc.Version = version
 	d.posData.SetLinesForContent([]byte(content))
+
 	return nil
 }

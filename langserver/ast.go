@@ -10,7 +10,9 @@ func getSmallestSurroundingNode(ast promql.Node, pos token.Pos) promql.Node {
 	if pos < ast.Pos() || pos >= ast.EndPos() {
 		return nil
 	}
+
 	ret := ast
+
 BIG_LOOP:
 	for {
 		for _, child := range ret.Children() {

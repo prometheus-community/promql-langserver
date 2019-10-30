@@ -82,7 +82,6 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 			SelectionRangeProvider: false,
 		},
 	}, nil
-
 }
 
 // Initialized receives a confirmation by the client that the connection has been initialized
