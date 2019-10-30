@@ -94,6 +94,7 @@ func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool
 	if changes[0].Range == nil && changes[0].RangeLength == 0 {
 		return changes[0].Text, true
 	}
+
 	return "", false
 }
 func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
@@ -140,5 +141,6 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 
 		content = buf.Bytes()
 	}
+
 	return string(content), nil
 }
