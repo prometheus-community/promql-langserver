@@ -55,4 +55,6 @@ steps:
   - name: lint
     image: golangci/golangci-lint
     commands:
+      - go get github.com/rakyll/statik
+      - make clean
       - make lint
