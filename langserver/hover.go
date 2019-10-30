@@ -36,7 +36,6 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 		return nil, err
 	}
 
-	// FIXME: This is still a bit racy
 	doc.compilers.Wait()
 	doc.Mu.RLock()
 
