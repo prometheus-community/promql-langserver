@@ -9,7 +9,6 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
-// TODO(slrtbtfs) Some panics can happen here -> recover these
 // e.g. in LineStart
 func (d *document) positionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
 	d.Mu.RLock()

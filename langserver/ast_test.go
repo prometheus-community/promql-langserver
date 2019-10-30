@@ -10,7 +10,6 @@ import (
 )
 
 func TestSmallestSurroundingNode(t *testing.T) {
-	// TODO: #32
 	shouldMatchFull := []struct {
 		input string
 		pos   token.Pos
