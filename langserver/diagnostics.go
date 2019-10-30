@@ -44,7 +44,8 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 		if err != nil {
 			parseErr, ok = err.(*promql.ParseErr)
 
-			// TODO (slrtbtfs) Maybe give some more feedback here
+			fmt.Fprintf(os.Stderr, "Failed to convert %v to a promql.Parserr", err)
+
 			if !ok {
 				return
 			}
