@@ -34,6 +34,7 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 	if err != nil {
 		return err
 	}
+
 	doc.compilers.Add(1)
 
 	go s.diagnostics(context.Background(), doc)
@@ -78,6 +79,7 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	if err = doc.setContent(text, params.TextDocument.Version); err != nil {
 		return err
 	}
+
 	doc.compilers.Add(1)
 
 	go s.diagnostics(context.Background(), doc)
@@ -100,6 +102,7 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 	if version <= d.doc.Version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
+
 	content := []byte(d.doc.Text)
 	uri := d.doc.URI
 
@@ -115,9 +118,11 @@ func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentConten
 		}
 
 		spn, err := m.RangeSpan(*change.Range)
+
 		if err != nil {
 			return "", err
 		}
+
 		if !spn.HasOffset() {
 			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
 		}

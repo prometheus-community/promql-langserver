@@ -38,6 +38,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 		ast, err := promql.ParseFile(content, file)
 
 		var parseErr *promql.ParseErr
+
 		var ok bool
 
 		if err != nil {

@@ -111,6 +111,7 @@ func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDo
 }
 
 // Completion is required by the protocol.Server interface
+// nolint: wsl
 func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
 	// For ycmd
 	/*

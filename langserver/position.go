@@ -14,11 +14,14 @@ import (
 func (d *document) positionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()
+
 	if d.doc.Version > version {
 		return protocol.Position{}, false
 	}
+
 	line := pos.Line
 	char := pos.Column
+
 	// Can happen when parsing empty files
 	if line < 1 {
 		return protocol.Position{
@@ -26,24 +29,30 @@ func (d *document) positionToProtocolPostion(version float64, pos token.Position
 			Character: 0,
 		}, true
 	}
+
 	// Convert to the Postions as described in the LSP Spec
 	// LineStart can panic
 	offset := int(d.posData.LineStart(line)) - d.posData.Base() + char - 1
 	point := span.NewPoint(line, char, offset)
+
 	var err error
+
 	char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
 	// Protocol has zero based positions
 	char--
 	line--
+
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return protocol.Position{}, false
 	}
+
 	return protocol.Position{
 		Line:      float64(line),
 		Character: float64(char),
 	}, true
 }
+
 func (d *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()

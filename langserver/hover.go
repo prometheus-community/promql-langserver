@@ -24,6 +24,7 @@ func initializeFunctionDocumentation() http.FileSystem {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return ret
 }
 
@@ -78,15 +79,16 @@ func nodeToDocMarkdown(node promql.Node) string {
 
 	if call, ok := node.(*promql.Call); ok {
 		doc := funcDocStrings(call.Func.Name)
-		_, err := ret.WriteString(doc)
-		if err != nil {
+
+		if _, err := ret.WriteString(doc); err != nil {
 			return ""
 		}
-		err = ret.WriteByte('\n')
-		if err != nil {
+
+		if err = ret.WriteByte('\n'); err != nil {
 			return ""
 		}
 	}
+
 	return ret.String()
 }
 
@@ -94,19 +96,24 @@ func funcDocStrings(name string) string {
 	name = strings.ToLower(name)
 
 	file, err := functionDocumentationFS.Open(fmt.Sprintf("/%s.md", name))
+
 	if err != nil {
 		return ""
 	}
 
 	defer file.Close()
+
 	stat, err := file.Stat()
 	if err != nil {
 		return ""
 	}
+
 	ret := make([]byte, stat.Size())
+
 	_, err = file.Read(ret)
 	if err != nil {
 		return ""
 	}
+
 	return string(ret)
 }
