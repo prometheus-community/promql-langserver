@@ -30,13 +30,16 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 	content := d.doc.Text
 	version := d.doc.Version
 	d.Mu.RUnlock()
+
 	var diagnostics *protocol.PublishDiagnosticsParams
+
 	switch d.doc.LanguageID {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
 		var parseErr *promql.ParseErr
 		var ok bool
+
 		if err != nil {
 			parseErr, ok = err.(*promql.ParseErr)
 			// TODO (slrtbtfs) Maybe give some more feedback here
@@ -56,10 +59,11 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			Version:     version,
 			Diagnostics: []protocol.Diagnostic{},
 		}
+
 		if err != nil {
 			var pos protocol.Position
-			pos, ok = d.positionToProtocolPostion(version, parseErr.Position)
-			if !ok {
+
+			if pos, ok = d.positionToProtocolPostion(version, parseErr.Position); !ok {
 				fmt.Fprintf(os.Stderr, "Conversion failed\n")
 				return
 			}

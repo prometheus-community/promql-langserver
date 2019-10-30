@@ -57,8 +57,8 @@ func (d *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos,
 		return token.NoPos, err
 	}
 	char = point.Column()
-	return d.posData.LineStart(line) + token.Pos(char), nil
 
+	return d.posData.LineStart(line) + token.Pos(char), nil
 }
 
 func endOfLine(p protocol.Position) protocol.Position {

@@ -67,6 +67,7 @@ func (c *documentCache) addDocument(doc *protocol.TextDocumentItem) (*document, 
 	}
 
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
+
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {
 			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", err)
@@ -113,9 +114,11 @@ func (c *documentCache) removeDocument(uri protocol.DocumentURI) error {
 func (d *document) setContent(content string, version float64) error {
 	d.Mu.Lock()
 	defer d.Mu.Unlock()
+
 	if version <= d.doc.Version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
+
 	d.doc.Text = content
 	d.doc.Version = version
 	d.posData.SetLinesForContent([]byte(content))

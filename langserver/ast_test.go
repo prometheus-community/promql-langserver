@@ -33,7 +33,6 @@ func TestSmallestSurroundingNode(t *testing.T) {
 		if !reflect.DeepEqual(node, parseResult) {
 			panic("Whole Expression should have been matched for " + test.input)
 		}
-
 	}
 
 	for _, test := range testExpressions {
@@ -54,7 +53,6 @@ func TestSmallestSurroundingNode(t *testing.T) {
 					" and pos " + fmt.Sprintln(pos) + "Got: " + fmt.Sprintln(node) +
 					"Pos: " + fmt.Sprintln(node.Pos()) + "EndPos: " + fmt.Sprintln(node.EndPos()))
 			}
-
 		}
 	}
 }
