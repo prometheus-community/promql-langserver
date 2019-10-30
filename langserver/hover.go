@@ -84,7 +84,7 @@ func nodeToDocMarkdown(node promql.Node) string {
 			return ""
 		}
 
-		if err = ret.WriteByte('\n'); err != nil {
+		if err := ret.WriteByte('\n'); err != nil {
 			return ""
 		}
 	}
