@@ -7,7 +7,7 @@
 
 Implementation of the Language Server Protocol for PromQL.
 
-## Features:
+## Features
 
 Most of the planned features are not implemented yet.
 
@@ -32,3 +32,4 @@ Most of the planned features are not implemented yet.
 - [ ] Signature information for functions (while typing)
 - [ ] (Linting)
 - [ ] (Formatting)
+
