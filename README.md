@@ -7,7 +7,9 @@
 
 Implementation of the Language Server Protocol for PromQL.
 
-Implemented features:
+## Features:
+
+Most of the planned features are not implemented yet.
 
 - [x] Connect to IDEs and text editors over stdio
 - [ ] Connect to remote clients over websocket or http
