@@ -23,6 +23,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
@@ -35,7 +36,7 @@ type Server struct {
 	state   serverState
 	stateMu sync.Mutex
 
-	cache documentCache
+	cache cache.DocumentCache
 }
 
 type serverState int

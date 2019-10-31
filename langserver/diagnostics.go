@@ -19,21 +19,22 @@ import (
 	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // nolint:funlen
-func (s *Server) diagnostics(ctx context.Context, d *document) {
+func (s *Server) diagnostics(ctx context.Context, d *cache.Document) {
 	d.Mu.RLock()
-	uri := d.doc.URI
-	file := d.posData
-	content := d.doc.Text
-	version := d.doc.Version
+	uri := d.Doc.URI
+	file := d.PosData
+	content := d.Doc.Text
+	version := d.Doc.Version
 	d.Mu.RUnlock()
 
 	var diagnostics *protocol.PublishDiagnosticsParams
 
-	switch d.doc.LanguageID {
+	switch d.Doc.LanguageID {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
@@ -51,7 +52,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			}
 		}
 
-		recent := d.updateCompileData(version, ast, parseErr)
+		recent := d.UpdateCompileData(version, ast, parseErr)
 		if !recent {
 			return
 		}
@@ -66,7 +67,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 		if err != nil {
 			var pos protocol.Position
 
-			if pos, ok = d.positionToProtocolPostion(version, parseErr.Position); !ok {
+			if pos, ok = d.PositionToProtocolPostion(version, parseErr.Position); !ok {
 				fmt.Fprintf(os.Stderr, "Conversion failed\n")
 				return
 			}
@@ -74,7 +75,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			message := protocol.Diagnostic{
 				Range: protocol.Range{
 					Start: pos,
-					End:   endOfLine(pos),
+					End:   cache.EndOfLine(pos),
 				},
 				Severity: 1, // Error
 				Source:   "promql-lsp",
@@ -90,22 +91,6 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
 	default:
-		d.updateCompileData(version, nil, nil)
+		d.UpdateCompileData(version, nil, nil)
 	}
-}
-
-// Updates the compilation Results of a document. Returns true if the Results were still recent
-func (d *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
-	d.Mu.Lock()
-	defer d.Mu.Unlock()
-
-	defer d.compilers.Done()
-
-	if d.doc.Version > version {
-		return false
-	}
-
-	d.compileResult = compileResult{ast, err}
-
-	return true
 }

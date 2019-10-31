@@ -1,4 +1,4 @@
-package langserver
+package cache
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 )
 
 // e.g. in LineStart
-func (d *document) positionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
+func (d *Document) PositionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()
 
-	if d.doc.Version > version {
+	if d.Doc.Version > version {
 		return protocol.Position{}, false
 	}
 
@@ -31,12 +31,12 @@ func (d *document) positionToProtocolPostion(version float64, pos token.Position
 
 	// Convert to the Postions as described in the LSP Spec
 	// LineStart can panic
-	offset := int(d.posData.LineStart(line)) - d.posData.Base() + char - 1
+	offset := int(d.PosData.LineStart(line)) - d.PosData.Base() + char - 1
 	point := span.NewPoint(line, char, offset)
 
 	var err error
 
-	char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
+	char, err = span.ToUTF16Column(point, []byte(d.Doc.Text))
 	// Protocol has zero based positions
 	char--
 	line--
@@ -52,15 +52,15 @@ func (d *document) positionToProtocolPostion(version float64, pos token.Position
 	}, true
 }
 
-func (d *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+func (d *Document) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()
 	// protocol.Position is 0 based
 	line := int(pos.Line) + 1
 	char := int(pos.Character)
-	offset := int(d.posData.LineStart(line)) - d.posData.Base()
+	offset := int(d.PosData.LineStart(line)) - d.PosData.Base()
 	point := span.NewPoint(line, 1, offset)
-	point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
+	point, err := span.FromUTF16Column(point, char, []byte(d.Doc.Text))
 
 	if err != nil {
 		return token.NoPos, err
@@ -68,10 +68,10 @@ func (d *document) protocolPositionToTokenPos(pos protocol.Position) (token.Pos,
 
 	char = point.Column()
 
-	return d.posData.LineStart(line) + token.Pos(char), nil
+	return d.PosData.LineStart(line) + token.Pos(char), nil
 }
 
-func endOfLine(p protocol.Position) protocol.Position {
+func EndOfLine(p protocol.Position) protocol.Position {
 	return protocol.Position{
 		Line:      p.Line + 1,
 		Character: 0,

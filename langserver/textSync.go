@@ -19,23 +19,21 @@
 package langserver
 
 import (
-	"bytes"
 	"context"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
 // DidOpen receives a call from the Client, telling that a files has been opened
 // required by the protocol.Server interface
 func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	doc, err := s.cache.addDocument(&params.TextDocument)
+	doc, err := s.cache.AddDocument(&params.TextDocument)
 	if err != nil {
 		return err
 	}
 
-	doc.compilers.Add(1)
+	doc.Compilers.Add(1)
 
 	go s.diagnostics(context.Background(), doc)
 
@@ -45,7 +43,7 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 // DidClose receives a call from the Client, telling that a files has been closed
 // required by the protocol.Server interface
 func (s *Server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
-	return s.cache.removeDocument(params.TextDocument.URI)
+	return s.cache.RemoveDocument(params.TextDocument.URI)
 }
 
 // DidChange receives a call from the Client, telling that a files has been changed
@@ -58,7 +56,7 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	uri := params.TextDocument.URI
 
-	doc, err := s.cache.getDocument(uri)
+	doc, err := s.cache.GetDocument(uri)
 	if err != nil {
 		return err
 	}
@@ -69,18 +67,18 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	if !isFullChange {
 		// Determine the new file content.
-		text, err = doc.applyIncrementalChanges(params.ContentChanges, params.TextDocument.Version)
+		text, err = doc.ApplyIncrementalChanges(params.ContentChanges, params.TextDocument.Version)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Cache the new file content
-	if err = doc.setContent(text, params.TextDocument.Version); err != nil {
+	if err = doc.SetContent(text, params.TextDocument.Version); err != nil {
 		return err
 	}
 
-	doc.compilers.Add(1)
+	doc.Compilers.Add(1)
 
 	go s.diagnostics(context.Background(), doc)
 
@@ -96,51 +94,4 @@ func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool
 	}
 
 	return "", false
-}
-func (d *document) applyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
-	d.Mu.RLock()
-
-	if version <= d.doc.Version {
-		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
-	}
-
-	content := []byte(d.doc.Text)
-	uri := d.doc.URI
-
-	d.Mu.RUnlock()
-
-	for _, change := range changes {
-		// Update column mapper along with the content.
-		converter := span.NewContentConverter(uri, content)
-		m := &protocol.ColumnMapper{
-			URI:       span.URI(d.doc.URI),
-			Converter: converter,
-			Content:   content,
-		}
-
-		spn, err := m.RangeSpan(*change.Range)
-
-		if err != nil {
-			return "", err
-		}
-
-		if !spn.HasOffset() {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
-		}
-
-		start, end := spn.Start().Offset(), spn.End().Offset()
-		if end < start {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
-		}
-
-		var buf bytes.Buffer
-
-		buf.Write(content[:start])
-		buf.WriteString(change.Text)
-		buf.Write(content[end:])
-
-		content = buf.Bytes()
-	}
-
-	return string(content), nil
 }

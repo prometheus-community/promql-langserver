@@ -36,7 +36,7 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 	s.state = serverInitializing
 	s.stateMu.Unlock()
 
-	s.cache.init()
+	s.cache.Init()
 
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
