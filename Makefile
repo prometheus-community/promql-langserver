@@ -33,11 +33,11 @@ fmt:
 
 .PHONY: test
 test:
-	go test -race -v -cover ./langserver/
+	go test -race -v -cover ./langserver/...
 
 .PHONY: lint
 lint:
-	golangci-lint run --enable-all ./langserver/
+	golangci-lint run --enable-all ./langserver/...
 
 .PHONY: update_internal_packages
 update_internal_packages:
