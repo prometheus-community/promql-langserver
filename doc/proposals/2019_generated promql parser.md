@@ -2,7 +2,7 @@
 title: Replacing the PromQL Parser with a generated parser
 type: Proposal
 menu: proposals
-status: WIP
+status: published
 owner: slrtbtfs
 ---
 # Replacing the PromQL Parser with a Generated Parser
@@ -216,3 +216,6 @@ It is likely impossible to completely mitigate the risk of accidentally introduc
 This is a consequence of the fact that no formal definition of PromQL exists yet.
 
 In order to reduce this risk, a large sampling of queries that work with the current parser should be collected and used to test the new parser.
+
+---
+published here: <https://github.com/prometheus/prometheus/issues/6256>
