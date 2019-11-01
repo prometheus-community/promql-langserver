@@ -15,6 +15,7 @@ package cache
 
 import (
 	"bytes"
+	"context"
 	"go/token"
 	"sync"
 
@@ -42,6 +43,9 @@ type Document struct {
 	PosData *token.File
 	Doc     *protocol.TextDocumentItem
 	Mu      sync.RWMutex
+
+	versionCtx      context.Context
+	obsoleteVersion context.CancelFunc
 
 	CompileResult CompileResult
 
@@ -83,6 +87,8 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 		Doc:     doc,
 	}
 
+	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
+
 	c.DocumentsMu.Lock()
 	c.Documents[doc.URI] = d
 	c.DocumentsMu.Unlock()
@@ -120,6 +126,10 @@ func (d *Document) SetContent(content string, version float64) error {
 	if version <= d.Doc.Version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
+
+	d.obsoleteVersion()
+
+	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
 
 	d.Doc.Text = content
 	d.Doc.Version = version
