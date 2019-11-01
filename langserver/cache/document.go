@@ -96,3 +96,19 @@ func (d *Document) SetContent(content string, version float64) error {
 
 	return nil
 }
+
+// GetContent returns the content of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+func (d *Document) GetContent(ctx context.Context) (string, error) {
+	d.Mu.RLock()
+	defer d.Mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	default:
+		return d.Doc.Text, nil
+	}
+}
