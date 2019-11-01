@@ -78,16 +78,16 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 
 	file.SetLinesForContent([]byte(doc.Text))
 
-	Docu := &Document{
+	d := &Document{
 		PosData: file,
 		Doc:     doc,
 	}
 
 	c.DocumentsMu.Lock()
-	c.Documents[doc.URI] = Docu
+	c.Documents[doc.URI] = d
 	c.DocumentsMu.Unlock()
 
-	return Docu, nil
+	return d, nil
 }
 
 // retrieve a Document from the cache
