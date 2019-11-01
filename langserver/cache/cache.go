@@ -127,6 +127,10 @@ func (d *Document) SetContent(content string, version float64) error {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
+	if len(content) > maxDocumentSize {
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided Document to large.")
+	}
+
 	d.obsoleteVersion()
 
 	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
