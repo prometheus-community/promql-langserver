@@ -112,3 +112,22 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 		return d.Doc.Text, nil
 	}
 }
+
+// GetCompileResult returns the Compilation Results of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error) {
+	d.Compilers.Wait()
+
+	d.Mu.RLock()
+	defer d.Mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return d.CompileResult, nil
+	}
+}
