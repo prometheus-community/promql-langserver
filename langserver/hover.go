@@ -31,25 +31,25 @@ func initializeFunctionDocumentation() http.FileSystem {
 // Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	doc, err := s.cache.getDocument(params.TextDocumentPositionParams.TextDocument.URI)
+	doc, docCtx, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
 	if err != nil {
 		return nil, err
 	}
 
-	doc.compilers.Wait()
-	doc.Mu.RLock()
-
-	defer doc.Mu.RUnlock()
-
-	pos, err := doc.protocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
+	pos, err := doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
 	if err != nil {
 		return nil, err
 	}
 
 	markdown := ""
 
-	if doc.compileResult.err == nil {
-		node := getSmallestSurroundingNode(doc.compileResult.ast, pos)
+	compileResult, expired := doc.GetCompileResult(docCtx)
+	if expired != nil {
+		return nil, nil
+	}
+
+	if compileResult.Err == nil {
+		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
 		markdown = nodeToDocMarkdown(node)
 	}

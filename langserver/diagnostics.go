@@ -14,26 +14,38 @@
 package langserver
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // nolint:funlen
-func (s *Server) diagnostics(ctx context.Context, d *document) {
-	d.Mu.RLock()
-	uri := d.doc.URI
-	file := d.posData
-	content := d.doc.Text
-	version := d.doc.Version
-	d.Mu.RUnlock()
+func (s *Server) diagnostics(uri string) {
+	d, ctx, err := s.cache.GetDocument(uri)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
+	}
+
+	file := d.PosData
+
+	content, expired := d.GetContent(ctx)
+	if expired != nil {
+		return
+	}
+
+	var version float64
+
+	version, expired = d.GetVersion(ctx)
+	if expired != nil {
+		return
+	}
 
 	var diagnostics *protocol.PublishDiagnosticsParams
 
-	switch d.doc.LanguageID {
+	switch d.GetLanguageID() {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
@@ -51,7 +63,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			}
 		}
 
-		recent := d.updateCompileData(version, ast, parseErr)
+		recent := d.UpdateCompileData(ctx, ast, parseErr)
 		if !recent {
 			return
 		}
@@ -66,7 +78,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 		if err != nil {
 			var pos protocol.Position
 
-			if pos, ok = d.positionToProtocolPostion(version, parseErr.Position); !ok {
+			if pos, ok = d.PositionToProtocolPostion(version, parseErr.Position); !ok {
 				fmt.Fprintf(os.Stderr, "Conversion failed\n")
 				return
 			}
@@ -74,7 +86,7 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			message := protocol.Diagnostic{
 				Range: protocol.Range{
 					Start: pos,
-					End:   endOfLine(pos),
+					End:   cache.EndOfLine(pos),
 				},
 				Severity: 1, // Error
 				Source:   "promql-lsp",
@@ -90,22 +102,6 @@ func (s *Server) diagnostics(ctx context.Context, d *document) {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
 	default:
-		d.updateCompileData(version, nil, nil)
+		d.UpdateCompileData(ctx, nil, nil)
 	}
-}
-
-// Updates the compilation Results of a document. Returns true if the Results were still recent
-func (d *document) updateCompileData(version float64, ast promql.Node, err *promql.ParseErr) bool {
-	d.Mu.Lock()
-	defer d.Mu.Unlock()
-
-	defer d.compilers.Done()
-
-	if d.doc.Version > version {
-		return false
-	}
-
-	d.compileResult = compileResult{ast, err}
-
-	return true
 }
