@@ -11,8 +11,8 @@ import (
 
 // e.g. in LineStart
 func (d *Document) PositionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
 	if d.doc.Version > version {
 		return protocol.Position{}, false
@@ -53,8 +53,8 @@ func (d *Document) PositionToProtocolPostion(version float64, pos token.Position
 }
 
 func (d *Document) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 	// protocol.Position is 0 based
 	line := int(pos.Line) + 1
 	char := int(pos.Character)

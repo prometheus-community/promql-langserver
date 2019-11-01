@@ -14,7 +14,7 @@ import (
 type Document struct {
 	PosData *token.File
 	doc     *protocol.TextDocumentItem
-	Mu      sync.RWMutex
+	mu      sync.RWMutex
 
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
@@ -26,7 +26,7 @@ type Document struct {
 }
 
 func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
-	d.Mu.RLock()
+	d.mu.RLock()
 
 	if version <= d.doc.Version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
@@ -35,7 +35,7 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 	content := []byte(d.doc.Text)
 	uri := d.doc.URI
 
-	d.Mu.RUnlock()
+	d.mu.RUnlock()
 
 	for _, change := range changes {
 		// Update column mapper along with the content.
@@ -75,8 +75,8 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 
 // Set the content after an update send by the client. Must increase the version number
 func (d *Document) SetContent(content string, version float64) error {
-	d.Mu.Lock()
-	defer d.Mu.Unlock()
+	d.mu.Lock()
+	defer d.mu.Unlock()
 
 	if version <= d.doc.Version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
@@ -102,8 +102,8 @@ func (d *Document) SetContent(content string, version float64) error {
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 func (d *Document) GetContent(ctx context.Context) (string, error) {
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
 	select {
 	case <-ctx.Done():
@@ -121,8 +121,8 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error) {
 	d.Compilers.Wait()
 
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
 	select {
 	case <-ctx.Done():
@@ -137,8 +137,8 @@ func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error)
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 func (d *Document) GetVersion(ctx context.Context) (float64, error) {
-	d.Mu.RLock()
-	defer d.Mu.RUnlock()
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
 	select {
 	case <-ctx.Done():
