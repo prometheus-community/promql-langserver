@@ -147,3 +147,9 @@ func (d *Document) GetVersion(ctx context.Context) (float64, error) {
 		return d.Doc.Version, nil
 	}
 }
+
+// GetURI returns the content of a document
+// Since the URI never changes, it does not block or return errors
+func (d *Document) GetURI() string {
+	return d.Doc.URI
+}
