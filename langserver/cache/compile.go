@@ -17,7 +17,7 @@ func (d *Document) UpdateCompileData(ctx context.Context, ast promql.Node, err *
 	case <-ctx.Done():
 		return false
 	default:
-		d.CompileResult = &CompileResult{ast, err}
+		d.compileResult = &CompileResult{ast, err}
 		return true
 	}
 }

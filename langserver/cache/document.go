@@ -19,7 +19,7 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	CompileResult *CompileResult
+	compileResult *CompileResult
 
 	// Wait for this before accessing  compileResults
 	Compilers sync.WaitGroup
@@ -128,7 +128,7 @@ func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error)
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
-		return d.CompileResult, nil
+		return d.compileResult, nil
 	}
 }
 
