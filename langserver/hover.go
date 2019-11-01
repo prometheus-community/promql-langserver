@@ -31,7 +31,7 @@ func initializeFunctionDocumentation() http.FileSystem {
 // Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	doc, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
+	doc, _, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
 	if err != nil {
 		return nil, err
 	}

@@ -56,7 +56,7 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	uri := params.TextDocument.URI
 
-	doc, err := s.cache.GetDocument(uri)
+	doc, _, err := s.cache.GetDocument(uri)
 	if err != nil {
 		return err
 	}
