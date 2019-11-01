@@ -35,7 +35,7 @@ func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 
 	doc.Compilers.Add(1)
 
-	go s.diagnostics(context.Background(), doc)
+	go s.diagnostics(params.TextDocument.URI)
 
 	return err
 }
@@ -80,7 +80,7 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	doc.Compilers.Add(1)
 
-	go s.diagnostics(context.Background(), doc)
+	go s.diagnostics(uri)
 
 	return nil
 }

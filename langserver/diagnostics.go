@@ -14,7 +14,6 @@
 package langserver
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -24,13 +23,25 @@ import (
 )
 
 // nolint:funlen
-func (s *Server) diagnostics(ctx context.Context, d *cache.Document) {
-	d.Mu.RLock()
-	uri := d.Doc.URI
+func (s *Server) diagnostics(uri string) {
+	d, ctx, err := s.cache.GetDocument(uri)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
+	}
+
 	file := d.PosData
-	content := d.Doc.Text
-	version := d.Doc.Version
-	d.Mu.RUnlock()
+
+	content, expired := d.GetContent(ctx)
+	if expired != nil {
+		return
+	}
+
+	var version float64
+
+	version, expired = d.GetVersion(ctx)
+	if expired != nil {
+		return
+	}
 
 	var diagnostics *protocol.PublishDiagnosticsParams
 
@@ -52,7 +63,7 @@ func (s *Server) diagnostics(ctx context.Context, d *cache.Document) {
 			}
 		}
 
-		recent := d.UpdateCompileData(version, ast, parseErr)
+		recent := d.UpdateCompileData(ctx, ast, parseErr)
 		if !recent {
 			return
 		}
@@ -91,6 +102,6 @@ func (s *Server) diagnostics(ctx context.Context, d *cache.Document) {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
 	default:
-		d.UpdateCompileData(version, nil, nil)
+		d.UpdateCompileData(ctx, nil, nil)
 	}
 }

@@ -131,3 +131,19 @@ func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error)
 		return d.CompileResult, nil
 	}
 }
+
+// GetVersion returns the content of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+func (d *Document) GetVersion(ctx context.Context) (float64, error) {
+	d.Mu.RLock()
+	defer d.Mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+		return d.Doc.Version, nil
+	}
+}
