@@ -19,7 +19,7 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	CompileResult CompileResult
+	CompileResult *CompileResult
 
 	// Wait for this before accessing  compileResults
 	Compilers sync.WaitGroup

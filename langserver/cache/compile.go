@@ -13,7 +13,7 @@ func (d *Document) UpdateCompileData(version float64, ast promql.Node, err *prom
 		return false
 	}
 
-	d.CompileResult = CompileResult{ast, err}
+	d.CompileResult = &CompileResult{ast, err}
 
 	return true
 }
