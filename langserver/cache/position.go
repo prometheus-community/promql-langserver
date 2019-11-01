@@ -14,7 +14,7 @@ func (d *Document) PositionToProtocolPostion(version float64, pos token.Position
 	d.Mu.RLock()
 	defer d.Mu.RUnlock()
 
-	if d.Doc.Version > version {
+	if d.doc.Version > version {
 		return protocol.Position{}, false
 	}
 
@@ -36,7 +36,7 @@ func (d *Document) PositionToProtocolPostion(version float64, pos token.Position
 
 	var err error
 
-	char, err = span.ToUTF16Column(point, []byte(d.Doc.Text))
+	char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
 	// Protocol has zero based positions
 	char--
 	line--
@@ -60,7 +60,7 @@ func (d *Document) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos,
 	char := int(pos.Character)
 	offset := int(d.PosData.LineStart(line)) - d.PosData.Base()
 	point := span.NewPoint(line, 1, offset)
-	point, err := span.FromUTF16Column(point, char, []byte(d.Doc.Text))
+	point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
 
 	if err != nil {
 		return token.NoPos, err

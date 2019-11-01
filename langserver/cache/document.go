@@ -13,7 +13,7 @@ import (
 
 type Document struct {
 	PosData *token.File
-	Doc     *protocol.TextDocumentItem
+	doc     *protocol.TextDocumentItem
 	Mu      sync.RWMutex
 
 	versionCtx      context.Context
@@ -28,12 +28,12 @@ type Document struct {
 func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
 	d.Mu.RLock()
 
-	if version <= d.Doc.Version {
+	if version <= d.doc.Version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
-	content := []byte(d.Doc.Text)
-	uri := d.Doc.URI
+	content := []byte(d.doc.Text)
+	uri := d.doc.URI
 
 	d.Mu.RUnlock()
 
@@ -41,7 +41,7 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 		// Update column mapper along with the content.
 		converter := span.NewContentConverter(uri, content)
 		m := &protocol.ColumnMapper{
-			URI:       span.URI(d.Doc.URI),
+			URI:       span.URI(d.doc.URI),
 			Converter: converter,
 			Content:   content,
 		}
@@ -78,20 +78,20 @@ func (d *Document) SetContent(content string, version float64) error {
 	d.Mu.Lock()
 	defer d.Mu.Unlock()
 
-	if version <= d.Doc.Version {
+	if version <= d.doc.Version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
 	if len(content) > maxDocumentSize {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided Document to large.")
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/ad.document: Provided.document to large.")
 	}
 
 	d.obsoleteVersion()
 
 	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
 
-	d.Doc.Text = content
-	d.Doc.Version = version
+	d.doc.Text = content
+	d.doc.Version = version
 	d.PosData.SetLinesForContent([]byte(content))
 
 	return nil
@@ -109,7 +109,7 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 	case <-ctx.Done():
 		return "", ctx.Err()
 	default:
-		return d.Doc.Text, nil
+		return d.doc.Text, nil
 	}
 }
 
@@ -144,12 +144,18 @@ func (d *Document) GetVersion(ctx context.Context) (float64, error) {
 	case <-ctx.Done():
 		return 0, ctx.Err()
 	default:
-		return d.Doc.Version, nil
+		return d.doc.Version, nil
 	}
 }
 
 // GetURI returns the content of a document
 // Since the URI never changes, it does not block or return errors
 func (d *Document) GetURI() string {
-	return d.Doc.URI
+	return d.doc.URI
+}
+
+// GetLanguageID returns the content of a document
+// Since the URI never changes, it does not block or return errors
+func (d *Document) GetLanguageID() string {
+	return d.doc.LanguageID
 }

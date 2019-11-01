@@ -68,7 +68,7 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 
 	d := &Document{
 		PosData: file,
-		Doc:     doc,
+		doc:     doc,
 	}
 
 	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())

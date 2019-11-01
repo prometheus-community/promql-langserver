@@ -45,7 +45,7 @@ func (s *Server) diagnostics(uri string) {
 
 	var diagnostics *protocol.PublishDiagnosticsParams
 
-	switch d.Doc.LanguageID {
+	switch d.GetLanguageID() {
 	case "promql":
 		ast, err := promql.ParseFile(content, file)
 
