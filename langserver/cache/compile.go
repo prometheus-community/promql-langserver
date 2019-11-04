@@ -35,6 +35,11 @@ func (d *Document) compile(ctx context.Context) {
 	case "promql":
 		d.compilers.Add(1)
 		d.compileQuery(ctx, true, 0, 0)
+	case "yaml":
+		err := d.parseYaml(ctx)
+		if err != nil {
+			return
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
 	}

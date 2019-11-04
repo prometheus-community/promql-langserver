@@ -23,6 +23,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"gopkg.in/yaml.v3"
 )
 
 // Document caches content, metadata and compile results of a document
@@ -40,7 +41,8 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	queries []*CompiledQuery
+	queries  []*CompiledQuery
+	yamlTree *yaml.Node
 
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
