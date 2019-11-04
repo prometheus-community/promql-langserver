@@ -15,8 +15,6 @@ type CompiledQuery struct {
 
 func (d *Document) compile(ctx context.Context) {
 	content, expired := d.GetContent(ctx)
-	defer d.Compilers.Done()
-
 	if expired != nil {
 		return
 	}
@@ -45,6 +43,8 @@ func (d *Document) compile(ctx context.Context) {
 func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+
+	defer d.compilers.Done()
 
 	select {
 	case <-ctx.Done():

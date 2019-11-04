@@ -22,7 +22,7 @@ type Document struct {
 	compileResult *CompiledQuery
 
 	// Wait for this before accessing  compileResults
-	Compilers sync.WaitGroup
+	compilers sync.WaitGroup
 }
 
 func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
@@ -96,7 +96,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.doc.Version = version
 	d.PosData.SetLinesForContent([]byte(content))
 
-	d.Compilers.Add(1)
+	d.compilers.Add(1)
 
 	go d.compile(d.versionCtx)
 
@@ -125,7 +125,7 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 // has changed since
 // It blocks until all compile tasks are finished
 func (d *Document) GetCompileResult(ctx context.Context) (*CompiledQuery, error) {
-	d.Compilers.Wait()
+	d.compilers.Wait()
 
 	d.mu.RLock()
 	defer d.mu.RUnlock()
