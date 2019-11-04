@@ -19,7 +19,7 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	compileResult *CompileResult
+	compileResult *CompiledQuery
 
 	// Wait for this before accessing  compileResults
 	Compilers sync.WaitGroup
@@ -118,7 +118,7 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetCompileResult(ctx context.Context) (*CompileResult, error) {
+func (d *Document) GetCompileResult(ctx context.Context) (*CompiledQuery, error) {
 	d.Compilers.Wait()
 
 	d.mu.RLock()

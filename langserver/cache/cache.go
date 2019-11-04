@@ -37,7 +37,7 @@ type DocumentCache struct {
 	DocumentsMu sync.RWMutex
 }
 
-type CompileResult struct {
+type CompiledQuery struct {
 	Ast promql.Node
 	Err *promql.ParseErr
 }
