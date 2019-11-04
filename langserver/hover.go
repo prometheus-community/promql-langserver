@@ -36,7 +36,7 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 		return nil, err
 	}
 
-	pos, err := doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
+	pos, err := doc.ProtocolPositionToTokenPos(docCtx, params.TextDocumentPositionParams.Position)
 	if err != nil {
 		return nil, err
 	}

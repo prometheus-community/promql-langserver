@@ -54,23 +54,29 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 	}
 }
 
-func (d *Document) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.Position) (token.Pos, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
-	// protocol.Position is 0 based
-	line := int(pos.Line) + 1
-	char := int(pos.Character)
-	offset := int(d.PosData.LineStart(line)) - d.PosData.Base()
-	point := span.NewPoint(line, 1, offset)
-	point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
 
-	if err != nil {
-		return token.NoPos, err
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+		// protocol.Position is 0 based
+		line := int(pos.Line) + 1
+		char := int(pos.Character)
+		offset := int(d.PosData.LineStart(line)) - d.PosData.Base()
+		point := span.NewPoint(line, 1, offset)
+		point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
+
+		if err != nil {
+			return token.NoPos, err
+		}
+
+		char = point.Column()
+
+		return d.PosData.LineStart(line) + token.Pos(char), nil
 	}
-
-	char = point.Column()
-
-	return d.PosData.LineStart(line) + token.Pos(char), nil
 }
 
 func EndOfLine(p protocol.Position) protocol.Position {
