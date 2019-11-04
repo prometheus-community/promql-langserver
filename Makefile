@@ -36,8 +36,15 @@ test:
 	go test -race -v -cover ./langserver/...
 
 .PHONY: lint
-lint:
+lint: golangci-lint golint
+
+.PHONY: golangci-lint
+golangci-lint:
 	golangci-lint run --enable-all ./langserver/...
+
+.PHONY: golint
+golint:
+	golint -set_exit_status ./langserver/...
 
 .PHONY: update_internal_packages
 update_internal_packages:
