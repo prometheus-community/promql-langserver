@@ -18,7 +18,6 @@ import (
 	"go/token"
 	"sync"
 
-	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
@@ -35,11 +34,6 @@ type DocumentCache struct {
 
 	Documents   map[protocol.DocumentURI]*Document
 	DocumentsMu sync.RWMutex
-}
-
-type CompiledQuery struct {
-	Ast promql.Node
-	Err *promql.ParseErr
 }
 
 // Initializes a Document cache
