@@ -16,6 +16,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"go/token"
 	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
@@ -28,29 +29,48 @@ type CompiledQuery struct {
 }
 
 func (d *Document) compile(ctx context.Context) {
-	content, expired := d.GetContent(ctx)
+	defer d.compilers.Done()
+
+	switch d.GetLanguageID() {
+	case "promql":
+		d.compilers.Add(1)
+		d.compileQuery(ctx, true, 0, 0)
+	default:
+		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
+	}
+}
+
+// compileQuery compiles the query at the position given by the last two arguments
+// if fullFile is set, the last two arguments are ignored and the full file is assumed
+// to be one query
+func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) {
+	var content string
+
+	var expired error
+
+	if fullFile {
+		content, expired = d.GetContent(ctx)
+	} else {
+		content, expired = d.GetSubstring(ctx, pos, endPos)
+	}
+
 	if expired != nil {
 		return
 	}
 
 	file := d.posData
 
-	switch d.GetLanguageID() {
-	case "promql":
-		ast, err := promql.ParseFile(content, file)
+	ast, err := promql.ParseFile(content, file)
 
-		var parseErr *promql.ParseErr
+	var parseErr *promql.ParseErr
 
-		var ok bool
+	var ok bool
 
-		if parseErr, ok = err.(*promql.ParseErr); !ok {
-			parseErr = nil
-		}
-
-		d.AddCompileResult(ctx, ast, parseErr)
-	default:
-		d.AddCompileResult(ctx, nil, nil)
+	if parseErr, ok = err.(*promql.ParseErr); !ok {
+		parseErr = nil
 	}
+
+	d.AddCompileResult(ctx, ast, parseErr)
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired

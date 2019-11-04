@@ -143,6 +143,33 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 	}
 }
 
+// GetSubstring returns a substring of the content of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// The remaining parameters are the start and end of the substring, encoded
+// as token.Pos
+func (d *Document) GetSubstring(ctx context.Context, pos token.Pos, endPos token.Pos) (string, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	default:
+		content := d.content
+		base := d.posData.Base()
+		pos -= token.Pos(base)
+		endPos -= token.Pos(base)
+
+		if pos < 0 || pos > endPos || int(endPos) > len(content) {
+			return "", errors.New("invalid range")
+		}
+
+		return content[pos:endPos], nil
+	}
+}
+
 // GetQueries returns the Compilation Results of a document
 // It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
