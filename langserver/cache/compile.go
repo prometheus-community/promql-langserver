@@ -64,7 +64,6 @@ func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *p
 	case <-ctx.Done():
 		fmt.Fprint(os.Stderr, "Context expired\n")
 	default:
-		d.compileResult = &CompiledQuery{ast, err}
-		fmt.Fprintf(os.Stderr, "Added compileResult: %v\n", d.compileResult)
+		d.queries = append(d.queries, &CompiledQuery{ast, err})
 	}
 }

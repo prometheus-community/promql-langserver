@@ -25,6 +25,7 @@ import (
 	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	// Do not remove! Side effects of init() needed
 	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
 )
@@ -56,8 +57,10 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 
 	markdown := ""
 
-	compileResult, expired := doc.GetCompileResult(docCtx)
-	if expired != nil {
+	var compileResult *cache.CompiledQuery
+
+	compileResult, err = doc.GetQuery(docCtx, pos)
+	if err != nil {
 		return nil, nil
 	}
 

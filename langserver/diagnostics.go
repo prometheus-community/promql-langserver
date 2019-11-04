@@ -42,33 +42,35 @@ func (s *Server) diagnostics(uri string) {
 		Diagnostics: []protocol.Diagnostic{},
 	}
 
-	compileResult, err := d.GetCompileResult(ctx)
+	queries, err := d.GetQueries(ctx)
 	if err != nil {
 		return
 	}
 
 	fmt.Fprint(os.Stderr, "Got it")
 
-	if compileResult.Err != nil {
-		var pos protocol.Position
+	for _, compileResult := range queries {
+		if compileResult.Err != nil {
+			var pos protocol.Position
 
-		if pos, err = d.PositionToProtocolPostion(ctx, compileResult.Err.Position); err != nil {
-			fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
-			return
-		}
+			if pos, err = d.PositionToProtocolPostion(ctx, compileResult.Err.Position); err != nil {
+				fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
+				return
+			}
 
-		message := protocol.Diagnostic{
-			Range: protocol.Range{
-				Start: pos,
-				End:   cache.EndOfLine(pos),
-			},
-			Severity: 1, // Error
-			Source:   "promql-lsp",
-			Message:  compileResult.Err.Err.Error(),
-			Code:     "promql-parseerr",
-			//Tags:    []protocol.DiagnosticTag{},
+			message := protocol.Diagnostic{
+				Range: protocol.Range{
+					Start: pos,
+					End:   cache.EndOfLine(pos),
+				},
+				Severity: 1, // Error
+				Source:   "promql-lsp",
+				Message:  compileResult.Err.Err.Error(),
+				Code:     "promql-parseerr",
+				//Tags:    []protocol.DiagnosticTag{},
+			}
+			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
 		}
-		diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
 	}
 
 	if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {

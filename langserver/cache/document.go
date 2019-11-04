@@ -16,6 +16,7 @@ package cache
 import (
 	"bytes"
 	"context"
+	"errors"
 	"go/token"
 	"sync"
 
@@ -39,7 +40,7 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	compileResult *CompiledQuery
+	queries []*CompiledQuery
 
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
@@ -117,6 +118,8 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.version = version
 	d.posData.SetLinesForContent([]byte(content))
 
+	d.queries = []*CompiledQuery{}
+
 	d.compilers.Add(1)
 
 	go d.compile(d.versionCtx)
@@ -140,12 +143,12 @@ func (d *Document) GetContent(ctx context.Context) (string, error) {
 	}
 }
 
-// GetCompileResult returns the Compilation Results of a document
+// GetQueries returns the Compilation Results of a document
 // It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetCompileResult(ctx context.Context) (*CompiledQuery, error) {
+func (d *Document) GetQueries(ctx context.Context) ([]*CompiledQuery, error) {
 	d.compilers.Wait()
 
 	d.mu.RLock()
@@ -155,8 +158,29 @@ func (d *Document) GetCompileResult(ctx context.Context) (*CompiledQuery, error)
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
-		return d.compileResult, nil
+		return d.queries, nil
 	}
+}
+
+// GetQuery returns a successfully compiled query at the given position, if there is one
+// Otherwise an error will be returned
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetQuery(ctx context.Context, pos token.Pos) (*CompiledQuery, error) {
+	queries, err := d.GetQueries(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, query := range queries {
+		if query.Ast != nil && query.Ast.Pos() <= pos && query.Ast.EndPos() > pos {
+			return query, nil
+		}
+	}
+
+	return nil, errors.New("no query found at given position")
 }
 
 // GetVersion returns the content of a document
