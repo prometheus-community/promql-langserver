@@ -78,8 +78,8 @@ func (s *Server) diagnostics(uri string) {
 		if err != nil {
 			var pos protocol.Position
 
-			if pos, ok = d.PositionToProtocolPostion(version, parseErr.Position); !ok {
-				fmt.Fprintf(os.Stderr, "Conversion failed\n")
+			if pos, err = d.PositionToProtocolPostion(ctx, parseErr.Position); err != nil {
+				fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
 				return
 			}
 

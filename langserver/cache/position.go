@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"go/token"
 	"os"
@@ -10,46 +11,47 @@ import (
 )
 
 // e.g. in LineStart
-func (d *Document) PositionToProtocolPostion(version float64, pos token.Position) (protocol.Position, bool) {
+func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Position) (protocol.Position, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	if d.doc.Version > version {
-		return protocol.Position{}, false
-	}
+	select {
+	case <-ctx.Done():
+		return protocol.Position{}, ctx.Err()
+	default:
+		line := pos.Line
+		char := pos.Column
 
-	line := pos.Line
-	char := pos.Column
+		// Can happen when parsing empty files
+		if line < 1 {
+			return protocol.Position{
+				Line:      0,
+				Character: 0,
+			}, nil
+		}
 
-	// Can happen when parsing empty files
-	if line < 1 {
+		// Convert to the Postions as described in the LSP Spec
+		// LineStart can panic
+		offset := int(d.PosData.LineStart(line)) - d.PosData.Base() + char - 1
+		point := span.NewPoint(line, char, offset)
+
+		var err error
+
+		char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
+		// Protocol has zero based positions
+		char--
+		line--
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return protocol.Position{}, err
+		}
+
 		return protocol.Position{
-			Line:      0,
-			Character: 0,
-		}, true
+			Line:      float64(line),
+			Character: float64(char),
+		}, nil
 	}
-
-	// Convert to the Postions as described in the LSP Spec
-	// LineStart can panic
-	offset := int(d.PosData.LineStart(line)) - d.PosData.Base() + char - 1
-	point := span.NewPoint(line, char, offset)
-
-	var err error
-
-	char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
-	// Protocol has zero based positions
-	char--
-	line--
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return protocol.Position{}, false
-	}
-
-	return protocol.Position{
-		Line:      float64(line),
-		Character: float64(char),
-	}, true
 }
 
 func (d *Document) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
