@@ -14,6 +14,7 @@
 package langserver
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -23,6 +24,8 @@ import (
 
 // nolint:funlen
 func (s *Server) diagnostics(uri string) {
+	var diagnostics *protocol.PublishDiagnosticsParams
+
 	d, ctx, err := s.cache.GetDocument(uri)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
@@ -33,8 +36,7 @@ func (s *Server) diagnostics(uri string) {
 		return
 	}
 
-	// Everything is fine
-	diagnostics := &protocol.PublishDiagnosticsParams{
+	diagnostics = &protocol.PublishDiagnosticsParams{
 		URI:         uri,
 		Version:     version,
 		Diagnostics: []protocol.Diagnostic{},
@@ -70,6 +72,19 @@ func (s *Server) diagnostics(uri string) {
 	}
 
 	if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
+}
+
+func (s *Server) clearDiagnostics(ctx context.Context, uri string, version float64) {
+	diagnostics := &protocol.PublishDiagnosticsParams{
+		URI:         uri,
+		Version:     version,
+		Diagnostics: []protocol.Diagnostic{},
+	}
+
+	if err := s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
