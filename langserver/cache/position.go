@@ -37,7 +37,7 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 
 		var err error
 
-		char, err = span.ToUTF16Column(point, []byte(d.doc.Text))
+		char, err = span.ToUTF16Column(point, []byte(d.content))
 		// Protocol has zero based positions
 		char--
 		line--
@@ -67,7 +67,7 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 		char := int(pos.Character)
 		offset := int(d.PosData.LineStart(line)) - d.PosData.Base()
 		point := span.NewPoint(line, 1, offset)
-		point, err := span.FromUTF16Column(point, char, []byte(d.doc.Text))
+		point, err := span.FromUTF16Column(point, char, []byte(d.content))
 
 		if err != nil {
 			return token.NoPos, err
