@@ -28,12 +28,10 @@ import (
 // DidOpen receives a call from the Client, telling that a files has been opened
 // required by the protocol.Server interface
 func (s *Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	doc, err := s.cache.AddDocument(&params.TextDocument)
+	_, err := s.cache.AddDocument(&params.TextDocument)
 	if err != nil {
 		return err
 	}
-
-	doc.Compilers.Add(1)
 
 	go s.diagnostics(params.TextDocument.URI)
 
@@ -74,11 +72,9 @@ func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	}
 
 	// Cache the new file content
-	if err = doc.SetContent(text, params.TextDocument.Version); err != nil {
+	if err = doc.SetContent(text, params.TextDocument.Version, false); err != nil {
 		return err
 	}
-
-	doc.Compilers.Add(1)
 
 	go s.diagnostics(uri)
 

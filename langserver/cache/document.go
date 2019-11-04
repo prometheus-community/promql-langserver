@@ -74,25 +74,31 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 }
 
 // Set the content after an update send by the client. Must increase the version number
-func (d *Document) SetContent(content string, version float64) error {
+func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	if version <= d.doc.Version {
+	if !new && version <= d.doc.Version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
 	if len(content) > maxDocumentSize {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/ad.document: Provided.document to large.")
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/SetContent: Provided.document to large.")
 	}
 
-	d.obsoleteVersion()
+	if !new {
+		d.obsoleteVersion()
+	}
 
 	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
 
 	d.doc.Text = content
 	d.doc.Version = version
 	d.PosData.SetLinesForContent([]byte(content))
+
+	d.Compilers.Add(1)
+
+	go d.compile(d.versionCtx)
 
 	return nil
 }

@@ -46,10 +46,6 @@ func (c *DocumentCache) Init() {
 
 // Add a Document to the cache
 func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, error) {
-	if len(doc.Text) > maxDocumentSize {
-		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: Provided Document to large.")
-	}
-
 	file := c.FileSet.AddFile(doc.URI, -1, maxDocumentSize)
 
 	if r := recover(); r != nil {
@@ -65,7 +61,10 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 		doc:     doc,
 	}
 
-	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
+	err := d.SetContent(doc.Text, doc.Version, true)
+	if err != nil {
+		return nil, err
+	}
 
 	c.DocumentsMu.Lock()
 	c.Documents[doc.URI] = d

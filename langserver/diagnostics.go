@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
@@ -29,79 +28,49 @@ func (s *Server) diagnostics(uri string) {
 		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
 	}
 
-	file := d.PosData
-
-	content, expired := d.GetContent(ctx)
+	version, expired := d.GetVersion(ctx)
 	if expired != nil {
 		return
 	}
 
-	var version float64
+	// Everything is fine
+	diagnostics := &protocol.PublishDiagnosticsParams{
+		URI:         uri,
+		Version:     version,
+		Diagnostics: []protocol.Diagnostic{},
+	}
 
-	version, expired = d.GetVersion(ctx)
-	if expired != nil {
+	compileResult, err := d.GetCompileResult(ctx)
+	if err != nil {
 		return
 	}
 
-	var diagnostics *protocol.PublishDiagnosticsParams
+	fmt.Fprint(os.Stderr, "Got it")
 
-	switch d.GetLanguageID() {
-	case "promql":
-		ast, err := promql.ParseFile(content, file)
+	if compileResult.Err != nil {
+		var pos protocol.Position
 
-		var parseErr *promql.ParseErr
-
-		var ok bool
-
-		if err != nil {
-			parseErr, ok = err.(*promql.ParseErr)
-
-			fmt.Fprintf(os.Stderr, "Failed to convert %v to a promql.Parserr", err)
-
-			if !ok {
-				return
-			}
-		}
-
-		recent := d.UpdateCompileData(ctx, ast, parseErr)
-		if !recent {
+		if pos, err = d.PositionToProtocolPostion(ctx, compileResult.Err.Position); err != nil {
+			fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
 			return
 		}
 
-		// Everything is fine
-		diagnostics = &protocol.PublishDiagnosticsParams{
-			URI:         uri,
-			Version:     version,
-			Diagnostics: []protocol.Diagnostic{},
+		message := protocol.Diagnostic{
+			Range: protocol.Range{
+				Start: pos,
+				End:   cache.EndOfLine(pos),
+			},
+			Severity: 1, // Error
+			Source:   "promql-lsp",
+			Message:  compileResult.Err.Err.Error(),
+			Code:     "promql-parseerr",
+			//Tags:    []protocol.DiagnosticTag{},
 		}
+		diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
+	}
 
-		if err != nil {
-			var pos protocol.Position
-
-			if pos, err = d.PositionToProtocolPostion(ctx, parseErr.Position); err != nil {
-				fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
-				return
-			}
-
-			message := protocol.Diagnostic{
-				Range: protocol.Range{
-					Start: pos,
-					End:   cache.EndOfLine(pos),
-				},
-				Severity: 1, // Error
-				Source:   "promql-lsp",
-				Message:  parseErr.Err.Error(),
-				Code:     "promql-parseerr",
-				//Tags:    []protocol.DiagnosticTag{},
-			}
-			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
-		}
-
-		if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
-			fmt.Fprintln(os.Stderr, err.Error())
-		}
-	default:
-		d.UpdateCompileData(ctx, nil, nil)
+	if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
+		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
