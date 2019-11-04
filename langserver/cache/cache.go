@@ -30,23 +30,23 @@ import (
 const maxDocumentSize = 1000000
 
 type DocumentCache struct {
-	FileSet *token.FileSet
+	fileSet *token.FileSet
 
-	Documents   map[protocol.DocumentURI]*Document
-	DocumentsMu sync.RWMutex
+	documents map[protocol.DocumentURI]*Document
+	mu        sync.RWMutex
 }
 
 // Initializes a Document cache
 func (c *DocumentCache) Init() {
-	c.FileSet = token.NewFileSet()
-	c.DocumentsMu.Lock()
-	c.Documents = make(map[protocol.DocumentURI]*Document)
-	c.DocumentsMu.Unlock()
+	c.fileSet = token.NewFileSet()
+	c.mu.Lock()
+	c.documents = make(map[protocol.DocumentURI]*Document)
+	c.mu.Unlock()
 }
 
 // Add a Document to the cache
 func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, error) {
-	file := c.FileSet.AddFile(doc.URI, -1, maxDocumentSize)
+	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
 
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {
@@ -67,9 +67,9 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 		return nil, err
 	}
 
-	c.DocumentsMu.Lock()
-	c.Documents[doc.URI] = d
-	c.DocumentsMu.Unlock()
+	c.mu.Lock()
+	c.documents[doc.URI] = d
+	c.mu.Unlock()
 
 	return d, nil
 }
@@ -77,9 +77,9 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 // Retrieve a Document from the cache
 // Additionally returns a context that expires as soon as the document changes
 func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, context.Context, error) {
-	c.DocumentsMu.RLock()
-	ret, ok := c.Documents[uri]
-	c.DocumentsMu.RUnlock()
+	c.mu.RLock()
+	ret, ok := c.documents[uri]
+	c.mu.RUnlock()
 
 	if !ok {
 		return nil, nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
@@ -90,9 +90,9 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, contex
 
 // Remove a Document from the cache
 func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
-	c.DocumentsMu.Lock()
-	delete(c.Documents, uri)
-	c.DocumentsMu.Unlock()
+	c.mu.Lock()
+	delete(c.documents, uri)
+	c.mu.Unlock()
 
 	return nil
 }
