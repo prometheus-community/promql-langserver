@@ -8,6 +8,7 @@ import (
 	"github.com/slrtbtfs/prometheus/promql"
 )
 
+// CompiledQuery stores the results of compiling one query
 type CompiledQuery struct {
 	Ast promql.Node
 	Err *promql.ParseErr
@@ -39,7 +40,7 @@ func (d *Document) compile(ctx context.Context) {
 	}
 }
 
-// Updates the compilation Results of a Document. Discards the Result if the context is expired
+// AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
 func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
 	d.mu.Lock()
 	defer d.mu.Unlock()

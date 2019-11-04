@@ -11,6 +11,8 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
+// Document caches content, metadata and compile results of a document
+// All exported access methods should be threadsafe
 type Document struct {
 	posData *token.File
 
@@ -30,6 +32,7 @@ type Document struct {
 	compilers sync.WaitGroup
 }
 
+// ApplyIncrementalChanges applies giver changes to a given Document Content
 func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
 	d.mu.RLock()
 
@@ -78,7 +81,7 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 	return string(content), nil
 }
 
-// Set the content after an update send by the client. Must increase the version number
+// SetContent sets the content of a document
 func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()

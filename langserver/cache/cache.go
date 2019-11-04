@@ -29,6 +29,7 @@ import (
 // on 32bit systems
 const maxDocumentSize = 1000000
 
+// DocumentCache caches the documents and compile Results associated with one server-client connection
 type DocumentCache struct {
 	fileSet *token.FileSet
 
@@ -36,7 +37,7 @@ type DocumentCache struct {
 	mu        sync.RWMutex
 }
 
-// Initializes a Document cache
+// Init Initializes a Document cache
 func (c *DocumentCache) Init() {
 	c.fileSet = token.NewFileSet()
 	c.mu.Lock()
@@ -44,7 +45,7 @@ func (c *DocumentCache) Init() {
 	c.mu.Unlock()
 }
 
-// Add a Document to the cache
+// AddDocument adds a Document to the cache
 func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, error) {
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
 
@@ -74,7 +75,7 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 	return d, nil
 }
 
-// Retrieve a Document from the cache
+// GetDocument retrieve a Document from the cache
 // Additionally returns a context that expires as soon as the document changes
 func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, context.Context, error) {
 	c.mu.RLock()
@@ -88,7 +89,7 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, contex
 	return ret, ret.versionCtx, nil
 }
 
-// Remove a Document from the cache
+// RemoveDocument removes a Document from the cache
 func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
 	c.mu.Lock()
 	delete(c.documents, uri)

@@ -10,7 +10,7 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
-// e.g. in LineStart
+// PositionToProtocolPostion converts a token.Position to a protocol.Position
 func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Position) (protocol.Position, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -54,6 +54,7 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 	}
 }
 
+// ProtocolPositionToTokenPos converts a token.Pos to a protocol.Position
 func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.Position) (token.Pos, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -79,6 +80,7 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 	}
 }
 
+// EndOfLine returns the end of the Line of the given protocol.Position
 func EndOfLine(p protocol.Position) protocol.Position {
 	return protocol.Position{
 		Line:      p.Line + 1,
