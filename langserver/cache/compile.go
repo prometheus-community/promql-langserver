@@ -40,6 +40,11 @@ func (d *Document) compile(ctx context.Context) {
 		if err != nil {
 			return
 		}
+
+		err = d.scanYamlTree(ctx)
+		if err != nil {
+			return
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
 	}

@@ -15,6 +15,8 @@ package cache
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -46,4 +48,50 @@ func (d *Document) parseYaml(ctx context.Context) error {
 		d.yamlTree = &yamlTree
 		return nil
 	}
+}
+
+func (d *Document) scanYamlTree(ctx context.Context) error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return d.scanYamlTreeRec(ctx, d.yamlTree)
+	}
+}
+
+func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error { //nolint: unparam
+	if node == nil {
+		return nil
+	}
+
+	// Visit all childs
+	for _, child := range node.Content {
+		err := d.scanYamlTreeRec(ctx, child)
+		if err != nil {
+			return err
+		}
+	}
+
+	if node.Kind != yaml.MappingNode {
+		return nil
+	}
+
+	for i := 0; i < len(node.Content); i += 2 {
+		label := node.Content[i]
+		value := node.Content[i+1]
+
+		if label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
+			continue
+		}
+
+		if value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
+			continue
+		}
+
+		fmt.Fprintln(os.Stderr, "Found Query:", value)
+	}
+
+	return nil
 }
