@@ -19,7 +19,7 @@ func (d *Document) compile(ctx context.Context) {
 		return
 	}
 
-	file := d.PosData
+	file := d.posData
 
 	switch d.GetLanguageID() {
 	case "promql":

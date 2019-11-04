@@ -57,7 +57,7 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 	file.SetLinesForContent([]byte(doc.Text))
 
 	d := &Document{
-		PosData:    file,
+		posData:    file,
 		uri:        doc.URI,
 		languageID: doc.LanguageID,
 	}

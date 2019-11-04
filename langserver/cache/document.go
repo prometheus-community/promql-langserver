@@ -12,7 +12,7 @@ import (
 )
 
 type Document struct {
-	PosData *token.File
+	posData *token.File
 
 	uri        string
 	languageID string
@@ -99,7 +99,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 
 	d.content = content
 	d.version = version
-	d.PosData.SetLinesForContent([]byte(content))
+	d.posData.SetLinesForContent([]byte(content))
 
 	d.compilers.Add(1)
 
