@@ -47,8 +47,6 @@ func (s *Server) diagnostics(uri string) {
 		return
 	}
 
-	fmt.Fprint(os.Stderr, "Got it")
-
 	for _, compileResult := range queries {
 		if compileResult.Err != nil {
 			var pos protocol.Position
