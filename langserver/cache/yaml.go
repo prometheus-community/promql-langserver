@@ -78,7 +78,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error {
 		return nil
 	}
 
-	for i := 0; i < len(node.Content); i += 2 {
+	for i := 0; i < len(node.Content)+1; i += 2 {
 		label := node.Content[i]
 		value := node.Content[i+1]
 
