@@ -43,6 +43,7 @@ type Document struct {
 
 	queries  []*CompiledQuery
 	yamlTree *yaml.Node
+	yamlEnd  token.Pos
 
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
@@ -238,4 +239,21 @@ func (d *Document) GetURI() string {
 // Since the URI never changes, it does not block or return errors
 func (d *Document) GetLanguageID() string {
 	return d.languageID
+}
+
+// GetYamlTree returns the Compilation Results of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetYamlTree(ctx context.Context) (*yaml.Node, token.Pos, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return nil, token.NoPos, ctx.Err()
+	default:
+		return d.yamlTree, d.yamlEnd, nil
+	}
 }

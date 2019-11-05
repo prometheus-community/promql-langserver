@@ -16,6 +16,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"go/token"
 	"os"
 	"strings"
 
@@ -38,6 +39,9 @@ func (d *Document) parseYaml(ctx context.Context) error {
 		return err
 	}
 
+	unread := reader.Len()
+	yamlEnd := d.posData.Base() + len(content) - unread
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -46,29 +50,47 @@ func (d *Document) parseYaml(ctx context.Context) error {
 		return ctx.Err()
 	default:
 		d.yamlTree = &yamlTree
+		d.yamlEnd = token.Pos(yamlEnd)
+
 		return nil
 	}
 }
 
 func (d *Document) scanYamlTree(ctx context.Context) error {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return d.scanYamlTreeRec(ctx, d.yamlTree)
+	defer d.compilers.Done()
+
+	yamlTree, yamlEnd, err := d.GetYamlTree(ctx)
+	if err != nil {
+		return err
 	}
+
+	return d.scanYamlTreeRec(ctx, yamlTree, yamlEnd)
 }
 
-func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error { //nolint: unparam
+// nolint
+func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos) error { //nolint: unparam
 	if node == nil {
 		return nil
 	}
 
 	// Visit all childs
-	for _, child := range node.Content {
-		err := d.scanYamlTreeRec(ctx, child)
+	for i, child := range node.Content {
+		var err error
+
+		var childEnd token.Pos
+
+		if i+1 < len(node.Content) && node.Content[i+1] != nil {
+			next := node.Content[i+1]
+
+			childEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column)
+			if err != nil {
+				return err
+			}
+		} else {
+			childEnd = nodeEnd
+		}
+
+		err = d.scanYamlTreeRec(ctx, child, childEnd)
 		if err != nil {
 			return err
 		}
@@ -78,20 +100,57 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error {
 		return nil
 	}
 
-	for i := 0; i < len(node.Content)+1; i += 2 {
+	for i := 0; i+1 < len(node.Content); i += 2 {
 		label := node.Content[i]
 		value := node.Content[i+1]
 
-		if label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
+		if label == nil || label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
 			continue
 		}
 
-		if value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
+		if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
 			continue
 		}
 
-		fmt.Fprintln(os.Stderr, "Found Query:", value)
+		var err error
+
+		var valueEnd token.Pos
+
+		if i+2 < len(node.Content) && node.Content[i+2] != nil {
+			next := node.Content[i+2]
+
+			valueEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column)
+			if err != nil {
+				return err
+			}
+		} else {
+			valueEnd = nodeEnd
+		}
+
+		fmt.Fprint(os.Stderr, "Found Query:", value, valueEnd, "\n\n")
+		d.foundQuery(ctx, value, valueEnd)
 	}
+
+	return nil
+}
+
+func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos) error {
+	if node.Style != yaml.LiteralStyle && node.Style != yaml.FoldedStyle {
+		fmt.Fprintf(os.Stderr, "Line %d: Warning: only literal and folded string style are supported\n", node.Line)
+		return nil
+	}
+
+	// The query starts on the line following the '|' or '>'
+	pos, err := d.yamlPositionToTokenPos(ctx, node.Line+1, 1)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "Start of Query: %d\n\n", pos)
+
+	d.compilers.Add(1)
+
+	go d.compileQuery(ctx, false, pos, endPos)
 
 	return nil
 }

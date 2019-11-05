@@ -41,6 +41,8 @@ func (d *Document) compile(ctx context.Context) {
 			return
 		}
 
+		d.compilers.Add(1)
+
 		err = d.scanYamlTree(ctx)
 		if err != nil {
 			return
@@ -54,6 +56,8 @@ func (d *Document) compile(ctx context.Context) {
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
 func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) {
+	defer d.compilers.Done()
+
 	var content string
 
 	var expired error
@@ -63,6 +67,8 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	} else {
 		content, expired = d.GetSubstring(ctx, pos, endPos)
 	}
+
+	fmt.Fprintf(os.Stderr, "Parsing Query: %s\n\n", content)
 
 	if expired != nil {
 		return
@@ -80,15 +86,16 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	d.AddCompileResult(ctx, ast, parseErr)
+	d.compilers.Add(1)
+
+	go d.AddCompileResult(ctx, ast, parseErr)
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
 func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
+	defer d.compilers.Done()
 	d.mu.Lock()
 	defer d.mu.Unlock()
-
-	defer d.compilers.Done()
 
 	select {
 	case <-ctx.Done():
