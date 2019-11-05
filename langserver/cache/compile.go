@@ -84,14 +84,11 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	d.compilers.Add(1)
-
-	go d.AddCompileResult(ctx, ast, parseErr)
+	d.AddCompileResult(ctx, ast, parseErr)
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
 func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
-	defer d.compilers.Done()
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
