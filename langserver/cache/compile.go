@@ -68,8 +68,6 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		content, expired = d.GetSubstring(ctx, pos, endPos)
 	}
 
-	fmt.Fprintf(os.Stderr, "Parsing Query: %s\n\n", content)
-
 	if expired != nil {
 		return
 	}

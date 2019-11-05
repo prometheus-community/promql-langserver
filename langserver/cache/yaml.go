@@ -127,7 +127,6 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 			valueEnd = nodeEnd
 		}
 
-		fmt.Fprint(os.Stderr, "Found Query:", value, valueEnd, "\n\n")
 		d.foundQuery(ctx, value, valueEnd)
 	}
 
@@ -135,18 +134,23 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 }
 
 func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos) error {
-	if node.Style != yaml.LiteralStyle && node.Style != yaml.FoldedStyle {
-		fmt.Fprintf(os.Stderr, "Line %d: Warning: only literal and folded string style are supported\n", node.Line)
+	line := node.Line
+	col := node.Column
+
+	if node.Style == yaml.LiteralStyle || node.Style == yaml.FoldedStyle {
+		// The query starts on the line following the '|' or '>'
+		line++
+
+		col = 1
+	} else if node.Style == yaml.SingleQuotedStyle || node.Style == yaml.DoubleQuotedStyle {
+		fmt.Fprintf(os.Stderr, "Line %d: Warning: Quoted queries are not supported\n", node.Line)
 		return nil
 	}
 
-	// The query starts on the line following the '|' or '>'
-	pos, err := d.yamlPositionToTokenPos(ctx, node.Line+1, 1)
+	pos, err := d.yamlPositionToTokenPos(ctx, line, col)
 	if err != nil {
 		return err
 	}
-
-	fmt.Fprintf(os.Stderr, "Start of Query: %d\n\n", pos)
 
 	d.compilers.Add(1)
 
