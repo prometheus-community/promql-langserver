@@ -76,7 +76,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 
 	file := d.posData
 
-	ast, err := promql.ParseFile(content, file)
+	ast, err := promql.ParsePartOfFile(content, file, pos)
 
 	var parseErr *promql.ParseErr
 
