@@ -15,7 +15,7 @@ Most of the planned features are not implemented yet.
 - [ ] Connect to remote clients over websocket or http
 - [x] Sync document content with the client
 - [x] Support plain PromQL queries
-- [ ] Support queries inside yaml files
+- [x] Support queries inside yaml files
 - [ ] Connect to a prometheus instance to get label and metric data
 - [x] Show error messages for incorrect queries in the client
 - [ ] Show documentation on hover

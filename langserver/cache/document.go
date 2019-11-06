@@ -23,7 +23,6 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"gopkg.in/yaml.v3"
 )
 
 // Document caches content, metadata and compile results of a document
@@ -41,8 +40,10 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	queries  []*CompiledQuery
-	yamlTree *yaml.Node
+	queries []*CompiledQuery
+	yamls   []*YamlDoc
+
+	diagnostics []protocol.Diagnostic
 
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
@@ -121,6 +122,8 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.posData.SetLinesForContent([]byte(content))
 
 	d.queries = []*CompiledQuery{}
+	d.yamls = []*YamlDoc{}
+	d.diagnostics = []protocol.Diagnostic{}
 
 	d.compilers.Add(1)
 
@@ -238,4 +241,40 @@ func (d *Document) GetURI() string {
 // Since the URI never changes, it does not block or return errors
 func (d *Document) GetLanguageID() string {
 	return d.languageID
+}
+
+// GetYamls returns the yaml documents found in the document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetYamls(ctx context.Context) ([]*YamlDoc, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return d.yamls, nil
+	}
+}
+
+// GetDiagnostics returns the Compilation Results of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetDiagnostics(ctx context.Context) ([]protocol.Diagnostic, error) {
+	d.compilers.Wait()
+
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return d.diagnostics, nil
+	}
 }

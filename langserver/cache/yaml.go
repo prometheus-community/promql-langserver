@@ -15,29 +15,67 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"go/token"
+	"io"
 	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
-func (d *Document) parseYaml(ctx context.Context) error {
+// YamlDoc contains the results of compiling a yaml document
+type YamlDoc struct {
+	AST yaml.Node
+	Err error
+	// Not encoded in the AST
+	End token.Pos
+	// Offset that has to be added to every line number before translating into a token.Pos
+	LineOffset int
+}
+
+func (d *Document) parseYamls(ctx context.Context) error {
 	content, err := d.GetContent(ctx)
 	if err != nil {
 		return err
 	}
 
-	var yamlTree yaml.Node
+	var yamlDoc YamlDoc
 
 	reader := strings.NewReader(content)
-	decoder := yaml.NewDecoder(reader)
 
-	err = decoder.Decode(&yamlTree)
-	if err != nil {
-		return err
+	lineOffset := 0
+
+	for unread := reader.Len(); unread > 0; {
+		fmt.Fprintf(os.Stderr, "Unread: %d\n", unread)
+
+		decoder := yaml.NewDecoder(reader)
+
+		yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
+
+		unread = reader.Len()
+
+		yamlDoc.End = token.Pos(d.posData.Base() + len(content) - unread)
+		yamlDoc.LineOffset = lineOffset
+
+		// Update Line Offset for the next document
+		lineOffset = d.posData.Line(yamlDoc.End) - 1
+
+		err := d.addYaml(ctx, &yamlDoc)
+		if err != nil {
+			return err
+		}
+
+		if errors.Is(yamlDoc.Err, io.EOF) {
+			return yamlDoc.Err
+		}
 	}
 
+	return nil
+}
+
+func (d *Document) addYaml(ctx context.Context, yaml *YamlDoc) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -45,30 +83,54 @@ func (d *Document) parseYaml(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		d.yamlTree = &yamlTree
+		d.yamls = append(d.yamls, yaml)
+
 		return nil
 	}
 }
 
 func (d *Document) scanYamlTree(ctx context.Context) error {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return d.scanYamlTreeRec(ctx, d.yamlTree)
+	defer d.compilers.Done()
+
+	yamls, err := d.GetYamls(ctx)
+	if err != nil {
+		return err
 	}
+
+	for _, yamlDoc := range yamls {
+		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End, yamlDoc.LineOffset)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
-func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error { //nolint: unparam
+// nolint
+func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: unparam
 	if node == nil {
 		return nil
 	}
 
 	// Visit all childs
-	for _, child := range node.Content {
-		err := d.scanYamlTreeRec(ctx, child)
+	for i, child := range node.Content {
+		var err error
+
+		var childEnd token.Pos
+
+		if i+1 < len(node.Content) && node.Content[i+1] != nil {
+			next := node.Content[i+1]
+
+			childEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
+			if err != nil {
+				return err
+			}
+		} else {
+			childEnd = nodeEnd
+		}
+
+		err = d.scanYamlTreeRec(ctx, child, childEnd, lineOffset)
 		if err != nil {
 			return err
 		}
@@ -78,20 +140,66 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node) error {
 		return nil
 	}
 
-	for i := 0; i < len(node.Content)+1; i += 2 {
+	for i := 0; i+1 < len(node.Content); i += 2 {
 		label := node.Content[i]
 		value := node.Content[i+1]
 
-		if label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
+		if label == nil || label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
 			continue
 		}
 
-		if value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
+		if value == nil || value.Kind != yaml.ScalarNode || value.Tag != "!!str" {
 			continue
 		}
 
-		fmt.Fprintln(os.Stderr, "Found Query:", value)
+		var err error
+
+		var valueEnd token.Pos
+
+		if i+2 < len(node.Content) && node.Content[i+2] != nil {
+			next := node.Content[i+2]
+
+			valueEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
+			if err != nil {
+				return err
+			}
+		} else {
+			valueEnd = nodeEnd
+		}
+
+		err = d.foundQuery(ctx, value, valueEnd, lineOffset)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
+}
+
+func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos, lineOffset int) error {
+	line := node.Line
+	col := node.Column
+
+	if node.Style == yaml.LiteralStyle || node.Style == yaml.FoldedStyle {
+		// The query starts on the line following the '|' or '>'
+		line++
+
+		col = 1
+	}
+
+	pos, err := d.yamlPositionToTokenPos(ctx, line, col, lineOffset)
+	if err != nil {
+		return err
+	}
+
+	if node.Style == yaml.SingleQuotedStyle || node.Style == yaml.DoubleQuotedStyle {
+		err = d.warnQuotedYaml(ctx, pos, endPos)
+		return err
+	}
+
+	d.compilers.Add(1)
+
+	go d.compileQuery(ctx, false, pos, endPos)
 
 	return nil
 }

@@ -36,10 +36,12 @@ func (d *Document) compile(ctx context.Context) {
 		d.compilers.Add(1)
 		d.compileQuery(ctx, true, 0, 0)
 	case "yaml":
-		err := d.parseYaml(ctx)
+		err := d.parseYamls(ctx)
 		if err != nil {
 			return
 		}
+
+		d.compilers.Add(1)
 
 		err = d.scanYamlTree(ctx)
 		if err != nil {
@@ -54,12 +56,15 @@ func (d *Document) compile(ctx context.Context) {
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
 func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) {
+	defer d.compilers.Done()
+
 	var content string
 
 	var expired error
 
 	if fullFile {
 		content, expired = d.GetContent(ctx)
+		pos = token.Pos(d.posData.Base())
 	} else {
 		content, expired = d.GetSubstring(ctx, pos, endPos)
 	}
@@ -70,7 +75,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 
 	file := d.posData
 
-	ast, err := promql.ParseFile(content, file)
+	ast, err := promql.ParsePartOfFile(content, file, pos)
 
 	var parseErr *promql.ParseErr
 
@@ -81,14 +86,24 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	}
 
 	d.AddCompileResult(ctx, ast, parseErr)
+
+	if parseErr != nil {
+		diagnostic, err := d.promQLErrToProtocolDiagnostic(ctx, parseErr)
+		if err != nil {
+			return
+		}
+
+		err = d.AddDiagnostic(ctx, diagnostic)
+		if err != nil {
+			return
+		}
+	}
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
 func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-
-	defer d.compilers.Done()
 
 	select {
 	case <-ctx.Done():

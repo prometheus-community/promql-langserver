@@ -15,6 +15,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go/token"
 	"os"
@@ -90,6 +91,21 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 		char = point.Column()
 
 		return d.posData.LineStart(line) + token.Pos(char), nil
+	}
+}
+
+func (d *Document) yamlPositionToTokenPos(ctx context.Context, line int, column int, lineOffset int) (token.Pos, error) { // nolint:lll
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	select {
+	case <-ctx.Done():
+		return token.NoPos, ctx.Err()
+	default:
+		if column < 1 {
+			return 0, errors.New("invalid position")
+		}
+
+		return d.posData.LineStart(line+lineOffset) + token.Pos(column-1), nil
 	}
 }
 
