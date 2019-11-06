@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
@@ -49,25 +50,12 @@ func (s *Server) diagnostics(uri string) {
 
 	for _, compileResult := range queries {
 		if compileResult.Err != nil {
-			var pos protocol.Position
-
-			if pos, err = d.PositionToProtocolPostion(ctx, compileResult.Err.Position); err != nil {
-				fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
+			message, err := promQLErrToProtocolDiagnostic(ctx, d, compileResult.Err)
+			if err != nil {
 				return
 			}
 
-			message := protocol.Diagnostic{
-				Range: protocol.Range{
-					Start: pos,
-					End:   cache.EndOfLine(pos),
-				},
-				Severity: 1, // Error
-				Source:   "promql-lsp",
-				Message:  compileResult.Err.Err.Error(),
-				Code:     "promql-parseerr",
-				//Tags:    []protocol.DiagnosticTag{},
-			}
-			diagnostics.Diagnostics = append(diagnostics.Diagnostics, message)
+			diagnostics.Diagnostics = append(diagnostics.Diagnostics, *message)
 		}
 	}
 
@@ -88,4 +76,29 @@ func (s *Server) clearDiagnostics(ctx context.Context, uri string, version float
 		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
+}
+
+func promQLErrToProtocolDiagnostic(ctx context.Context, d *cache.Document, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
+	var pos protocol.Position
+
+	var err error
+
+	if pos, err = d.PositionToProtocolPostion(ctx, promQLErr.Position); err != nil {
+		fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
+		return nil, err
+	}
+
+	message := &protocol.Diagnostic{
+		Range: protocol.Range{
+			Start: pos,
+			End:   cache.EndOfLine(pos),
+		},
+		Severity: 1, // Error
+		Source:   "promql-lsp",
+		Message:  promQLErr.Error(),
+		Code:     "promql-parseerr",
+		//Tags:    []protocol.DiagnosticTag{},
+	}
+
+	return message, nil
 }
