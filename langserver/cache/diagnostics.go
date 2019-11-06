@@ -15,9 +15,7 @@ package cache
 
 import (
 	"context"
-	"fmt"
 	"go/token"
-	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -29,7 +27,6 @@ func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr 
 	var err error
 
 	if pos, err = d.PositionToProtocolPostion(ctx, promQLErr.Position); err != nil {
-		fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
 		return nil, err
 	}
 

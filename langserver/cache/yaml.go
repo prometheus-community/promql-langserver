@@ -55,15 +55,12 @@ func (d *Document) parseYamls(ctx context.Context) error {
 		yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
 
 		unread = reader.Len()
-		fmt.Fprintf(os.Stderr, "Unread: %d\n", unread)
 
 		yamlDoc.End = token.Pos(d.posData.Base() + len(content) - unread)
 		yamlDoc.LineOffset = lineOffset
 
 		// Update Line Offset for the next document
 		lineOffset = d.posData.Line(yamlDoc.End) - 1
-
-		fmt.Fprintf(os.Stderr, "Line Offset: %d\nErr: %+v\n\n", lineOffset, yamlDoc.Err)
 
 		err := d.addYaml(ctx, &yamlDoc)
 		if err != nil {
