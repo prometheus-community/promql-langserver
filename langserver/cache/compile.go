@@ -64,6 +64,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 
 	if fullFile {
 		content, expired = d.GetContent(ctx)
+		pos = token.Pos(d.posData.Base())
 	} else {
 		content, expired = d.GetSubstring(ctx, pos, endPos)
 	}
