@@ -94,7 +94,7 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 	}
 }
 
-func (d *Document) yamlPositionToTokenPos(ctx context.Context, line int, column int) (token.Pos, error) {
+func (d *Document) yamlPositionToTokenPos(ctx context.Context, line int, column int, lineOffset int) (token.Pos, error) { // nolint:lll
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	select {
@@ -105,7 +105,7 @@ func (d *Document) yamlPositionToTokenPos(ctx context.Context, line int, column 
 			return 0, errors.New("invalid position")
 		}
 
-		return d.posData.LineStart(line) + token.Pos(column-1), nil
+		return d.posData.LineStart(line+lineOffset) + token.Pos(column-1), nil
 	}
 }
 

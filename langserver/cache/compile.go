@@ -36,7 +36,7 @@ func (d *Document) compile(ctx context.Context) {
 		d.compilers.Add(1)
 		d.compileQuery(ctx, true, 0, 0)
 	case "yaml":
-		err := d.parseYaml(ctx)
+		err := d.parseYamls(ctx)
 		if err != nil {
 			return
 		}

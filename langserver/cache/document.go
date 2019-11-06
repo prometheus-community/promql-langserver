@@ -120,6 +120,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 	d.posData.SetLinesForContent([]byte(content))
 
 	d.queries = []*CompiledQuery{}
+	d.yamls = []*YamlDoc{}
 
 	d.compilers.Add(1)
 

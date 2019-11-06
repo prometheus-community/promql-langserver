@@ -15,8 +15,10 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go/token"
+	"io"
 	"os"
 	"strings"
 
@@ -29,9 +31,11 @@ type YamlDoc struct {
 	Err error
 	// Not encoded in the AST
 	End token.Pos
+	// Offset that has to be added to every line number before translating into a token.Pos
+	LineOffset int
 }
 
-func (d *Document) parseYaml(ctx context.Context) error {
+func (d *Document) parseYamls(ctx context.Context) error {
 	content, err := d.GetContent(ctx)
 	if err != nil {
 		return err
@@ -40,13 +44,41 @@ func (d *Document) parseYaml(ctx context.Context) error {
 	var yamlDoc YamlDoc
 
 	reader := strings.NewReader(content)
-	decoder := yaml.NewDecoder(reader)
 
-	yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
+	lineOffset := 0
 
-	unread := reader.Len()
-	yamlDoc.End = token.Pos(d.posData.Base() + len(content) - unread)
+	for unread := reader.Len(); unread > 0; {
+		fmt.Fprintf(os.Stderr, "Unread: %d\n", unread)
 
+		decoder := yaml.NewDecoder(reader)
+
+		yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
+
+		unread = reader.Len()
+		fmt.Fprintf(os.Stderr, "Unread: %d\n", unread)
+
+		yamlDoc.End = token.Pos(d.posData.Base() + len(content) - unread)
+		yamlDoc.LineOffset = lineOffset
+
+		// Update Line Offset for the next document
+		lineOffset = d.posData.Line(yamlDoc.End) - 1
+
+		fmt.Fprintf(os.Stderr, "Line Offset: %d\nErr: %+v\n\n", lineOffset, yamlDoc.Err)
+
+		err := d.addYaml(ctx, &yamlDoc)
+		if err != nil {
+			return err
+		}
+
+		if errors.Is(yamlDoc.Err, io.EOF) {
+			return yamlDoc.Err
+		}
+	}
+
+	return nil
+}
+
+func (d *Document) addYaml(ctx context.Context, yaml *YamlDoc) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -54,7 +86,8 @@ func (d *Document) parseYaml(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		d.yamls = append(d.yamls, &yamlDoc)
+		d.yamls = append(d.yamls, yaml)
+
 		return nil
 	}
 }
@@ -68,7 +101,7 @@ func (d *Document) scanYamlTree(ctx context.Context) error {
 	}
 
 	for _, yamlDoc := range yamls {
-		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End)
+		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End, yamlDoc.LineOffset)
 		if err != nil {
 			return err
 		}
@@ -78,7 +111,7 @@ func (d *Document) scanYamlTree(ctx context.Context) error {
 }
 
 // nolint
-func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos) error { //nolint: unparam
+func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: unparam
 	if node == nil {
 		return nil
 	}
@@ -92,7 +125,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		if i+1 < len(node.Content) && node.Content[i+1] != nil {
 			next := node.Content[i+1]
 
-			childEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column)
+			childEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
 			if err != nil {
 				return err
 			}
@@ -100,7 +133,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 			childEnd = nodeEnd
 		}
 
-		err = d.scanYamlTreeRec(ctx, child, childEnd)
+		err = d.scanYamlTreeRec(ctx, child, childEnd, lineOffset)
 		if err != nil {
 			return err
 		}
@@ -129,7 +162,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		if i+2 < len(node.Content) && node.Content[i+2] != nil {
 			next := node.Content[i+2]
 
-			valueEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column)
+			valueEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
 			if err != nil {
 				return err
 			}
@@ -137,7 +170,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 			valueEnd = nodeEnd
 		}
 
-		err = d.foundQuery(ctx, value, valueEnd)
+		err = d.foundQuery(ctx, value, valueEnd, lineOffset)
 		if err != nil {
 			return err
 		}
@@ -146,7 +179,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 	return nil
 }
 
-func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos) error {
+func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos, lineOffset int) error {
 	line := node.Line
 	col := node.Column
 
@@ -160,7 +193,7 @@ func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token
 		return nil
 	}
 
-	pos, err := d.yamlPositionToTokenPos(ctx, line, col)
+	pos, err := d.yamlPositionToTokenPos(ctx, line, col, lineOffset)
 	if err != nil {
 		return err
 	}
