@@ -23,24 +23,29 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// YamlDoc contains the results of compiling a yaml document
+type YamlDoc struct {
+	AST yaml.Node
+	Err error
+	// Not encoded in the AST
+	End token.Pos
+}
+
 func (d *Document) parseYaml(ctx context.Context) error {
 	content, err := d.GetContent(ctx)
 	if err != nil {
 		return err
 	}
 
-	var yamlTree yaml.Node
+	var yamlDoc YamlDoc
 
 	reader := strings.NewReader(content)
 	decoder := yaml.NewDecoder(reader)
 
-	err = decoder.Decode(&yamlTree)
-	if err != nil {
-		return err
-	}
+	yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
 
 	unread := reader.Len()
-	yamlEnd := d.posData.Base() + len(content) - unread
+	yamlDoc.End = token.Pos(d.posData.Base() + len(content) - unread)
 
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -49,9 +54,7 @@ func (d *Document) parseYaml(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		d.yamlTree = &yamlTree
-		d.yamlEnd = token.Pos(yamlEnd)
-
+		d.yamls = append(d.yamls, &yamlDoc)
 		return nil
 	}
 }
@@ -59,12 +62,19 @@ func (d *Document) parseYaml(ctx context.Context) error {
 func (d *Document) scanYamlTree(ctx context.Context) error {
 	defer d.compilers.Done()
 
-	yamlTree, yamlEnd, err := d.GetYamlTree(ctx)
+	yamls, err := d.GetYamls(ctx)
 	if err != nil {
 		return err
 	}
 
-	return d.scanYamlTreeRec(ctx, yamlTree, yamlEnd)
+	for _, yamlDoc := range yamls {
+		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 // nolint
@@ -127,7 +137,10 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 			valueEnd = nodeEnd
 		}
 
-		d.foundQuery(ctx, value, valueEnd)
+		err = d.foundQuery(ctx, value, valueEnd)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -23,7 +23,6 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"gopkg.in/yaml.v3"
 )
 
 // Document caches content, metadata and compile results of a document
@@ -41,9 +40,8 @@ type Document struct {
 	versionCtx      context.Context
 	obsoleteVersion context.CancelFunc
 
-	queries  []*CompiledQuery
-	yamlTree *yaml.Node
-	yamlEnd  token.Pos
+	queries []*CompiledQuery
+	yamls   []*YamlDoc
 
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
@@ -241,19 +239,19 @@ func (d *Document) GetLanguageID() string {
 	return d.languageID
 }
 
-// GetYamlTree returns the Compilation Results of a document
+// GetYamls returns the yaml documents found in the document
 // It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetYamlTree(ctx context.Context) (*yaml.Node, token.Pos, error) {
+func (d *Document) GetYamls(ctx context.Context) ([]*YamlDoc, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
 	select {
 	case <-ctx.Done():
-		return nil, token.NoPos, ctx.Err()
+		return nil, ctx.Err()
 	default:
-		return d.yamlTree, d.yamlEnd, nil
+		return d.yamls, nil
 	}
 }
