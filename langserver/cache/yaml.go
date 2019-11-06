@@ -188,13 +188,15 @@ func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token
 		line++
 
 		col = 1
-	} else if node.Style == yaml.SingleQuotedStyle || node.Style == yaml.DoubleQuotedStyle {
-		fmt.Fprintf(os.Stderr, "Line %d: Warning: Quoted queries are not supported\n", node.Line)
-		return nil
 	}
 
 	pos, err := d.yamlPositionToTokenPos(ctx, line, col, lineOffset)
 	if err != nil {
+		return err
+	}
+
+	if node.Style == yaml.SingleQuotedStyle || node.Style == yaml.DoubleQuotedStyle {
+		err = d.warnQuotedYaml(ctx, pos, endPos)
 		return err
 	}
 

@@ -20,7 +20,6 @@ import (
 	"os"
 
 	"github.com/slrtbtfs/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // CompiledQuery stores the results of compiling one query
@@ -110,44 +109,5 @@ func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *p
 		fmt.Fprint(os.Stderr, "Context expired\n")
 	default:
 		d.queries = append(d.queries, &CompiledQuery{ast, err})
-	}
-}
-
-func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
-	var pos protocol.Position
-
-	var err error
-
-	if pos, err = d.PositionToProtocolPostion(ctx, promQLErr.Position); err != nil {
-		fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
-		return nil, err
-	}
-
-	message := &protocol.Diagnostic{
-		Range: protocol.Range{
-			Start: pos,
-			End:   EndOfLine(pos),
-		},
-		Severity: 1, // Error
-		Source:   "promql-lsp",
-		Message:  promQLErr.Error(),
-		Code:     "promql-parseerr",
-		//Tags:    []protocol.DiagnosticTag{},
-	}
-
-	return message, nil
-}
-
-// AddDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddDiagnostic(ctx context.Context, diagnostic *protocol.Diagnostic) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		d.diagnostics = append(d.diagnostics, *diagnostic)
-		return nil
 	}
 }
