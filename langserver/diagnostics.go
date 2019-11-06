@@ -18,15 +18,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // nolint:funlen
 func (s *Server) diagnostics(uri string) {
-	var diagnostics *protocol.PublishDiagnosticsParams
-
 	d, ctx, err := s.cache.GetDocument(uri)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
@@ -37,29 +33,19 @@ func (s *Server) diagnostics(uri string) {
 		return
 	}
 
-	diagnostics = &protocol.PublishDiagnosticsParams{
-		URI:         uri,
-		Version:     version,
-		Diagnostics: []protocol.Diagnostic{},
+	reply := &protocol.PublishDiagnosticsParams{
+		URI:     uri,
+		Version: version,
 	}
 
-	queries, err := d.GetQueries(ctx)
+	diagnostics, err := d.GetDiagnostics(ctx)
 	if err != nil {
 		return
 	}
 
-	for _, compileResult := range queries {
-		if compileResult.Err != nil {
-			message, err := promQLErrToProtocolDiagnostic(ctx, d, compileResult.Err)
-			if err != nil {
-				return
-			}
+	reply.Diagnostics = diagnostics
 
-			diagnostics.Diagnostics = append(diagnostics.Diagnostics, *message)
-		}
-	}
-
-	if err = s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
+	if err = s.client.PublishDiagnostics(ctx, reply); err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
@@ -76,29 +62,4 @@ func (s *Server) clearDiagnostics(ctx context.Context, uri string, version float
 		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
-}
-
-func promQLErrToProtocolDiagnostic(ctx context.Context, d *cache.Document, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
-	var pos protocol.Position
-
-	var err error
-
-	if pos, err = d.PositionToProtocolPostion(ctx, promQLErr.Position); err != nil {
-		fmt.Fprintf(os.Stderr, "Conversion failed: %v\n", err)
-		return nil, err
-	}
-
-	message := &protocol.Diagnostic{
-		Range: protocol.Range{
-			Start: pos,
-			End:   cache.EndOfLine(pos),
-		},
-		Severity: 1, // Error
-		Source:   "promql-lsp",
-		Message:  promQLErr.Error(),
-		Code:     "promql-parseerr",
-		//Tags:    []protocol.DiagnosticTag{},
-	}
-
-	return message, nil
 }

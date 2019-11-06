@@ -43,6 +43,8 @@ type Document struct {
 	queries []*CompiledQuery
 	yamls   []*YamlDoc
 
+	diagnostics []protocol.Diagnostic
+
 	// Wait for this before accessing  compileResults
 	compilers sync.WaitGroup
 }
@@ -121,6 +123,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 
 	d.queries = []*CompiledQuery{}
 	d.yamls = []*YamlDoc{}
+	d.diagnostics = []protocol.Diagnostic{}
 
 	d.compilers.Add(1)
 
@@ -254,5 +257,24 @@ func (d *Document) GetYamls(ctx context.Context) ([]*YamlDoc, error) {
 		return nil, ctx.Err()
 	default:
 		return d.yamls, nil
+	}
+}
+
+// GetDiagnostics returns the Compilation Results of a document
+// It expects a context.Context retrieved using cache.GetDocument
+// and returns an error if that context has expired, i.e. the Document
+// has changed since
+// It blocks until all compile tasks are finished
+func (d *Document) GetDiagnostics(ctx context.Context) ([]protocol.Diagnostic, error) {
+	d.compilers.Wait()
+
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return d.diagnostics, nil
 	}
 }
