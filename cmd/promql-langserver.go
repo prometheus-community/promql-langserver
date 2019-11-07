@@ -15,11 +15,19 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/slrtbtfs/promql-lsp/langserver"
 )
 
 func main() {
-	ctx, s := langserver.StdioServer(context.Background())
+	pwd, _ := os.Getwd()
+	config, err := langserver.ParseConfigFile("promql-lsp.yaml")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error(), pwd)
+		os.Exit(1)
+	}
+	ctx, s := langserver.StdioServer(context.Background(), config)
 	s.Run(ctx)
 }
