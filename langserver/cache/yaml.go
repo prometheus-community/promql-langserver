@@ -16,10 +16,8 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
 	"go/token"
 	"io"
-	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -48,8 +46,6 @@ func (d *Document) parseYamls(ctx context.Context) error {
 	lineOffset := 0
 
 	for unread := reader.Len(); unread > 0; {
-		fmt.Fprintf(os.Stderr, "Unread: %d\n", unread)
-
 		decoder := yaml.NewDecoder(reader)
 
 		yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
