@@ -58,6 +58,11 @@ func (s *Server) Run(_ context.Context) error {
 // ServerFromStream generates a Server from a jsonrpc2.Stream
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, *Server) {
 	s := &Server{}
+
+	if config.Trace.Stderr {
+		stream = protocol.LoggingStream(stream, os.Stderr)
+	}
+
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	s.config = config
 
@@ -67,9 +72,5 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 // StdioServer generates a Server talking to stdio
 func StdioServer(ctx context.Context, config *Config) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
-	if config.Trace.Stderr {
-		stream = protocol.LoggingStream(stream, os.Stderr)
-	}
-
 	return ServerFromStream(ctx, stream, config)
 }
