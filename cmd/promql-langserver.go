@@ -15,6 +15,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 
@@ -22,10 +23,13 @@ import (
 )
 
 func main() {
-	pwd, _ := os.Getwd()
-	config, err := langserver.ParseConfigFile("promql-lsp.yaml")
+	configFilePath := flag.String("config-file", "promql-lsp.yaml", "Configuration file for the language server")
+
+	flag.Parse()
+
+	config, err := langserver.ParseConfigFile(*configFilePath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error(), pwd)
+		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
 	}
 	ctx, s := langserver.StdioServer(context.Background(), config)
