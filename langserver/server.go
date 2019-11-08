@@ -37,6 +37,8 @@ type Server struct {
 	stateMu sync.Mutex
 
 	cache cache.DocumentCache
+
+	config *Config
 }
 
 type serverState int
@@ -54,17 +56,24 @@ func (s *Server) Run(_ context.Context) error {
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream
-func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream) (context.Context, *Server) {
+func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, *Server) {
 	s := &Server{}
+
+	switch config.RPCTrace {
+	case "text":
+		stream = protocol.LoggingStream(stream, os.Stderr)
+	case "json":
+		stream = JSONLogStream(stream, os.Stderr)
+	}
+
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
+	s.config = config
 
 	return ctx, s
 }
 
 // StdioServer generates a Server talking to stdio
-func StdioServer(ctx context.Context) (context.Context, *Server) {
+func StdioServer(ctx context.Context, config *Config) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
-	stream = protocol.LoggingStream(stream, os.Stderr)
-
-	return ServerFromStream(ctx, stream)
+	return ServerFromStream(ctx, stream, config)
 }

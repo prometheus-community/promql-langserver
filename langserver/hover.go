@@ -64,22 +64,18 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 		return nil, nil
 	}
 
-	if compileResult.Err == nil {
+	if compileResult != nil && compileResult.Ast != nil {
 		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
 		markdown = nodeToDocMarkdown(node)
 	}
 
-	if markdown != "" {
-		return &protocol.Hover{
-			Contents: protocol.MarkupContent{
-				Kind:  "markdown",
-				Value: markdown,
-			},
-		}, nil
-	}
-
-	return nil, nil
+	return &protocol.Hover{
+		Contents: protocol.MarkupContent{
+			Kind:  "markdown",
+			Value: markdown,
+		},
+	}, nil
 }
 
 func nodeToDocMarkdown(node promql.Node) string {

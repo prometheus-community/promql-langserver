@@ -15,11 +15,23 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
+	"os"
 
 	"github.com/slrtbtfs/promql-lsp/langserver"
 )
 
 func main() {
-	ctx, s := langserver.StdioServer(context.Background())
+	configFilePath := flag.String("config-file", "promql-lsp.yaml", "Configuration file for the language server")
+
+	flag.Parse()
+
+	config, err := langserver.ParseConfigFile(*configFilePath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
+		os.Exit(1)
+	}
+	ctx, s := langserver.StdioServer(context.Background(), config)
 	s.Run(ctx)
 }
