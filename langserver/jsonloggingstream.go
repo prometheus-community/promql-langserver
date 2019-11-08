@@ -72,7 +72,7 @@ func getType(msg []byte, incoming bool) (string, error) {
 	if incoming {
 		msgType = "send-"
 	} else {
-		msgType = "recv-"
+		msgType = "receive-"
 	}
 
 	switch {
@@ -96,9 +96,9 @@ func (s *jsonLogStream) startLogging() {
 			continue
 		}
 
-		timestamp := time.Now().Unix()
-		tmformat := time.Now().Format("3:04:15 PM")
-		fmt.Fprintf(s.log, `[LSP   - %s] {"isLSPMessage":true,"type":"%s","message":%s,"timestamp":%d}%s`,
-			tmformat, typ, item.msg, timestamp, "\r\n")
+		timestamp := time.Now().UnixNano() / 1000000
+		tmformat := time.Now().Format("03:04:15.000 PM")
+		fmt.Fprintf(s.log, `[LSP-%s] {"isLSPMessage":true,"type":"%s","message":%s,"timestamp":%d}%s`,
+			tmformat, typ, item.msg, timestamp, " \r\n")
 	}
 }
