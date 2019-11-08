@@ -21,10 +21,7 @@ import (
 
 // Config contains the configuration for a server
 type Config struct {
-	Trace struct {
-		Stderr        bool `yaml:"stderr"`
-		WebsocketPort int  `yaml:"websocket_port"`
-	} `yaml:"trace"`
+	RPCTrace string `yaml:"rpc_trace"`
 }
 
 // ParseConfig parses a yaml configuration.

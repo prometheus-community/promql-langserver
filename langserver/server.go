@@ -59,8 +59,11 @@ func (s *Server) Run(_ context.Context) error {
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, *Server) {
 	s := &Server{}
 
-	if config.Trace.Stderr {
+	switch config.RPCTrace {
+	case "text":
 		stream = protocol.LoggingStream(stream, os.Stderr)
+	case "json":
+		stream = JSONLogStream(stream, os.Stderr)
 	}
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
