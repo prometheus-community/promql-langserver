@@ -98,6 +98,7 @@ func (s *jsonLogStream) startLogging() {
 
 		timestamp := time.Now().UnixNano() / 1000000
 		tmformat := time.Now().Format("03:04:15.000 PM")
+		// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
 		fmt.Fprintf(s.log, `[LSP-%s] {"isLSPMessage":true,"type":"%s","message":%s,"timestamp":%d}%s`,
 			tmformat, typ, item.msg, timestamp, " \r\n")
 	}
