@@ -115,8 +115,17 @@ func (s *Server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string
 		if _, err := ret.WriteString(doc); err != nil {
 			return ""
 		}
+	}
 
-		if err := ret.WriteByte('\n'); err != nil {
+	if matrix, ok := node.(*promql.MatrixSelector); ok {
+		metric := matrix.Name
+
+		doc, err := s.getMetricDocs(ctx, metric)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+		}
+
+		if _, err := ret.WriteString(doc); err != nil {
 			return ""
 		}
 	}
@@ -153,7 +162,7 @@ func funcDocStrings(name string) string {
 func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	api := v1.NewAPI(s.prometheus)
 
-	metadata, err := api.TargetsMetadata(ctx, "{instance=\"localhost:9090\"}", metric, "1")
+	metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
 	if err != nil {
 		return "", err
 	} else if len(metadata) == 0 {
@@ -173,8 +182,6 @@ func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, erro
 	if metadata[0].Unit != "" {
 		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
 	}
-
-	fmt.Fprintf(os.Stderr, "Formatted Result: %s\n\n", ret.String())
 
 	return ret.String(), nil
 }
