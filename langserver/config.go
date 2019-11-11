@@ -21,8 +21,8 @@ import (
 
 // Config contains the configuration for a server
 type Config struct {
-	RPCTrace string `yaml:"rpc_trace"`
-	prometheusURL string `yaml:"prometheus_url"`
+	RPCTrace      string `yaml:"rpc_trace"`
+	PrometheusURL string `yaml:"prometheus_url"`
 }
 
 // ParseConfig parses a yaml configuration.
