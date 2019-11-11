@@ -77,6 +77,10 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to connect to prometheus %s\n", config.PrometheusURL)
 		}
+
+		fmt.Fprintln(os.Stderr, "Prometheus: ", config.PrometheusURL)
+	} else {
+		fmt.Fprintln(os.Stderr, "No Prometheus")
 	}
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)

@@ -16,9 +16,11 @@ package langserver
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/rakyll/statik/fs"
@@ -28,6 +30,8 @@ import (
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	// Do not remove! Side effects of init() needed
 	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
+
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 //nolint: gochecknoglobals
@@ -44,7 +48,7 @@ func initializeFunctionDocumentation() http.FileSystem {
 
 // Hover shows documentation on hover
 // required by the protocol.Server interface
-func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
+func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	doc, docCtx, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
 	if err != nil {
 		return nil, err
@@ -67,7 +71,7 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 	if compileResult != nil && compileResult.Ast != nil {
 		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
-		markdown = nodeToDocMarkdown(node)
+		markdown = s.nodeToDocMarkdown(ctx, node)
 	}
 
 	return &protocol.Hover{
@@ -78,11 +82,11 @@ func (s *Server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 	}, nil
 }
 
-func nodeToDocMarkdown(node promql.Node) string {
+func (s *Server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string {
 	var ret bytes.Buffer
 
 	if expr, ok := node.(promql.Expr); ok {
-		_, err := ret.WriteString(fmt.Sprintf("Type: %v\n", expr.Type()))
+		_, err := ret.WriteString(fmt.Sprintf("__Type:__ %v\n\n", expr.Type()))
 		if err != nil {
 			return ""
 		}
@@ -90,6 +94,23 @@ func nodeToDocMarkdown(node promql.Node) string {
 
 	if call, ok := node.(*promql.Call); ok {
 		doc := funcDocStrings(call.Func.Name)
+
+		if _, err := ret.WriteString(doc); err != nil {
+			return ""
+		}
+
+		if err := ret.WriteByte('\n'); err != nil {
+			return ""
+		}
+	}
+
+	if vector, ok := node.(*promql.VectorSelector); ok {
+		metric := vector.Name
+
+		doc, err := s.getMetricDocs(ctx, metric)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+		}
 
 		if _, err := ret.WriteString(doc); err != nil {
 			return ""
@@ -127,4 +148,33 @@ func funcDocStrings(name string) string {
 	}
 
 	return string(ret)
+}
+
+func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, error) {
+	api := v1.NewAPI(s.prometheus)
+
+	metadata, err := api.TargetsMetadata(ctx, "{instance=\"localhost:9090\"}", metric, "1")
+	if err != nil {
+		return "", err
+	} else if len(metadata) == 0 {
+		return "", errors.New("empty result")
+	}
+
+	var ret strings.Builder
+
+	if metadata[0].Help != "" {
+		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
+	}
+
+	if metadata[0].Type != "" {
+		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[0].Type)
+	}
+
+	if metadata[0].Unit != "" {
+		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
+	}
+
+	fmt.Fprintf(os.Stderr, "Formatted Result: %s\n\n", ret.String())
+
+	return ret.String(), nil
 }
