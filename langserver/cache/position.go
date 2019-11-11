@@ -68,6 +68,12 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 	}
 }
 
+// PosToProtocolPostion converts a token.Pos to a protocol.Position
+func (d *Document) PosToProtocolPostion(ctx context.Context, pos token.Pos) (protocol.Position, error) {
+	ret, err := d.PositionToProtocolPostion(ctx, d.posData.Position(pos))
+	return ret, err
+}
+
 // ProtocolPositionToTokenPos converts a token.Pos to a protocol.Position
 func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.Position) (token.Pos, error) {
 	d.mu.RLock()

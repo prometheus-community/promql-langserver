@@ -20,9 +20,11 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 
+	"github.com/prometheus/client_golang/api"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -39,6 +41,8 @@ type Server struct {
 	cache cache.DocumentCache
 
 	config *Config
+
+	prometheus api.Client
 }
 
 type serverState int
@@ -64,6 +68,19 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		stream = protocol.LoggingStream(stream, os.Stderr)
 	case "json":
 		stream = JSONLogStream(stream, os.Stderr)
+	}
+
+	if config.PrometheusURL != "" {
+		var err error
+
+		s.prometheus, err = api.NewClient(api.Config{Address: config.PrometheusURL})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to connect to prometheus %s\n", config.PrometheusURL)
+		}
+
+		fmt.Fprintln(os.Stderr, "Prometheus: ", config.PrometheusURL)
+	} else {
+		fmt.Fprintln(os.Stderr, "No Prometheus")
 	}
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)

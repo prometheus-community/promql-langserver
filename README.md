@@ -16,13 +16,13 @@ Most of the planned features are not implemented yet.
 - [x] Sync document content with the client
 - [x] Support plain PromQL queries
 - [x] Support queries inside yaml files
-- [ ] Connect to a prometheus instance to get label and metric data
+- [x] Connect to a prometheus instance to get label and metric data
 - [x] Show error messages for incorrect queries in the client
 - [ ] Show documentation on hover
   - [x] Type information
   - [x] Function documentation
   - [ ] Operator documentation
-  - [ ] Metric and label help strings from a prometheus instance
+  - [x] Metric and label help strings from a prometheus instance
   - [ ] Even when the query is incorrect
 - [ ] Completion
   - [ ] Functions
