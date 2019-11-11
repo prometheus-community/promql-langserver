@@ -68,10 +68,29 @@ func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 		return nil, nil
 	}
 
+	var hoverRange *protocol.Range
+
 	if compileResult != nil && compileResult.Ast != nil {
 		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
 		markdown = s.nodeToDocMarkdown(ctx, node)
+
+		if node != nil {
+			start, err := doc.PosToProtocolPostion(docCtx, node.Pos())
+			if err != nil {
+				return nil, nil
+			}
+
+			end, err := doc.PosToProtocolPostion(docCtx, node.EndPos())
+			if err != nil {
+				return nil, nil
+			}
+
+			hoverRange = &protocol.Range{
+				Start: start,
+				End:   end,
+			}
+		}
 	}
 
 	return &protocol.Hover{
@@ -79,6 +98,7 @@ func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 			Kind:  "markdown",
 			Value: markdown,
 		},
+		Range: hoverRange,
 	}, nil
 }
 
