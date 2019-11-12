@@ -111,19 +111,6 @@ func (s *Server) WillSaveWaitUntil(_ context.Context, _ *protocol.WillSaveTextDo
 	return nil, notImplemented("WillSaveWaitUntil")
 }
 
-// Completion is required by the protocol.Server interface
-// nolint: wsl
-func (s *Server) Completion(_ context.Context, _ *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	// For ycmd
-	/*
-		return &protocol.CompletionList{
-			IsIncomplete: true,
-			Items:        nil,
-		}, nil
-	*/
-	return nil, notImplemented("Completion")
-}
-
 // Resolve is required by the protocol.Server interface
 func (s *Server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protocol.CompletionItem, error) {
 	return nil, notImplemented("Resolve")
