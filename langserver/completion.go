@@ -73,6 +73,10 @@ func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token
 		return nil, nil
 	}
 
+	if s.prometheus == nil {
+		return nil, nil
+	}
+
 	api := v1.NewAPI(s.prometheus)
 
 	allNames, _, err := api.LabelValues(ctx, "__name__")
