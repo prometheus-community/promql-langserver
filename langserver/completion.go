@@ -58,23 +58,23 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	if pos != node.EndPos() {
-		// Not at the end of the expression to be completed
-		fmt.Fprintln(os.Stderr, "4")
-		return nil, nil
-	}
-
-	return s.getCompletions(ctx, node)
+	return s.getCompletions(ctx, node, pos)
 }
 
-func (s *Server) getCompletions(ctx context.Context, node promql.Node) (*protocol.CompletionList, error) {
-	vector, ok := node.(*promql.VectorSelector)
-	if !ok {
+func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
+	var metricName string
+
+	switch n := node.(type) {
+	case *promql.VectorSelector:
+		metricName = n.Name
+	case *promql.MatrixSelector:
+		metricName = n.Name
+	default:
 		fmt.Fprintln(os.Stderr, "5")
 		return nil, nil
 	}
 
-	if vector.Pos()+token.Pos(len(vector.Name)) != vector.EndPos() {
+	if node.Pos()+token.Pos(len(metricName)) != pos {
 		fmt.Fprintln(os.Stderr, "6")
 		return nil, nil
 	}
@@ -90,7 +90,7 @@ func (s *Server) getCompletions(ctx context.Context, node promql.Node) (*protoco
 	var items []protocol.CompletionItem
 
 	for _, name := range allNames {
-		if strings.HasPrefix(string(name), vector.Name) {
+		if strings.HasPrefix(string(name), metricName) {
 			item := protocol.CompletionItem{
 				Label: string(name),
 			}
