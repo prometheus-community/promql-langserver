@@ -23,12 +23,13 @@ Most of the planned features are not implemented yet.
   - [x] Function documentation
   - [ ] Operator documentation
   - [x] Metric and label help strings from a prometheus instance
-  - [ ] Even when the query is incorrect
+  - [ ] Even when the has syntax errors
 - [ ] Completion
   - [ ] Functions
-  - [ ] Metrics
+  - [x] Metrics
   - [ ] Labels
   - [ ] Context sensitive, i.e respecting function argument types
+  - [ ] Even when the has syntax errors
 - [ ] Signature information for functions (while typing)
 - [ ] (Linting)
 - [ ] (Formatting)
