@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"go/token"
 	"os"
+	"strings"
 
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -65,7 +67,39 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 	return s.getCompletions(ctx, node)
 }
 
-func (s *Server) getCompletions(_ context.Context, node promql.Node) (*protocol.CompletionList, error) {
-	fmt.Fprintf(os.Stderr, "getCompletions called: %+v\n\n", node)
-	return nil, notImplemented("Completion")
+func (s *Server) getCompletions(ctx context.Context, node promql.Node) (*protocol.CompletionList, error) {
+	vector, ok := node.(*promql.VectorSelector)
+	if !ok {
+		fmt.Fprintln(os.Stderr, "5")
+		return nil, nil
+	}
+
+	if vector.Pos()+token.Pos(len(vector.Name)) != vector.EndPos() {
+		fmt.Fprintln(os.Stderr, "6")
+		return nil, nil
+	}
+
+	api := v1.NewAPI(s.prometheus)
+
+	allNames, _, err := api.LabelValues(ctx, "__name__")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "7")
+		return nil, err
+	}
+
+	var items []protocol.CompletionItem
+
+	for _, name := range allNames {
+		if strings.HasPrefix(string(name), vector.Name) {
+			item := protocol.CompletionItem{
+				Label: string(name),
+			}
+			items = append(items, item)
+		}
+	}
+
+	return &protocol.CompletionList{
+		IsIncomplete: true,
+		Items:        items,
+	}, nil
 }
