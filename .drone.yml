@@ -3,10 +3,6 @@ kind: pipeline
 type: docker
 name: default
 
-workspace:
-  base: /go
-  path: src/github.com/slrtbtfs/promql-lsp
-
 steps:
   - name: check_repo_consistency
     image: golang:1.13
