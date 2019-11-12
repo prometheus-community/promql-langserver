@@ -15,3 +15,12 @@ jsonrpc2
 lsp
 lsp/protocol
 lsp/protocol/typescript
+imports
+gopathwalk
+module
+semver
+fastwalk
+memoize
+tool
+testenv
+txtar
