@@ -37,7 +37,7 @@ func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr 
 		},
 		Severity: 1, // Error
 		Source:   "promql-lsp",
-		Message:  promQLErr.Error(),
+		Message:  promQLErr.Err.Error(),
 	}
 
 	return message, nil
