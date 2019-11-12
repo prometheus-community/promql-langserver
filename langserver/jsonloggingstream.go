@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/slrtbtfs/go-tools-vendored/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 type jsonLogStream struct {

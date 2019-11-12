@@ -17,7 +17,7 @@ $(BINARYS): build
 
 .PHONY: build
 build: $(STATIK_FILES)
-	$(GO) build $(MAIN_GO_FILES)
+	$(GO) build -v $(MAIN_GO_FILES)
 
 .PHONY: clean
 clean: 

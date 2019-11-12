@@ -22,11 +22,10 @@ steps:
   - name: build
     image: golang:1.13
     commands:
-      - go build cmd/
+      - make
   - name: test
     image: golang:1.13
     commands:
-      - go get ./cmd/...
       - make test
   - name: golint
     image: golang:1.13

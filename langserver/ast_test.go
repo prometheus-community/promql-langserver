@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/prometheus/prometheus/promql"
 )
 
 func TestSmallestSurroundingNode(t *testing.T) {
