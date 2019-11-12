@@ -32,7 +32,6 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 	fmt.Fprintln(os.Stderr, "0")
 	doc, docCtx, err := s.cache.GetDocument(params.TextDocument.URI)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "1")
 		return nil, err
 	}
 
@@ -40,7 +39,6 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 	pos, err = doc.ProtocolPositionToTokenPos(docCtx, params.TextDocumentPositionParams.Position)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "2")
 		return nil, nil
 	}
 
@@ -48,13 +46,11 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 	query, err = doc.GetQuery(docCtx, pos-1)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "3")
 		return nil, nil
 	}
 
 	node := getSmallestSurroundingNode(query.Ast, pos-1)
 	if node == nil {
-		fmt.Fprintln(os.Stderr, "3")
 		return nil, nil
 	}
 
@@ -70,12 +66,10 @@ func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token
 	case *promql.MatrixSelector:
 		metricName = n.Name
 	default:
-		fmt.Fprintln(os.Stderr, "5")
 		return nil, nil
 	}
 
 	if node.Pos()+token.Pos(len(metricName)) != pos {
-		fmt.Fprintln(os.Stderr, "6")
 		return nil, nil
 	}
 
@@ -83,7 +77,6 @@ func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token
 
 	allNames, _, err := api.LabelValues(ctx, "__name__")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "7")
 		return nil, err
 	}
 
