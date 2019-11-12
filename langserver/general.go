@@ -46,7 +46,7 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 				Change: 2,
 			},
 			HoverProvider:                    true,
-			CompletionProvider:               nil,
+			CompletionProvider:               &protocol.CompletionOptions{},
 			SignatureHelpProvider:            nil,
 			DefinitionProvider:               false,
 			ReferencesProvider:               false,
