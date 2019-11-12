@@ -4,7 +4,6 @@ GO := go
 STATIK_SRCS :=langserver/documentation/functions
 STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 
-MAIN_GO_FILES := $(wildcard cmd/*)
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
 
@@ -12,12 +11,14 @@ all: build
 
 generated: $(STATIK_FILES)
 
-# Allows running things such as make <binary_name>
-$(BINARYS): build
+
+.PHONY: install
+install: $(STATIK_FILES)
+	$(GO) get -v ./cmd/...
 
 .PHONY: build
 build: $(STATIK_FILES)
-	$(GO) build -v $(MAIN_GO_FILES)
+	$(GO) build -v ./cmd/...
 
 .PHONY: clean
 clean: 
