@@ -180,6 +180,10 @@ func funcDocStrings(name string) string {
 }
 
 func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, error) {
+	if s.prometheus == nil {
+		return "", nil
+	}
+
 	api := v1.NewAPI(s.prometheus)
 
 	metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
