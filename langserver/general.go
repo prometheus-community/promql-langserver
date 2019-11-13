@@ -23,6 +23,7 @@ import (
 
 // Initialize handles a call from the client to initialize the server
 // required by the protocol.Server interface
+// nolint:funlen
 func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
 	state := s.state
@@ -45,8 +46,17 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 				// Support incremental changes
 				Change: 2,
 			},
-			HoverProvider:                    true,
-			CompletionProvider:               &protocol.CompletionOptions{},
+			HoverProvider: true,
+			CompletionProvider: &protocol.CompletionOptions{
+				TriggerCharacters: []string{
+					" ", "\n", "\t", "(", ")", "[", "]", "{", "}", "+", "-", "*", "/", "!", "=", "\"", ",",
+				},
+				AllCommitCharacters: nil,
+				ResolveProvider:     false,
+				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
+					WorkDoneProgress: false,
+				},
+			},
 			SignatureHelpProvider:            nil,
 			DefinitionProvider:               false,
 			ReferencesProvider:               false,
