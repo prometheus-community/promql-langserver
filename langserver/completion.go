@@ -54,10 +54,19 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	return s.getCompletions(ctx, node, pos)
+	if completions, err := s.getCompletions(ctx, node); err == nil && completions != nil {
+		return completions, nil
+	}
+
+	node = getSmallestSurroundingNode(query.Ast, pos)
+	if node == nil {
+		return nil, nil
+	}
+
+	return s.getCompletions(ctx, node)
 }
 
-func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
+func (s *Server) getCompletions(ctx context.Context, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
 	fmt.Fprintln(os.Stderr, "Yo", node)
