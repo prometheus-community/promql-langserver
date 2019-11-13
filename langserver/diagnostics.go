@@ -22,7 +22,7 @@ import (
 )
 
 // nolint:funlen
-func (s *Server) diagnostics(uri string) {
+func (s *server) diagnostics(uri string) {
 	d, ctx, err := s.cache.GetDocument(uri)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
@@ -51,7 +51,7 @@ func (s *Server) diagnostics(uri string) {
 	}
 }
 
-func (s *Server) clearDiagnostics(ctx context.Context, uri string, version float64) {
+func (s *server) clearDiagnostics(ctx context.Context, uri string, version float64) {
 	diagnostics := &protocol.PublishDiagnosticsParams{
 		URI:         uri,
 		Version:     version,

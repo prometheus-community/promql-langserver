@@ -28,7 +28,7 @@ import (
 
 // Completion is required by the protocol.Server interface
 // nolint: wsl
-func (s *Server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
+func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
 	fmt.Fprintln(os.Stderr, "0")
 	doc, docCtx, err := s.cache.GetDocument(params.TextDocument.URI)
 	if err != nil {
@@ -54,11 +54,22 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	return s.getCompletions(ctx, node, pos)
+	if completions, err := s.getCompletions(ctx, node); err == nil && completions != nil {
+		return completions, nil
+	}
+
+	node = getSmallestSurroundingNode(query.Ast, pos)
+	if node == nil {
+		return nil, nil
+	}
+
+	return s.getCompletions(ctx, node)
 }
 
-func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) getCompletions(ctx context.Context, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
+
+	fmt.Fprintln(os.Stderr, "Yo", node)
 
 	switch n := node.(type) {
 	case *promql.VectorSelector:
@@ -66,10 +77,6 @@ func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token
 	case *promql.MatrixSelector:
 		metricName = n.Name
 	default:
-		return nil, nil
-	}
-
-	if node.Pos()+token.Pos(len(metricName)) != pos {
 		return nil, nil
 	}
 
