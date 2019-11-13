@@ -64,7 +64,7 @@ Feel free to reach out if you want to use it with another Editor/Tool.
 
 There exists a VS Code extension based on this language server: <https://github.com/slrtbtfs/vscode-prometheus>
 
-It is used as the main test platform for this langauge server.
+It is used as the main test platform for this language server.
 
 Since it isn't published a on the Extensions Marketplace yet, you'll have to follow the somewhat more complicated installation steps described in the README there.
 
