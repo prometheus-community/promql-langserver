@@ -24,7 +24,7 @@ import (
 // Initialize handles a call from the client to initialize the server
 // required by the protocol.Server interface
 // nolint:funlen
-func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
+func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
 	state := s.state
 	s.stateMu.Unlock()
@@ -98,7 +98,7 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 
 // Initialized receives a confirmation by the client that the connection has been initialized
 // required by the protocol.Server interface
-func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) error {
+func (s *server) Initialized(ctx context.Context, params *protocol.InitializedParams) error {
 	s.stateMu.Lock()
 	s.state = serverInitialized
 	s.stateMu.Unlock()
@@ -108,7 +108,7 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 
 // Shutdown receives a call from the client to shutdown the connection
 // required by the protocol.Server interface
-func (s *Server) Shutdown(ctx context.Context) error {
+func (s *server) Shutdown(ctx context.Context) error {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
 
@@ -123,7 +123,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 // Exit ends the connection
 // required by the protocol.Server interface
-func (s *Server) Exit(ctx context.Context) error {
+func (s *server) Exit(ctx context.Context) error {
 	s.stateMu.Lock()
 
 	defer s.stateMu.Unlock()

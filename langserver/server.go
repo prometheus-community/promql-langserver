@@ -30,8 +30,13 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
-// Server is a language server instance that can connect to exactly on client
+// Server wraps language server instance that can connect to exactly one client
 type Server struct {
+	*server
+}
+
+// server is a language server instance that can connect to exactly one client
+type server struct {
 	Conn   *jsonrpc2.Conn
 	client protocol.Client
 
@@ -55,13 +60,13 @@ const (
 )
 
 // Run starts the language server instance
-func (s *Server) Run(_ context.Context) error {
-	return s.Conn.Run(context.Background())
+func (s Server) Run(_ context.Context) error {
+	return s.server.Conn.Run(context.Background())
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream
-func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, *Server) {
-	s := &Server{}
+func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, Server) {
+	s := &server{}
 
 	switch config.RPCTrace {
 	case "text":
@@ -86,11 +91,11 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	s.config = config
 
-	return ctx, s
+	return ctx, Server{s}
 }
 
 // StdioServer generates a Server talking to stdio
-func StdioServer(ctx context.Context, config *Config) (context.Context, *Server) {
+func StdioServer(ctx context.Context, config *Config) (context.Context, Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
 	return ServerFromStream(ctx, stream, config)
 }

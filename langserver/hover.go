@@ -48,7 +48,7 @@ func initializeFunctionDocumentation() http.FileSystem {
 
 // Hover shows documentation on hover
 // required by the protocol.Server interface
-func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
+func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	doc, docCtx, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	}, nil
 }
 
-func (s *Server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string {
+func (s *server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string {
 	var ret bytes.Buffer
 
 	if call, ok := node.(*promql.Call); ok {
@@ -179,7 +179,7 @@ func funcDocStrings(name string) string {
 	return string(ret)
 }
 
-func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, error) {
+func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	if s.prometheus == nil {
 		return "", nil
 	}
