@@ -119,7 +119,9 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 
 	d.content = content
 	d.version = version
-	d.posData.SetLinesForContent([]byte(content))
+
+	// An additional newline is appended, to make sure the last line is indexed
+	d.posData.SetLinesForContent(append([]byte(content), '\n'))
 
 	d.queries = []*CompiledQuery{}
 	d.yamls = []*YamlDoc{}
