@@ -34,3 +34,18 @@ Most of the planned features are not implemented yet.
 - [ ] (Linting)
 - [ ] (Formatting)
 
+## Using the Language Server
+
+A Language Server on its own is not very useful. You need some Language Client to use it with.
+
+The following Language Clients have been tested with this language server. More will be added in the future. 
+
+Feel free to reach out if you want to use it with another Editor/Tool.
+
+### VS Code
+
+There exists a VS Code extension based on this language server: <https://github.com/slrtbtfs/vscode-prometheus>
+
+It is used as the main test platform for this langauge server.
+
+Since it isn't published a on the Extensions Marketplace yet, you'll have to follow the somewhat more complicated installation steps described in the README there.
