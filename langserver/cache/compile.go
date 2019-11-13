@@ -19,7 +19,7 @@ import (
 	"go/token"
 	"os"
 
-	"github.com/prometheus/prometheus/promql"
+	"github.com/slrtbtfs/prometheus/promql"
 )
 
 // CompiledQuery stores the results of compiling one query
