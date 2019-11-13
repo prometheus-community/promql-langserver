@@ -23,13 +23,13 @@ Most of the planned features are not implemented yet.
   - [x] Function documentation
   - [ ] Operator documentation
   - [x] Metric and label help strings from a prometheus instance
-  - [ ] Even when the has syntax errors
+  - [ ] Even when the Query has syntax errors
 - [ ] Completion
   - [ ] Functions
   - [x] Metrics
   - [ ] Labels
   - [ ] Context sensitive, i.e respecting function argument types
-  - [ ] Even when the has syntax errors
+  - [ ] Even when the Query has syntax errors
 - [ ] Signature information for functions (while typing)
 - [ ] (Linting)
 - [ ] (Formatting)
@@ -49,3 +49,29 @@ There exists a VS Code extension based on this language server: <https://github.
 It is used as the main test platform for this langauge server.
 
 Since it isn't published a on the Extensions Marketplace yet, you'll have to follow the somewhat more complicated installation steps described in the README there.
+
+### (Neo)Vim 
+
+With Vim, currently only PromQL queries inside YAML files work without additional support. Generally the experience with Vim is more buggy than with VS Code.
+
+#### Setup
+
+1. Install the [YouCompleteMe](https://github.com/ycm-core/YouCompleteMe) Plugin.
+2. Put the configuration following configuration file for the langauge server in `.vim/promql-lsp.yaml`.
+
+        # Change this adress to the address of the prometheus server you want to use for metadata
+        prometheus_url: http://localhost:9090
+        rpc_trace: text
+
+3. Add the following to your `.vimrc`
+
+        let g:ycm_language_server = [
+          \   { 'name': 'promql',
+          \     'filetypes': [ 'yaml' ],
+          \     'cmdline': [ 'promql-langserver', '--config-file', expand('~/.vim/promql-lsp.yaml')]
+          \   },
+          \ ]
+
+#### Debugging
+
+The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
