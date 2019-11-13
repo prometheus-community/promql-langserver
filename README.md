@@ -34,6 +34,24 @@ Most of the planned features are not implemented yet.
 - [ ] (Linting)
 - [ ] (Formatting)
 
+## Some Screenshots
+
+### Completion in VS Code
+
+![Completion in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_completion.png)
+
+### Metric metadata from a Prometheus Server
+
+![Metric Metadata in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_hover2.png)
+
+### Viewing documentation right from your editor
+
+![Docs in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_yaml.png)
+
+### Vim and other editors are supported, too
+
+![Vim](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vim.png)
+
 ## Using the Language Server
 
 A Language Server on its own is not very useful. You need some Language Client to use it with.
