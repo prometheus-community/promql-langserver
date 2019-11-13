@@ -195,6 +195,8 @@ func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, erro
 
 	var ret strings.Builder
 
+	fmt.Fprintf(&ret, "### %s\n\n", metric)
+
 	if metadata[0].Help != "" {
 		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
 	}
