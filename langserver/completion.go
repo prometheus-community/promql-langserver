@@ -60,16 +60,14 @@ func (s *Server) Completion(ctx context.Context, params *protocol.CompletionPara
 func (s *Server) getCompletions(ctx context.Context, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
+	fmt.Fprintln(os.Stderr, "Yo", node)
+
 	switch n := node.(type) {
 	case *promql.VectorSelector:
 		metricName = n.Name
 	case *promql.MatrixSelector:
 		metricName = n.Name
 	default:
-		return nil, nil
-	}
-
-	if node.Pos()+token.Pos(len(metricName)) != pos {
 		return nil, nil
 	}
 
