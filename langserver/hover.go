@@ -105,13 +105,6 @@ func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 func (s *Server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string {
 	var ret bytes.Buffer
 
-	if expr, ok := node.(promql.Expr); ok {
-		_, err := ret.WriteString(fmt.Sprintf("__Type:__ %v\n\n", expr.Type()))
-		if err != nil {
-			return ""
-		}
-	}
-
 	if call, ok := node.(*promql.Call); ok {
 		doc := funcDocStrings(call.Func.Name)
 
@@ -146,6 +139,13 @@ func (s *Server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string
 		}
 
 		if _, err := ret.WriteString(doc); err != nil {
+			return ""
+		}
+	}
+
+	if expr, ok := node.(promql.Expr); ok {
+		_, err := ret.WriteString(fmt.Sprintf("__PromQL Type:__ %v\n\n", expr.Type()))
+		if err != nil {
 			return ""
 		}
 	}
