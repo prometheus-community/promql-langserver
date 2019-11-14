@@ -75,12 +75,12 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 		markdown = s.nodeToDocMarkdown(ctx, node)
 
 		if node != nil {
-			start, err := doc.PosToProtocolPostion(docCtx, node.Pos())
+			start, err := doc.PosToProtocolPosition(docCtx, node.Pos())
 			if err != nil {
 				return nil, nil
 			}
 
-			end, err := doc.PosToProtocolPostion(docCtx, node.EndPos())
+			end, err := doc.PosToProtocolPosition(docCtx, node.EndPos())
 			if err != nil {
 				return nil, nil
 			}

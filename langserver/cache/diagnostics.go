@@ -26,7 +26,7 @@ func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr 
 
 	var err error
 
-	if pos, err = d.PositionToProtocolPostion(ctx, promQLErr.Position); err != nil {
+	if pos, err = d.PositionToProtocolPosition(ctx, promQLErr.Position); err != nil {
 		return nil, err
 	}
 
@@ -66,11 +66,11 @@ func (d *Document) warnQuotedYaml(ctx context.Context, start token.Pos, end toke
 		Message:  "Quoted queries are not supported by the language server",
 	}
 
-	if message.Range.Start, err = d.PositionToProtocolPostion(ctx, startPosition); err != nil {
+	if message.Range.Start, err = d.PositionToProtocolPosition(ctx, startPosition); err != nil {
 		return err
 	}
 
-	if message.Range.End, err = d.PositionToProtocolPostion(ctx, endPosition); err != nil {
+	if message.Range.End, err = d.PositionToProtocolPosition(ctx, endPosition); err != nil {
 		return err
 	}
 

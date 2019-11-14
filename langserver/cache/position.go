@@ -24,8 +24,8 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
-// PositionToProtocolPostion converts a token.Position to a protocol.Position
-func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Position) (protocol.Position, error) {
+// PositionToProtocolPosition converts a token.Position to a protocol.Position
+func (d *Document) PositionToProtocolPosition(ctx context.Context, pos token.Position) (protocol.Position, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
@@ -44,7 +44,7 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 			}, nil
 		}
 
-		// Convert to the Postions as described in the LSP Spec
+		// Convert to the Positions as described in the LSP Spec
 		lineStart, err := d.LineStartSafe(line)
 		if err != nil {
 			return protocol.Position{}, err
@@ -70,9 +70,9 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 	}
 }
 
-// PosToProtocolPostion converts a token.Pos to a protocol.Position
-func (d *Document) PosToProtocolPostion(ctx context.Context, pos token.Pos) (protocol.Position, error) {
-	ret, err := d.PositionToProtocolPostion(ctx, d.posData.Position(pos))
+// PosToProtocolPosition converts a token.Pos to a protocol.Position
+func (d *Document) PosToProtocolPosition(ctx context.Context, pos token.Pos) (protocol.Position, error) {
+	ret, err := d.PositionToProtocolPosition(ctx, d.posData.Position(pos))
 	return ret, err
 }
 
