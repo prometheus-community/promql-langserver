@@ -23,7 +23,7 @@ import (
 
 // Call the (* Document) Functions with an expired context. Expected behaviour is that all
 // of these calls return an error
-func TestDocumentContext(t *testing.T) {
+func TestDocumentContext(t *testing.T) { //nolint: funlen
 	d := &Document{}
 
 	expired, cancel := context.WithCancel(context.Background())
@@ -60,6 +60,36 @@ func TestDocumentContext(t *testing.T) {
 
 	if _, err := d.GetQuery(expired, token.NoPos); err == nil {
 		panic("Expected GetQuery to fail with expired context")
+	}
+
+	if _, err := d.GetVersion(expired); err == nil {
+		panic("Expected GetVersion to fail with expired context")
+	}
+
+	if _, err := d.GetYamls(expired); err == nil {
+		panic("Expected GetYamls to fail with expired context")
+	}
+
+	if _, err := d.GetDiagnostics(expired); err == nil {
+		panic("Expected GetDiagnostics to fail with expired context")
+	}
+
+	// From position.go
+
+	if _, err := d.PositionToProtocolPostion(expired, token.Position{}); err == nil {
+		panic("Expected PositionToProtocolPostion to fail with expired context")
+	}
+
+	if _, err := d.PosToProtocolPostion(expired, token.NoPos); err == nil {
+		panic("Expected PosToProtocolPostion to fail with expired context")
+	}
+
+	if _, err := d.yamlPositionToTokenPos(expired, 0, 0, 0); err == nil {
+		panic("Expected yamlPositionToTokenPos to fail with expired context")
+	}
+
+	if _, err := d.TokenPosToTokenPosition(expired, token.NoPos); err == nil {
+		panic("Expected TokenPosToTokenPosition to fail with expired context")
 	}
 
 	if _, err := d.GetVersion(expired); err == nil {
