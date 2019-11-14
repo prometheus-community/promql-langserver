@@ -44,19 +44,27 @@ func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr 
 }
 
 func (d *Document) warnQuotedYaml(ctx context.Context, start token.Pos, end token.Pos) error {
-	// d.posData is syncronized itself. The results might be wrong if the document
-	// changes in the meantime, but that does not matter since in this case the results
-	// will be discarded later
-	startPosition := d.posData.Position(start)
-	endPosition := d.posData.Position(end)
+	var startPosition token.Position
+
+	var endPosition token.Position
+
+	var err error
+
+	startPosition, err = d.TokenPosToTokenPosition(ctx, start)
+	if err != nil {
+		return err
+	}
+
+	endPosition, err = d.TokenPosToTokenPosition(ctx, end)
+	if err != nil {
+		return err
+	}
 
 	message := &protocol.Diagnostic{
 		Severity: 2, // Warning
 		Source:   "promql-lsp",
 		Message:  "Quoted queries are not supported by the language server",
 	}
-
-	var err error
 
 	if message.Range.Start, err = d.PositionToProtocolPostion(ctx, startPosition); err != nil {
 		return err
