@@ -17,6 +17,8 @@ import (
 	"context"
 	"go/token"
 	"testing"
+
+	"github.com/slrtbtfs/prometheus/promql"
 )
 
 // Call the (* Document) Functions with an expired context. Expected behaviour is that all
@@ -27,6 +29,22 @@ func TestDocumentContext(t *testing.T) {
 	expired, cancel := context.WithCancel(context.Background())
 
 	cancel()
+
+	// From diagnostics.go
+
+	if _, err := d.promQLErrToProtocolDiagnostic(expired, &promql.ParseErr{}); err == nil {
+		panic("Expected promQLErrToProtocolDiagnostic to fail with expired context")
+	}
+
+	if err := d.warnQuotedYaml(expired, token.NoPos, token.NoPos); err == nil {
+		panic("Expected warnQuotedYaml to fail with expired context")
+	}
+
+	if err := d.AddDiagnostic(expired, nil); err == nil {
+		panic("Expected AddDiagnostic to fail with expired context")
+	}
+
+	// From document.go
 
 	if _, err := d.GetContent(expired); err == nil {
 		panic("Expected GetContent to fail with expired context")
