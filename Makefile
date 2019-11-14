@@ -7,7 +7,7 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
 
-all: build
+all: install test lint
 
 generated: $(STATIK_FILES)
 
