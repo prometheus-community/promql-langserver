@@ -122,3 +122,18 @@ func EndOfLine(p protocol.Position) protocol.Position {
 		Character: 0,
 	}
 }
+
+// LineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
+func (d *Document) LineStartSafe(line int) (pos token.Pos, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok = r.(error)
+			if !ok {
+				err = fmt.Errorf("LineStart panic: %v", r)
+			}
+		}
+	}()
+
+	return d.posData.LineStart(line), nil
+}
