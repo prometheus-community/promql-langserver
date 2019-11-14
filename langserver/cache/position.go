@@ -150,3 +150,15 @@ func (d *Document) LineStartSafe(line int) (pos token.Pos, err error) {
 
 	return d.posData.LineStart(line), nil
 }
+
+// TokenPosToTokenPosition converts a token.Pos to a token.Position
+func (d *Document) TokenPosToTokenPosition(ctx context.Context, pos token.Pos) (token.Position, error) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	select {
+	case <-ctx.Done():
+		return token.Position{}, ctx.Err()
+	default:
+		return d.posData.Position(pos), nil
+	}
+}
