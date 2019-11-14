@@ -16,7 +16,6 @@ package langserver
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -180,22 +179,22 @@ func funcDocStrings(name string) string {
 }
 
 func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
+	var ret strings.Builder
+
+	fmt.Fprintf(&ret, "### %s\n\n", metric)
+
 	if s.prometheus == nil {
-		return "", nil
+		return ret.String(), nil
 	}
 
 	api := v1.NewAPI(s.prometheus)
 
 	metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
 	if err != nil {
-		return "", err
+		return ret.String(), err
 	} else if len(metadata) == 0 {
-		return "", errors.New("empty result")
+		return ret.String(), nil
 	}
-
-	var ret strings.Builder
-
-	fmt.Fprintf(&ret, "### %s\n\n", metric)
 
 	if metadata[0].Help != "" {
 		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
