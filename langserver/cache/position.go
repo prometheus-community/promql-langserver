@@ -45,11 +45,13 @@ func (d *Document) PositionToProtocolPostion(ctx context.Context, pos token.Posi
 		}
 
 		// Convert to the Postions as described in the LSP Spec
-		// LineStart can panic
-		offset := int(d.posData.LineStart(line)) - d.posData.Base() + char - 1
-		point := span.NewPoint(line, char, offset)
+		lineStart, err := d.LineStartSafe(line)
+		if err != nil {
+			return protocol.Position{}, err
+		}
 
-		var err error
+		offset := int(lineStart) - d.posData.Base() + char - 1
+		point := span.NewPoint(line, char, offset)
 
 		char, err = span.ToUTF16Column(point, []byte(d.content))
 		// Protocol has zero based positions
@@ -86,17 +88,23 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 		// protocol.Position is 0 based
 		line := int(pos.Line) + 1
 		char := int(pos.Character)
-		offset := int(d.posData.LineStart(line)) - d.posData.Base()
-		point := span.NewPoint(line, 1, offset)
-		point, err := span.FromUTF16Column(point, char, []byte(d.content))
 
+		lineStart, err := d.LineStartSafe(line)
+		if err != nil {
+			return token.NoPos, err
+		}
+
+		offset := int(lineStart) - d.posData.Base()
+		point := span.NewPoint(line, 1, offset)
+
+		point, err = span.FromUTF16Column(point, char, []byte(d.content))
 		if err != nil {
 			return token.NoPos, err
 		}
 
 		char = point.Column()
 
-		return d.posData.LineStart(line) + token.Pos(char), nil
+		return lineStart + token.Pos(char), nil
 	}
 }
 
@@ -111,7 +119,12 @@ func (d *Document) yamlPositionToTokenPos(ctx context.Context, line int, column 
 			return 0, errors.New("invalid position")
 		}
 
-		return d.posData.LineStart(line+lineOffset) + token.Pos(column-1), nil
+		lineStart, err := d.LineStartSafe(line + lineOffset)
+		if err != nil {
+			return token.NoPos, err
+		}
+
+		return lineStart + token.Pos(column-1), nil
 	}
 }
 
