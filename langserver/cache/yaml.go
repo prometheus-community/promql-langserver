@@ -118,7 +118,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		if i+1 < len(node.Content) && node.Content[i+1] != nil {
 			next := node.Content[i+1]
 
-			childEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
+			childEnd, err = d.YamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
 			if err != nil {
 				return err
 			}
@@ -155,7 +155,7 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		if i+2 < len(node.Content) && node.Content[i+2] != nil {
 			next := node.Content[i+2]
 
-			valueEnd, err = d.yamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
+			valueEnd, err = d.YamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
 			if err != nil {
 				return err
 			}
@@ -183,7 +183,7 @@ func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token
 		col = 1
 	}
 
-	pos, err := d.yamlPositionToTokenPos(ctx, line, col, lineOffset)
+	pos, err := d.YamlPositionToTokenPos(ctx, line, col, lineOffset)
 	if err != nil {
 		return err
 	}
