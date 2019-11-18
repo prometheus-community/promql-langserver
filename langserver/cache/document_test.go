@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/slrtbtfs/prometheus/promql"
+	"gopkg.in/yaml.v3"
 )
 
 // Call the (* Document) Functions with an expired context. Expected behaviour is that all
@@ -102,5 +103,32 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 
 	if _, err := d.GetDiagnostics(expired); err == nil {
 		panic("Expected GetContent to fail with expired context")
+	}
+
+	// From yaml.go
+
+	if err := d.parseYamls(expired); err == nil {
+		panic("Expected ParseYamls to fail with expired context")
+	}
+
+	if err := d.addYaml(expired, nil); err == nil {
+		panic("Expected addYaml to fail with expired context")
+	}
+
+	// Necessary since scanYamlTree will call d.compilers.Done()
+	d.compilers.Add(1)
+
+	if err := d.scanYamlTree(expired); err == nil {
+		panic("Expected scanYamlTree to fail with expired context")
+	}
+
+	/*
+		Excluded since it does not do anything on an empty document
+		if err := d.scanYamlTreeRec(expired, &yaml.Node{}, token.NoPos, 0); err == nil {
+			panic("Expected scanYamlTreeRec to fail with expired context")
+		}
+	*/
+	if err := d.foundQuery(expired, &yaml.Node{}, token.NoPos, 0); err == nil {
+		panic("Expected foundQuery to fail with expired context")
 	}
 }
