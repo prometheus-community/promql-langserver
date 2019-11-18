@@ -34,7 +34,7 @@ func (d *Document) compile(ctx context.Context) error {
 	switch d.GetLanguageID() {
 	case "promql":
 		d.compilers.Add(1)
-		d.compileQuery(ctx, true, 0, 0)
+		return d.compileQuery(ctx, true, 0, 0)
 	case "yaml":
 		err := d.parseYamls(ctx)
 		if err != nil {
@@ -57,7 +57,7 @@ func (d *Document) compile(ctx context.Context) error {
 // compileQuery compiles the query at the position given by the last two arguments
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
-func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) {
+func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) error {
 	defer d.compilers.Done()
 
 	var content string
@@ -72,7 +72,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	}
 
 	if expired != nil {
-		return
+		return expired
 	}
 
 	file := d.posData
@@ -92,14 +92,16 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	if parseErr != nil {
 		diagnostic, err := d.promQLErrToProtocolDiagnostic(ctx, parseErr)
 		if err != nil {
-			return
+			return err
 		}
 
 		err = d.AddDiagnostic(ctx, diagnostic)
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
