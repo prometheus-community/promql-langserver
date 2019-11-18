@@ -238,6 +238,11 @@ func TestServerState(t *testing.T) { //nolint:funlen
 		panic("Failed to initialize Server")
 	}
 
+	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
+	if err == nil {
+		panic("cannot confirm server initialisation twice")
+	}
+
 	// Add a document to the server
 	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{
@@ -272,11 +277,6 @@ func TestServerState(t *testing.T) { //nolint:funlen
 	})
 	if err != nil {
 		panic("Failed to reopen document")
-	}
-
-	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
-	if err == nil {
-		panic("cannot confirm server initialisation twice")
 	}
 
 	// Shutdown Server
