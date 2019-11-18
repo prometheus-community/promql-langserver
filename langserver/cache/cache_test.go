@@ -26,7 +26,7 @@ func TestCache(t *testing.T) {
 
 	doc, err := c.AddDocument(&protocol.TextDocumentItem{
 		URI:        "test_file",
-		LanguageID: "test_language",
+		LanguageID: "yaml",
 		Version:    0,
 		Text:       "test_text",
 	})
@@ -37,8 +37,8 @@ func TestCache(t *testing.T) {
 	_, err = c.AddDocument(&protocol.TextDocumentItem{
 
 		URI:        "test_file",
-		LanguageID: "test_language",
-		Version:    0,
+		LanguageID: "yaml",
+		Version:    1,
 		Text:       "test_text",
 	})
 	if err == nil {
@@ -62,7 +62,7 @@ func TestCache(t *testing.T) {
 	_, err = c.AddDocument(&protocol.TextDocumentItem{
 
 		URI:        "test_file",
-		LanguageID: "test_language",
+		LanguageID: "yaml",
 		Version:    0,
 		Text:       "test_text",
 	})
