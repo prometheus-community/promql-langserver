@@ -218,7 +218,7 @@ func (d *dummyStream) Push(text []byte) {
 }
 
 // TestServerState tries to emulate a full server lifetime
-func TestServerState(t *testing.T) { //nolint:funlen
+func TestServer(t *testing.T) { //nolint:funlen
 	stream := &dummyStream{}
 	_, s := ServerFromStream(context.Background(), stream, &Config{})
 
@@ -254,6 +254,26 @@ func TestServerState(t *testing.T) { //nolint:funlen
 	})
 	if err != nil {
 		panic("Failed to open document")
+	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 1,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "metric_name",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
 	}
 
 	// Close a document
