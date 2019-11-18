@@ -15,6 +15,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"go/token"
 	"sync"
 
@@ -47,6 +48,10 @@ func (c *DocumentCache) Init() {
 
 // AddDocument adds a Document to the cache
 func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, error) {
+	if _, ok := c.documents[doc.URI]; ok {
+		return nil, errors.New("document already exists")
+	}
+
 	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
 
 	if r := recover(); r != nil {
