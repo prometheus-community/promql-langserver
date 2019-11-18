@@ -129,7 +129,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 
 	d.compilers.Add(1)
 
-	go d.compile(d.versionCtx)
+	go d.compile(d.versionCtx) //nolint:errcheck
 
 	return nil
 }

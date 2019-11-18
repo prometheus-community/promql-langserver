@@ -28,7 +28,7 @@ type CompiledQuery struct {
 	Err *promql.ParseErr
 }
 
-func (d *Document) compile(ctx context.Context) {
+func (d *Document) compile(ctx context.Context) error {
 	defer d.compilers.Done()
 
 	switch d.GetLanguageID() {
@@ -38,18 +38,20 @@ func (d *Document) compile(ctx context.Context) {
 	case "yaml":
 		err := d.parseYamls(ctx)
 		if err != nil {
-			return
+			return err
 		}
 
 		d.compilers.Add(1)
 
 		err = d.scanYamlTree(ctx)
 		if err != nil {
-			return
+			return err
 		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
 	}
+
+	return nil
 }
 
 // compileQuery compiles the query at the position given by the last two arguments
