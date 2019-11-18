@@ -195,7 +195,7 @@ func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token
 
 	d.compilers.Add(1)
 
-	go d.compileQuery(ctx, false, pos, endPos)
+	go d.compileQuery(ctx, false, pos, endPos) //nolint: errcheck
 
 	return nil
 }

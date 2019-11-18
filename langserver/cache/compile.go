@@ -28,34 +28,36 @@ type CompiledQuery struct {
 	Err *promql.ParseErr
 }
 
-func (d *Document) compile(ctx context.Context) {
+func (d *Document) compile(ctx context.Context) error {
 	defer d.compilers.Done()
 
 	switch d.GetLanguageID() {
 	case "promql":
 		d.compilers.Add(1)
-		d.compileQuery(ctx, true, 0, 0)
+		return d.compileQuery(ctx, true, 0, 0)
 	case "yaml":
 		err := d.parseYamls(ctx)
 		if err != nil {
-			return
+			return err
 		}
 
 		d.compilers.Add(1)
 
 		err = d.scanYamlTree(ctx)
 		if err != nil {
-			return
+			return err
 		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
 	}
+
+	return nil
 }
 
 // compileQuery compiles the query at the position given by the last two arguments
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
-func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) {
+func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) error {
 	defer d.compilers.Done()
 
 	var content string
@@ -70,7 +72,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	}
 
 	if expired != nil {
-		return
+		return expired
 	}
 
 	file := d.posData
@@ -85,30 +87,36 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	d.AddCompileResult(ctx, ast, parseErr)
+	err = d.AddCompileResult(ctx, ast, parseErr)
+	if err != nil {
+		return err
+	}
 
 	if parseErr != nil {
 		diagnostic, err := d.promQLErrToProtocolDiagnostic(ctx, parseErr)
 		if err != nil {
-			return
+			return err
 		}
 
 		err = d.AddDiagnostic(ctx, diagnostic)
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
+func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	select {
 	case <-ctx.Done():
-		fmt.Fprint(os.Stderr, "Context expired\n")
+		return ctx.Err()
 	default:
 		d.queries = append(d.queries, &CompiledQuery{ast, err})
+		return nil
 	}
 }
