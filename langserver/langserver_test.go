@@ -228,10 +228,19 @@ func TestServer(t *testing.T) {
 		panic("Failed to initialize Server")
 	}
 
+	_, err = s.Initialize(context.Background(), &protocol.ParamInitia{})
+	if err == nil {
+		panic("cannot initialize server twice")
+	}
 	// Confirm Initialisation
 	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
 	if err != nil {
 		panic("Failed to initialize Server")
+	}
+
+	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
+	if err == nil {
+		panic("cannot confirm server initialisation twice")
 	}
 
 	// Shutdown Server
@@ -240,9 +249,16 @@ func TestServer(t *testing.T) {
 		panic("Failed to initialize Server")
 	}
 
-	// Confirm Shutdown
-	err = s.Exit(context.Background())
-	if err != nil {
-		panic("Failed to initialize Server")
+	err = s.Shutdown(context.Background())
+	if err == nil {
+		panic("cannot shutdown server twice")
 	}
-}
+	/*
+		// Left out until it does something else than calling os.Exit()
+		// Confirm Shutdown
+		err = s.Exit(context.Background())
+		if err != nil {
+			panic("Failed to initialize Server")
+		}
+	*/
+} // nolint:wsl
