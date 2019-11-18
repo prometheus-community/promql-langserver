@@ -195,3 +195,24 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 }
+
+// dummyStream is a fake jsonrpc2.Stream for Test purposes
+type dummyStream struct { //nolint:unused
+	readQueue []byte
+}
+
+func (d *dummyStream) Read(_ context.Context) ([]byte, int64, error) {
+	ret := d.readQueue
+	d.readQueue = []byte{}
+
+	return ret, int64(len(ret)), nil
+}
+func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
+	return int64(len(text)), nil
+}
+
+// TestNonExistentDocumentFailure checks whether Commands that are told to operate
+// on non existent Documents fail
+func TestNonExistentDocumentFailure(t *testing.T) {
+
+}
