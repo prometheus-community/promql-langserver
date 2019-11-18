@@ -87,7 +87,10 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	d.AddCompileResult(ctx, ast, parseErr)
+	err = d.AddCompileResult(ctx, ast, parseErr)
+	if err != nil {
+		return err
+	}
 
 	if parseErr != nil {
 		diagnostic, err := d.promQLErrToProtocolDiagnostic(ctx, parseErr)
@@ -105,14 +108,15 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) {
+func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	select {
 	case <-ctx.Done():
-		fmt.Fprint(os.Stderr, "Context expired\n")
+		return ctx.Err()
 	default:
 		d.queries = append(d.queries, &CompiledQuery{ast, err})
+		return nil
 	}
 }
