@@ -207,12 +207,42 @@ func (d *dummyStream) Read(_ context.Context) ([]byte, int64, error) {
 
 	return ret, int64(len(ret)), nil
 }
+
 func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
 	return int64(len(text)), nil
 }
 
-// TestNonExistentDocumentFailure checks whether Commands that are told to operate
-// on non existent Documents fail
-func TestNonExistentDocumentFailure(t *testing.T) {
+// Push adds a text to the readQueue
+func (d *dummyStream) Push(text []byte) {
+	d.readQueue = append(d.readQueue, text...)
+}
 
+// TestServer tries to emulate a full server lifetime
+func TestServer(t *testing.T) {
+	stream := &dummyStream{}
+	_, s := ServerFromStream(context.Background(), stream, &Config{})
+
+	// Initialize Server
+	_, err := s.Initialize(context.Background(), &protocol.ParamInitia{})
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
+
+	// Confirm Initialisation
+	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
+
+	// Shutdown Server
+	err = s.Shutdown(context.Background())
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
+
+	// Confirm Shutdown
+	err = s.Exit(context.Background())
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
 }
