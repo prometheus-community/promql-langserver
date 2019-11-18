@@ -217,8 +217,8 @@ func (d *dummyStream) Push(text []byte) {
 	d.readQueue = append(d.readQueue, text...)
 }
 
-// TestServer tries to emulate a full server lifetime
-func TestServer(t *testing.T) {
+// TestServerState tries to emulate a full server lifetime
+func TestServerState(t *testing.T) { //nolint:funlen
 	stream := &dummyStream{}
 	_, s := ServerFromStream(context.Background(), stream, &Config{})
 
@@ -236,6 +236,42 @@ func TestServer(t *testing.T) {
 	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
 	if err != nil {
 		panic("Failed to initialize Server")
+	}
+
+	// Add a document to the server
+	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{
+			URI:        "test.promql",
+			LanguageID: "promql",
+			Version:    0,
+			Text:       "",
+		},
+	})
+	if err != nil {
+		panic("Failed to open document")
+	}
+
+	// Close a document
+	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: "test.promql",
+		},
+	})
+	if err != nil {
+		panic("Failed to close document")
+	}
+
+	// Reopen a closed document
+	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{
+			URI:        "test.promql",
+			LanguageID: "promql",
+			Version:    0,
+			Text:       "",
+		},
+	})
+	if err != nil {
+		panic("Failed to reopen document")
 	}
 
 	err = s.Initialized(context.Background(), &protocol.InitializedParams{})
