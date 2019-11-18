@@ -27,9 +27,49 @@ import (
 func TestDocumentContext(t *testing.T) { //nolint: funlen
 	d := &Document{}
 
+	d.posData = token.NewFileSet().AddFile("", -1, 0)
+
 	expired, cancel := context.WithCancel(context.Background())
 
 	cancel()
+
+	// From compile.go
+
+	// Necessary since compile() will call d.compilers.Done()
+	d.compilers.Add(1)
+
+	d.languageID = "promql"
+
+	if err := d.compile(expired); err == nil {
+		panic("Expected compile to fail with expired context (languageID: promql)")
+	}
+
+	// Necessary since compile() will call d.compilers.Done()
+	d.compilers.Add(1)
+
+	d.languageID = "yaml"
+
+	if err := d.compile(expired); err == nil {
+		panic("Expected compile to fail with expired context (languageID: promql)")
+	}
+
+	// Necessary since compileQuery() will call d.compilers.Done()
+	d.compilers.Add(1)
+
+	if err := d.compileQuery(expired, true, token.NoPos, token.NoPos); err == nil {
+		panic("Expected compileQuery to fail with expired context (fullFile: true)")
+	}
+
+	// Necessary since compileQuery() will call d.compilers.Done()
+	d.compilers.Add(1)
+
+	if err := d.compileQuery(expired, false, token.NoPos, token.NoPos); err == nil {
+		panic("Expected compileQuery to fail with expired context (fullFile: false)")
+	}
+
+	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil); err == nil {
+		panic("Expected AddCompileResult to fail with expired context")
+	}
 
 	// From diagnostics.go
 
