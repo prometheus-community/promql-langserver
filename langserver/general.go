@@ -15,6 +15,7 @@ package langserver
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
@@ -100,8 +101,13 @@ func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 // required by the protocol.Server interface
 func (s *server) Initialized(ctx context.Context, params *protocol.InitializedParams) error {
 	s.stateMu.Lock()
+	defer s.stateMu.Unlock()
+
+	if s.state != serverInitializing {
+		return errors.New("cannot initialize server: wrong server state")
+	}
+
 	s.state = serverInitialized
-	s.stateMu.Unlock()
 
 	return nil
 }
@@ -112,7 +118,7 @@ func (s *server) Shutdown(ctx context.Context) error {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
 
-	if s.state < serverInitialized {
+	if s.state != serverInitialized {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not initialized")
 	}
 
