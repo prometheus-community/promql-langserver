@@ -84,12 +84,15 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 // Additionally returns a context that expires as soon as the document changes
 func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, context.Context, error) {
 	c.mu.RLock()
+	defer c.mu.RUnlock()
 	ret, ok := c.documents[uri]
-	c.mu.RUnlock()
 
 	if !ok {
 		return nil, nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
 	}
+
+	ret.mu.RLock()
+	defer ret.mu.RUnlock()
 
 	return ret, ret.versionCtx, nil
 }
