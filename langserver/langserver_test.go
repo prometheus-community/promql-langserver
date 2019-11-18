@@ -220,7 +220,8 @@ func (d *dummyStream) Push(text []byte) {
 // TestServerState tries to emulate a full server lifetime
 func TestServer(t *testing.T) { //nolint:funlen
 	stream := &dummyStream{}
-	_, s := ServerFromStream(context.Background(), stream, &Config{})
+	_, server := ServerFromStream(context.Background(), stream, &Config{})
+	s := server.server
 
 	// Initialize Server
 	_, err := s.Initialize(context.Background(), &protocol.ParamInitia{})

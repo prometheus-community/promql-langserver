@@ -32,7 +32,7 @@ import (
 
 // Server wraps language server instance that can connect to exactly one client
 type Server struct {
-	*server
+	server *server
 }
 
 // server is a language server instance that can connect to exactly one client
