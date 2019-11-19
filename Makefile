@@ -82,3 +82,8 @@ update_internal_packages:
 	    rm -rf $$TMPDIR;                                                      \
 	    make fmt;                                                             \
 	done
+
+.PHONY: htmlcover
+htmlcover:
+	go test -coverprofile=coverage.out ./langserver/...
+	go tool cover -html=coverage.out
