@@ -217,9 +217,16 @@ func (d *dummyStream) Push(text []byte) {
 	d.readQueue = append(d.readQueue, text...)
 }
 
+type dummyWriter struct{}
+
+func (d *dummyWriter) Write(text []byte) (int, error) {
+	return len(text), nil
+}
+
 // TestServerState tries to emulate a full server lifetime
 func TestServer(t *testing.T) { //nolint:funlen
-	stream := &dummyStream{}
+	var stream jsonrpc2.Stream = &dummyStream{}
+	stream = JSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &Config{})
 	s := server.server
 
