@@ -15,6 +15,7 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
@@ -282,6 +283,35 @@ func TestServer(t *testing.T) { //nolint:funlen
 	})
 	if err != nil {
 		panic("Failed to apply full change to document")
+	}
+
+	// Apply a partial Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 2,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range: &protocol.Range{
+					Start: protocol.Position{
+						Line:      0.0,
+						Character: 0.0,
+					},
+					End: protocol.Position{
+						Line:      0.0,
+						Character: 0.0,
+					},
+				},
+				RangeLength: 5,
+				Text:        "rate(",
+			},
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to apply change to document: %s", err.Error()))
 	}
 
 	// Close a document
