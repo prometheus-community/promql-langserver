@@ -314,6 +314,16 @@ func TestServer(t *testing.T) { //nolint:funlen
 		panic(fmt.Sprintf("Failed to apply change to document: %s", err.Error()))
 	}
 
+	// Wait for diagnostics
+	doc, docCtx, err := s.cache.GetDocument("test.promql")
+	if err != nil {
+		panic("Failed to get document")
+	}
+
+	if diagnostics, err := doc.GetDiagnostics(docCtx); err != nil && len(diagnostics) != 0 {
+		panic("expected nonempty diagnostics")
+	}
+
 	// Close a document
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
