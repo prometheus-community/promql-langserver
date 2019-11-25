@@ -26,35 +26,32 @@ import (
 )
 
 type jsonLogStream struct {
-	stream  jsonrpc2.Stream
-	log     io.Writer
-	waiting chan logItem
-}
-
-type logItem struct {
-	msg      []byte
-	incoming bool
+	mainStream jsonrpc2.Stream
+	logWriter  io.Writer
 }
 
 // JSONLogStream returns a stream that does log all communications in a format that
 // can be streamed into the lsp inspector
 func JSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
-	ret := &jsonLogStream{str, w, make(chan logItem)}
-	go ret.startLogging()
+	ret := &jsonLogStream{str, w}
+
+	if _, err := w.Write([]byte("hi")); err != nil {
+		panic("Failed to write logs")
+	}
 
 	return ret
 }
 
 func (s *jsonLogStream) Read(ctx context.Context) ([]byte, int64, error) {
-	data, count, err := s.stream.Read(ctx)
-	s.waiting <- logItem{data, true}
+	data, count, err := s.mainStream.Read(ctx)
+	s.log(data, true)
 
 	return data, count, err
 }
 
 func (s *jsonLogStream) Write(ctx context.Context, data []byte) (int64, error) {
-	count, err := s.stream.Write(ctx, data)
-	s.waiting <- logItem{data, false}
+	count, err := s.mainStream.Write(ctx, data)
+	s.log(data, false)
 
 	return count, err
 }
@@ -81,25 +78,22 @@ func getType(msg []byte, incoming bool) (string, error) {
 	case v.ID != nil && v.Method == "" && v.Params == nil:
 		msgType += "response"
 	default:
-		// This might be not always accurate
 		msgType += "notification"
 	}
 
 	return msgType, nil
 }
 
-func (s *jsonLogStream) startLogging() {
-	for item := range s.waiting {
-		typ, err := getType(item.msg, item.incoming)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
-		}
-
-		timestamp := time.Now().UnixNano() / 1000000
-		tmformat := time.Now().Format("03:04:15.000 PM")
-		// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
-		fmt.Fprintf(s.log, `[LSP-%s] {"type":"%s","message":%s,"timestamp":%d}%s`,
-			tmformat, typ, item.msg, timestamp, " \r\n")
+func (s *jsonLogStream) log(msg []byte, incoming bool) {
+	typ, err := getType(msg, incoming)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
+
+	timestamp := time.Now().UnixNano() / 1000000
+	tmformat := time.Now().Format("03:04:15.000 PM")
+	// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
+	fmt.Fprintf(s.logWriter, `[LSP-%s] {"type":"%s","message":%s,"timestamp":%d}%s`,
+		tmformat, typ, msg, timestamp, " \r\n")
 }
