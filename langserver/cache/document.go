@@ -46,7 +46,7 @@ type Document struct {
 	diagnostics []protocol.Diagnostic
 
 	// Wait for this before accessing  compileResults
-	compilers sync.WaitGroup
+	compilers waitGroup
 }
 
 // ApplyIncrementalChanges applies giver changes to a given Document Content
