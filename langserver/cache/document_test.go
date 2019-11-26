@@ -29,6 +29,8 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 
 	d.posData = token.NewFileSet().AddFile("", -1, 0)
 
+	d.compilers.initialize()
+
 	expired, cancel := context.WithCancel(context.Background())
 
 	cancel()

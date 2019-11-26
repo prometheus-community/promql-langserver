@@ -13,7 +13,10 @@
 
 package cache
 
-import "sync/atomic"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // waitGroup is a simplified version of sync.WaitGroup
 //
@@ -28,14 +31,29 @@ import "sync/atomic"
 // must be locked and additional checks whether the Wait Condtion is fulfilled must be performed.
 type waitGroup struct {
 	workers int32
+	cond    *sync.Cond
+	mu      sync.Mutex
+}
+
+func (wg *waitGroup) initialize() {
+	if wg.cond != nil {
+		panic("waitGroup initialized twice")
+	}
+
+	wg.cond = sync.NewCond(&wg.mu)
 }
 
 // Add changes the waitGroup counter by the pecified amount.
 // It panics if the counter becomes < 0
 func (wg *waitGroup) Add(delta int32) {
 	new := atomic.AddInt32(&wg.workers, delta)
+
 	if new < 0 {
 		panic("waitGroup waiting for negative number of jobs")
+	}
+
+	if new == 0 {
+		wg.cond.Broadcast()
 	}
 }
 
@@ -47,6 +65,11 @@ func (wg *waitGroup) Done() {
 // Wait blocks until the WaitGroup is zero
 // Beware that this might already have changed when the Wait returns
 func (wg *waitGroup) Wait() {
+	wg.mu.Lock()
+
 	for atomic.LoadInt32(&wg.workers) != 0 {
+		wg.cond.Wait()
 	}
+
+	wg.mu.Unlock()
 }

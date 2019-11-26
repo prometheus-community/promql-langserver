@@ -68,6 +68,8 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 		languageID: doc.LanguageID,
 	}
 
+	d.compilers.initialize()
+
 	err := d.SetContent(doc.Text, doc.Version, true)
 	if err != nil {
 		return nil, err
