@@ -101,9 +101,17 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, contex
 
 // RemoveDocument removes a Document from the cache
 func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
+	doc, _, err := c.GetDocument(uri)
+	if err != nil {
+		return err
+	}
+
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	doc.obsoleteVersion()
+
 	delete(c.documents, uri)
-	c.mu.Unlock()
 
 	return nil
 }
