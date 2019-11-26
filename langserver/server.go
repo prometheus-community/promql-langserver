@@ -48,6 +48,9 @@ type server struct {
 	config *Config
 
 	prometheus api.Client
+
+	lifetime context.Context
+	exit     func()
 }
 
 type serverState int
@@ -90,6 +93,8 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	s.config = config
+
+	s.lifetime, s.exit = context.WithCancel(ctx)
 
 	return ctx, Server{s}
 }

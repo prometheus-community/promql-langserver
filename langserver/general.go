@@ -16,7 +16,6 @@ package langserver
 import (
 	"context"
 	"errors"
-	"os"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -131,14 +130,13 @@ func (s *server) Shutdown(ctx context.Context) error {
 // required by the protocol.Server interface
 func (s *server) Exit(ctx context.Context) error {
 	s.stateMu.Lock()
-
 	defer s.stateMu.Unlock()
 
 	if s.state != serverShutDown {
-		os.Exit(1)
+		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not shutdown")
 	}
 
-	os.Exit(0)
+	s.exit()
 
 	return nil
 }
