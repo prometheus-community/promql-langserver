@@ -99,7 +99,7 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 }
 
 // SetContent sets the content of a document
-func (d *Document) SetContent(content string, version float64, new bool) error {
+func (d *Document) SetContent(serverLifetime context.Context, content string, version float64, new bool) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -115,7 +115,7 @@ func (d *Document) SetContent(content string, version float64, new bool) error {
 		d.obsoleteVersion()
 	}
 
-	d.versionCtx, d.obsoleteVersion = context.WithCancel(context.Background())
+	d.versionCtx, d.obsoleteVersion = context.WithCancel(serverLifetime)
 
 	d.content = content
 	d.version = version

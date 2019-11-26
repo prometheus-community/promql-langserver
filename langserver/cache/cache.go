@@ -47,7 +47,7 @@ func (c *DocumentCache) Init() {
 }
 
 // AddDocument adds a Document to the cache
-func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, error) {
+func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*Document, error) {
 	if _, ok := c.documents[doc.URI]; ok {
 		return nil, errors.New("document already exists")
 	}
@@ -70,7 +70,8 @@ func (c *DocumentCache) AddDocument(doc *protocol.TextDocumentItem) (*Document, 
 
 	d.compilers.initialize()
 
-	err := d.SetContent(doc.Text, doc.Version, true)
+	err := d.SetContent(serverLifetime, doc.Text, doc.Version, true)
+
 	if err != nil {
 		return nil, err
 	}

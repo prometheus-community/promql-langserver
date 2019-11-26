@@ -28,7 +28,7 @@ import (
 // DidOpen receives a call from the Client, telling that a files has been opened
 // required by the protocol.Server interface
 func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
-	_, err := s.cache.AddDocument(&params.TextDocument)
+	_, err := s.cache.AddDocument(s.lifetime, &params.TextDocument)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 	}
 
 	// Cache the new file content
-	if err = doc.SetContent(text, params.TextDocument.Version, false); err != nil {
+	if err = doc.SetContent(s.lifetime, text, params.TextDocument.Version, false); err != nil {
 		return err
 	}
 

@@ -14,6 +14,7 @@
 package cache
 
 import (
+	"context"
 	"testing"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -24,23 +25,27 @@ func TestCache(t *testing.T) {
 
 	c.Init()
 
-	doc, err := c.AddDocument(&protocol.TextDocumentItem{
-		URI:        "test_file",
-		LanguageID: "yaml",
-		Version:    0,
-		Text:       "test_text",
-	})
+	doc, err := c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
+			URI:        "test_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       "test_text",
+		})
 	if err != nil {
 		panic("Failed to AddDocument() to cache")
 	}
 
-	_, err = c.AddDocument(&protocol.TextDocumentItem{
+	_, err = c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
 
-		URI:        "test_file",
-		LanguageID: "yaml",
-		Version:    1,
-		Text:       "test_text",
-	})
+			URI:        "test_file",
+			LanguageID: "yaml",
+			Version:    1,
+			Text:       "test_text",
+		})
 	if err == nil {
 		panic("Should not be able to add same document twice")
 	}
@@ -59,13 +64,15 @@ func TestCache(t *testing.T) {
 		panic("Failed to RemoveDocument() from cache")
 	}
 
-	_, err = c.AddDocument(&protocol.TextDocumentItem{
+	_, err = c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
 
-		URI:        "test_file",
-		LanguageID: "yaml",
-		Version:    0,
-		Text:       "test_text",
-	})
+			URI:        "test_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       "test_text",
+		})
 	if err != nil {
 		panic("Should be able to readd document after removing it")
 	}
