@@ -41,7 +41,7 @@ func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 // DidClose receives a call from the Client, telling that a files has been closed
 // required by the protocol.Server interface
 func (s *server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
-	s.clearDiagnostics(context.Background(), params.TextDocument.URI, 0)
+	s.clearDiagnostics(s.lifetime, params.TextDocument.URI, 0)
 	return s.cache.RemoveDocument(params.TextDocument.URI)
 }
 
