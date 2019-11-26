@@ -64,7 +64,7 @@ const (
 
 // Run starts the language server instance
 func (s Server) Run(_ context.Context) error {
-	return s.server.Conn.Run(context.Background())
+	return s.server.Conn.Run(s.server.lifetime)
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream
