@@ -54,7 +54,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	if completions, err := s.getCompletions(ctx, node); err == nil && completions != nil {
+	if completions, err := s.getCompletions(ctx, doc, node); err == nil && completions != nil {
 		return completions, nil
 	}
 
@@ -63,10 +63,10 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	return s.getCompletions(ctx, node)
+	return s.getCompletions(ctx, doc, node)
 }
 
-func (s *server) getCompletions(ctx context.Context, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
 	fmt.Fprintln(os.Stderr, "Yo", node)
@@ -91,12 +91,28 @@ func (s *server) getCompletions(ctx context.Context, node promql.Node) (*protoco
 		return nil, err
 	}
 
+	var editRange protocol.Range
+
+	editRange.Start, err = doc.PosToProtocolPosition(ctx, node.Pos())
+	if err != nil {
+		return nil, err
+	}
+
+	editRange.End, err = doc.PosToProtocolPosition(ctx, node.Pos()+token.Pos(len(metricName)))
+	if err != nil {
+		return nil, err
+	}
+
 	var items []protocol.CompletionItem
 
 	for _, name := range allNames {
 		if strings.HasPrefix(string(name), metricName) {
 			item := protocol.CompletionItem{
 				Label: string(name),
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: string(name),
+				},
 			}
 			items = append(items, item)
 		}
