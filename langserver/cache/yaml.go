@@ -39,13 +39,13 @@ func (d *Document) parseYamls(ctx context.Context) error {
 		return err
 	}
 
-	var yamlDoc YamlDoc
-
 	reader := strings.NewReader(content)
 
 	lineOffset := 0
 
 	for unread := reader.Len(); unread > 0; {
+		var yamlDoc YamlDoc
+
 		decoder := yaml.NewDecoder(reader)
 
 		yamlDoc.Err = decoder.Decode(&yamlDoc.AST)
