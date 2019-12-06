@@ -16,6 +16,7 @@ package langserver
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
@@ -324,6 +325,57 @@ func TestServer(t *testing.T) { //nolint:funlen
 		panic("expected nonempty diagnostics")
 	}
 
+	// Apply a partial Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 3,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range: &protocol.Range{
+					Start: protocol.Position{
+						Line:      0.0,
+						Character: 11.0,
+					},
+					End: protocol.Position{
+						Line:      0.0,
+						Character: 16.0,
+					},
+				},
+				RangeLength: 5,
+				Text:        ")",
+			},
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to apply change to document: %s", err.Error()))
+	}
+
+	// Wait for diagnostics
+	doc, docCtx, err = s.cache.GetDocument("test.promql")
+	if err != nil {
+		panic("Failed to get document")
+	}
+
+	if diagnostics, err := doc.GetDiagnostics(docCtx); err != nil && len(diagnostics) != 0 {
+		panic("expected empty diagnostics")
+	}
+
+	var content string
+
+	content, err = doc.GetContent(docCtx)
+	if err != nil {
+		panic("failed to get document content")
+	}
+
+	fmt.Fprint(os.Stderr, content)
+
+	if content != "rate(metric)" {
+		panic(fmt.Sprintf("unexpected content, expected \"rate(metric)\", got %s", content))
+	}
 	// Close a document
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
