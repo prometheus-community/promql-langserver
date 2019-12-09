@@ -66,10 +66,9 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	return s.getCompletions(ctx, doc, node)
 }
 
+// nolint:funlen
 func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
-
-	fmt.Fprintln(os.Stderr, "Yo", node)
 
 	switch n := node.(type) {
 	case *promql.VectorSelector:
@@ -105,10 +104,28 @@ func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node p
 
 	var items []protocol.CompletionItem
 
+	for name := range promql.Functions {
+		if strings.HasPrefix(strings.ToLower(name), metricName) {
+			item := protocol.CompletionItem{
+				Label:            name,
+				SortText:         "__1__" + name,
+				Kind:             3, //Function
+				InsertTextFormat: 2, //Snippet
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: name + "($1)",
+				},
+			}
+			items = append(items, item)
+		}
+	}
+
 	for _, name := range allNames {
 		if strings.HasPrefix(string(name), metricName) {
 			item := protocol.CompletionItem{
-				Label: string(name),
+				Label:    string(name),
+				SortText: "__3__" + string(name),
+				Kind:     12, //Value
 				TextEdit: &protocol.TextEdit{
 					Range:   editRange,
 					NewText: string(name),
