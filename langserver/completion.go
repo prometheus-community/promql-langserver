@@ -54,7 +54,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	if completions, err := s.getCompletions(ctx, doc, node); err == nil && completions != nil {
+	if completions, err := s.getCompletions(ctx, doc, node, pos); err == nil && completions != nil {
 		return completions, nil
 	}
 
@@ -63,11 +63,11 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		return nil, nil
 	}
 
-	return s.getCompletions(ctx, doc, node)
+	return s.getCompletions(ctx, doc, node, pos)
 }
 
 // nolint:funlen
-func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
 	var noLabelSelectors bool
@@ -85,6 +85,15 @@ func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node p
 		return nil, nil
 	}
 
+	if node.Pos()+token.Pos(len(metricName)) >= pos {
+		return s.completeMetricName(ctx, doc, node, metricName, noLabelSelectors)
+	}
+
+	return nil, nil
+}
+
+// nolint:funlen
+func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, node promql.Node, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
 	if s.prometheus == nil {
 		return nil, nil
 	}
