@@ -102,7 +102,9 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, no
 
 	allNames, _, err := api.LabelValues(ctx, "__name__")
 	if err != nil {
-		return nil, err
+		fmt.Printf("Could not get metric data from prometheus: %s", err.Error())
+
+		allNames = nil
 	}
 
 	var editRange protocol.Range
