@@ -322,6 +322,8 @@ github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPx
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/slrtbtfs/prometheus v1.8.2-0.20191113134020-c261cd341add h1:P0DukZaIU1AlJB3KgmqbH50VUQdw3io0axV/2cO2wUA=
 github.com/slrtbtfs/prometheus v1.8.2-0.20191113134020-c261cd341add/go.mod h1:4Xj9dJhnWZeOgrtICgocaD1jVcfrHdCiiUJdDcxKqOY=
+github.com/slrtbtfs/prometheus v1.8.2-0.20191209151656-4c3278f97849 h1:yqGTrgA51NWvAEbB28r340kYaobNBa7/JGi2KXW3mhc=
+github.com/slrtbtfs/prometheus v1.8.2-0.20191209151656-4c3278f97849/go.mod h1:4Xj9dJhnWZeOgrtICgocaD1jVcfrHdCiiUJdDcxKqOY=
 github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4kGIyLM=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
