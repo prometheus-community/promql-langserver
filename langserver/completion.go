@@ -70,9 +70,15 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
+	var noLabelSelectors bool
+
 	switch n := node.(type) {
 	case *promql.VectorSelector:
 		metricName = n.Name
+
+		if n.LBrace == token.NoPos {
+			noLabelSelectors = true
+		}
 	case *promql.MatrixSelector:
 		metricName = n.Name
 	default:
@@ -104,19 +110,21 @@ func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node p
 
 	var items []protocol.CompletionItem
 
-	for name := range promql.Functions {
-		if strings.HasPrefix(strings.ToLower(name), metricName) {
-			item := protocol.CompletionItem{
-				Label:            name,
-				SortText:         "__1__" + name,
-				Kind:             3, //Function
-				InsertTextFormat: 2, //Snippet
-				TextEdit: &protocol.TextEdit{
-					Range:   editRange,
-					NewText: name + "($1)",
-				},
+	if noLabelSelectors {
+		for name := range promql.Functions {
+			if strings.HasPrefix(strings.ToLower(name), metricName) {
+				item := protocol.CompletionItem{
+					Label:            name,
+					SortText:         "__1__" + name,
+					Kind:             3, //Function
+					InsertTextFormat: 2, //Snippet
+					TextEdit: &protocol.TextEdit{
+						Range:   editRange,
+						NewText: name + "($1)",
+					},
+				}
+				items = append(items, item)
 			}
-			items = append(items, item)
 		}
 	}
 
