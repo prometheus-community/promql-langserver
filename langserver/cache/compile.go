@@ -26,7 +26,7 @@ import (
 type CompiledQuery struct {
 	Ast    promql.Node
 	Err    *promql.ParseErr
-	record string
+	Record string
 }
 
 func (d *Document) compile(ctx context.Context) error {

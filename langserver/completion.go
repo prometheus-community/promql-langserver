@@ -154,6 +154,27 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, no
 		}
 	}
 
+	querys, err := doc.GetQueries(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, q := range querys {
+		if rec := q.Record; rec != "" && strings.HasPrefix(rec, metricName) {
+			item := protocol.CompletionItem{
+				Label:            rec,
+				SortText:         "__2__" + rec,
+				Kind:             3, //Value
+				InsertTextFormat: 2, //Snippet
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: rec,
+				},
+			}
+			items = append(items, item)
+		}
+	}
+
 	return &protocol.CompletionList{
 		IsIncomplete: true,
 		Items:        items,

@@ -212,6 +212,7 @@ func relevantYamlPath(path []string) bool {
 	relevantSuffixes := [][]string{
 		{"alerts"},
 		{"groups", "rules"},
+		{"recordingrule"},
 	}
 
 OUTER:
