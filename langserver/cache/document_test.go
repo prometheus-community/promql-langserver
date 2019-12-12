@@ -58,18 +58,18 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 	// Necessary since compileQuery() will call d.compilers.Done()
 	d.compilers.Add(1)
 
-	if err := d.compileQuery(expired, true, token.NoPos, token.NoPos); err == nil {
+	if err := d.compileQuery(expired, true, token.NoPos, token.NoPos, ""); err == nil {
 		panic("Expected compileQuery to fail with expired context (fullFile: true)")
 	}
 
 	// Necessary since compileQuery() will call d.compilers.Done()
 	d.compilers.Add(1)
 
-	if err := d.compileQuery(expired, false, token.NoPos, token.NoPos); err == nil {
+	if err := d.compileQuery(expired, false, token.NoPos, token.NoPos, ""); err == nil {
 		panic("Expected compileQuery to fail with expired context (fullFile: false)")
 	}
 
-	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil); err == nil {
+	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil, ""); err == nil {
 		panic("Expected AddCompileResult to fail with expired context")
 	}
 
@@ -170,7 +170,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 			panic("Expected scanYamlTreeRec to fail with expired context")
 		}
 	*/
-	if err := d.foundQuery(expired, &yaml.Node{}, token.NoPos, 0); err == nil {
+	if err := d.foundQuery(expired, &yaml.Node{}, token.NoPos, nil, 0); err == nil {
 		panic("Expected foundQuery to fail with expired context")
 	}
 }

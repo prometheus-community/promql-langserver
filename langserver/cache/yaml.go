@@ -150,16 +150,23 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 	return nil
 }
 
+//nolint:gocongnit
 func (d *Document) foundRelevantYamlPath(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: lll
 	if node.Kind != yaml.MappingNode {
 		return nil
 	}
 
+	var expr *yaml.Node
+
+	var exprEnd token.Pos
+
+	var record *yaml.Node
+
 	for i := 0; i+1 < len(node.Content); i += 2 {
 		label := node.Content[i]
 		value := node.Content[i+1]
 
-		if label == nil || label.Kind != yaml.ScalarNode || label.Value != "expr" || label.Tag != "!!str" {
+		if label == nil || label.Kind != yaml.ScalarNode || label.Tag != "!!str" {
 			continue
 		}
 
@@ -167,25 +174,35 @@ func (d *Document) foundRelevantYamlPath(ctx context.Context, node *yaml.Node, n
 			continue
 		}
 
-		var err error
+		switch label.Value {
+		case "expr":
+			var err error
 
-		var valueEnd token.Pos
+			if i+2 < len(node.Content) && node.Content[i+2] != nil {
+				next := node.Content[i+2]
 
-		if i+2 < len(node.Content) && node.Content[i+2] != nil {
-			next := node.Content[i+2]
-
-			valueEnd, err = d.YamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
-			if err != nil {
-				return err
+				exprEnd, err = d.YamlPositionToTokenPos(ctx, next.Line, next.Column, lineOffset)
+				if err != nil {
+					return err
+				}
+			} else {
+				exprEnd = nodeEnd
 			}
-		} else {
-			valueEnd = nodeEnd
-		}
 
-		err = d.foundQuery(ctx, value, valueEnd, lineOffset)
-		if err != nil {
-			return err
+			expr = value
+		case "record":
+			record = value
 		}
+	}
+
+	if expr == nil {
+		return nil
+	}
+
+	err := d.foundQuery(ctx, expr, exprEnd, record, lineOffset)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -217,7 +234,7 @@ OUTER:
 	return false
 }
 
-func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos, lineOffset int) error {
+func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos, record *yaml.Node, lineOffset int) error { //nolint: lll
 	line := node.Line
 	col := node.Column
 
@@ -240,7 +257,13 @@ func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token
 
 	d.compilers.Add(1)
 
-	go d.compileQuery(ctx, false, pos, endPos) //nolint: errcheck
+	var recordValue string
+
+	if record != nil {
+		recordValue = record.Value
+	}
+
+	go d.compileQuery(ctx, false, pos, endPos, recordValue) //nolint: errcheck
 
 	return nil
 }

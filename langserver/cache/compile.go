@@ -24,8 +24,9 @@ import (
 
 // CompiledQuery stores the results of compiling one query
 type CompiledQuery struct {
-	Ast promql.Node
-	Err *promql.ParseErr
+	Ast    promql.Node
+	Err    *promql.ParseErr
+	record string
 }
 
 func (d *Document) compile(ctx context.Context) error {
@@ -34,7 +35,7 @@ func (d *Document) compile(ctx context.Context) error {
 	switch d.GetLanguageID() {
 	case "promql":
 		d.compilers.Add(1)
-		return d.compileQuery(ctx, true, 0, 0)
+		return d.compileQuery(ctx, true, 0, 0, "")
 	case "yaml":
 		err := d.parseYamls(ctx)
 		if err != nil {
@@ -57,7 +58,7 @@ func (d *Document) compile(ctx context.Context) error {
 // compileQuery compiles the query at the position given by the last two arguments
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
-func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos) error {
+func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos, record string) error { //nolint:lll
 	defer d.compilers.Done()
 
 	var content string
@@ -87,7 +88,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	err = d.AddCompileResult(ctx, ast, parseErr)
+	err = d.AddCompileResult(ctx, ast, parseErr, record)
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr) error {
+func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr, record string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -116,7 +117,7 @@ func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *p
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		d.queries = append(d.queries, &CompiledQuery{ast, err})
+		d.queries = append(d.queries, &CompiledQuery{ast, err, record})
 		return nil
 	}
 }
