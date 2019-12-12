@@ -94,7 +94,7 @@ func (d *Document) scanYamlTree(ctx context.Context) error {
 	}
 
 	for _, yamlDoc := range yamls {
-		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End, yamlDoc.LineOffset)
+		err := d.scanYamlTreeRec(ctx, &yamlDoc.AST, yamlDoc.End, yamlDoc.LineOffset, nil)
 		if err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func (d *Document) scanYamlTree(ctx context.Context) error {
 }
 
 // nolint
-func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: unparam
+func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int, path []string) error { //nolint: unparam
 	if node == nil {
 		return nil
 	}
@@ -114,6 +114,8 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		var err error
 
 		var childEnd token.Pos
+
+		var childPath []string
 
 		if i+1 < len(node.Content) && node.Content[i+1] != nil {
 			next := node.Content[i+1]
@@ -126,7 +128,15 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 			childEnd = nodeEnd
 		}
 
-		err = d.scanYamlTreeRec(ctx, child, childEnd, lineOffset)
+		if node.Value != "" {
+			childPath = append(childPath, node.Value)
+		}
+
+		if node.Kind == yaml.MappingNode && i > 0 && i%2 == 1 {
+			childPath = append(childPath, node.Content[i-1].Value)
+		}
+
+		err = d.scanYamlTreeRec(ctx, child, childEnd, lineOffset, append(path, childPath...))
 		if err != nil {
 			return err
 		}
