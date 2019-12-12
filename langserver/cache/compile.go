@@ -24,9 +24,10 @@ import (
 
 // CompiledQuery stores the results of compiling one query
 type CompiledQuery struct {
-	Ast    promql.Node
-	Err    *promql.ParseErr
-	Record string
+	Ast     promql.Node
+	Err     *promql.ParseErr
+	Content string
+	Record  string
 }
 
 func (d *Document) compile(ctx context.Context) error {
@@ -88,7 +89,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	err = d.AddCompileResult(ctx, ast, parseErr, record)
+	err = d.AddCompileResult(ctx, ast, parseErr, record, content)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr, record string) error {
+func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr, record string, content string) error { //nolint: lll
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
@@ -117,7 +118,7 @@ func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *p
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		d.queries = append(d.queries, &CompiledQuery{ast, err, record})
+		d.queries = append(d.queries, &CompiledQuery{ast, err, content, record})
 		return nil
 	}
 }

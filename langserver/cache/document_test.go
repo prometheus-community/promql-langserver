@@ -69,7 +69,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected compileQuery to fail with expired context (fullFile: false)")
 	}
 
-	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil, ""); err == nil {
+	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil, "", ""); err == nil {
 		panic("Expected AddCompileResult to fail with expired context")
 	}
 

@@ -72,7 +72,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	if compileResult != nil && compileResult.Ast != nil {
 		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
-		markdown = s.nodeToDocMarkdown(ctx, node)
+		markdown = s.nodeToDocMarkdown(ctx, docCtx, doc, node)
 
 		if node != nil {
 			start, err := doc.PosToProtocolPosition(docCtx, node.Pos())
@@ -101,7 +101,8 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	}, nil
 }
 
-func (s *server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string {
+// nolint:funlen
+func (s *server) nodeToDocMarkdown(ctx context.Context, docCtx context.Context, doc *cache.Document, node promql.Node) string { //nolint: lll, golint
 	var ret bytes.Buffer
 
 	if call, ok := node.(*promql.Call); ok {
@@ -119,9 +120,16 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string
 	if vector, ok := node.(*promql.VectorSelector); ok {
 		metric := vector.Name
 
-		doc, err := s.getMetricDocs(ctx, metric)
+		doc, err := s.getRecordingRuleDocs(docCtx, doc, metric)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
+		}
+
+		if doc == "" {
+			doc, err = s.getMetricDocs(ctx, metric)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+			}
 		}
 
 		if _, err := ret.WriteString(doc); err != nil {
@@ -132,9 +140,16 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, node promql.Node) string
 	if matrix, ok := node.(*promql.MatrixSelector); ok {
 		metric := matrix.Name
 
-		doc, err := s.getMetricDocs(ctx, metric)
+		doc, err := s.getRecordingRuleDocs(docCtx, doc, metric)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
+		}
+
+		if doc == "" {
+			doc, err = s.getMetricDocs(ctx, metric)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+			}
 		}
 
 		if _, err := ret.WriteString(doc); err != nil {
@@ -206,6 +221,25 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 
 	if metadata[0].Unit != "" {
 		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
+	}
+
+	return ret.String(), nil
+}
+
+func (s *server) getRecordingRuleDocs(ctx context.Context, doc *cache.Document, metric string) (string, error) {
+	var ret strings.Builder
+
+	queries, err := doc.GetQueries(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	for _, q := range queries {
+		if q.Record == metric {
+			fmt.Fprintf(&ret, "### %s\n\n", metric)
+			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", "Recording Rule")
+			fmt.Fprintf(&ret, "__Underlying Metric:__  %s\n\n", q.Content)
+		}
 	}
 
 	return ret.String(), nil
