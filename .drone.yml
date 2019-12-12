@@ -23,11 +23,6 @@ steps:
     image: golang:1.13
     commands:
       - make test
-  - name: golint
-    image: golang:1.13
-    commands:
-      - go get golang.org/x/lint/golint
-      - make golint
   - name: golangci-lint
     image: golangci/golangci-lint
     commands:
