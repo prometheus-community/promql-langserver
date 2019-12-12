@@ -142,6 +142,15 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 		}
 	}
 
+	if relevantYamlPath(path) {
+		if err := d.foundRelevantYamlPath(ctx, node, nodeEnd, lineOffset); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Document) foundRelevantYamlPath(ctx context.Context, node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: lll
 	if node.Kind != yaml.MappingNode {
 		return nil
 	}
@@ -180,6 +189,32 @@ func (d *Document) scanYamlTreeRec(ctx context.Context, node *yaml.Node, nodeEnd
 	}
 
 	return nil
+}
+
+func relevantYamlPath(path []string) bool {
+	relevantSuffixes := [][]string{
+		{"alerts"},
+		{"groups", "rules"},
+	}
+
+OUTER:
+	for _, suffix := range relevantSuffixes {
+		if len(suffix) > len(path) {
+			continue
+		}
+
+		shortPath := path[len(path)-len(suffix):]
+
+		for i := range suffix {
+			if suffix[i] != shortPath[i] {
+				continue OUTER
+			}
+		}
+
+		return true
+	}
+
+	return false
 }
 
 func (d *Document) foundQuery(ctx context.Context, node *yaml.Node, endPos token.Pos, lineOffset int) error {
