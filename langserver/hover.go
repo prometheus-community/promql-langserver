@@ -238,7 +238,7 @@ func (s *server) getRecordingRuleDocs(ctx context.Context, doc *cache.Document, 
 		if q.Record == metric {
 			fmt.Fprintf(&ret, "### %s\n\n", metric)
 			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", "Recording Rule")
-			fmt.Fprintf(&ret, "__Underlying Metric:__  %s\n\n", q.Content)
+			fmt.Fprintf(&ret, "__Underlying Metric:__  \n```\n%s\n```\n\n", q.Content)
 		}
 	}
 
