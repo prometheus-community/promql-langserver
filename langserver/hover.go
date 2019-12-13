@@ -48,12 +48,12 @@ func initializeFunctionDocumentation() http.FileSystem {
 // Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	doc, docCtx, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
+	doc, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
 	if err != nil {
 		return nil, err
 	}
 
-	pos, err := doc.ProtocolPositionToTokenPos(docCtx, params.TextDocumentPositionParams.Position)
+	pos, err := doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 
 	var compileResult *cache.CompiledQuery
 
-	compileResult, err = doc.GetQuery(docCtx, pos)
+	compileResult, err = doc.GetQuery(pos)
 	if err != nil {
 		return nil, nil
 	}
@@ -72,15 +72,15 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	if compileResult != nil && compileResult.Ast != nil {
 		node := getSmallestSurroundingNode(compileResult.Ast, pos)
 
-		markdown = s.nodeToDocMarkdown(ctx, docCtx, doc, node)
+		markdown = s.nodeToDocMarkdown(ctx, doc, node)
 
 		if node != nil {
-			start, err := doc.PosToProtocolPosition(docCtx, node.Pos())
+			start, err := doc.PosToProtocolPosition(node.Pos())
 			if err != nil {
 				return nil, nil
 			}
 
-			end, err := doc.PosToProtocolPosition(docCtx, node.EndPos())
+			end, err := doc.PosToProtocolPosition(node.EndPos())
 			if err != nil {
 				return nil, nil
 			}
@@ -102,7 +102,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 }
 
 // nolint:funlen
-func (s *server) nodeToDocMarkdown(ctx context.Context, docCtx context.Context, doc *cache.Document, node promql.Node) string { //nolint: lll, golint
+func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandle, node promql.Node) string { //nolint: lll, golint
 	var ret bytes.Buffer
 
 	if call, ok := node.(*promql.Call); ok {
@@ -120,7 +120,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, docCtx context.Context, 
 	if vector, ok := node.(*promql.VectorSelector); ok {
 		metric := vector.Name
 
-		doc, err := s.getRecordingRuleDocs(docCtx, doc, metric)
+		doc, err := s.getRecordingRuleDocs(doc, metric)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
 		}
@@ -140,7 +140,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, docCtx context.Context, 
 	if matrix, ok := node.(*promql.MatrixSelector); ok {
 		metric := matrix.Name
 
-		doc, err := s.getRecordingRuleDocs(docCtx, doc, metric)
+		doc, err := s.getRecordingRuleDocs(doc, metric)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
 		}
@@ -226,10 +226,10 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 	return ret.String(), nil
 }
 
-func (s *server) getRecordingRuleDocs(ctx context.Context, doc *cache.Document, metric string) (string, error) {
+func (s *server) getRecordingRuleDocs(doc *cache.DocumentHandle, metric string) (string, error) {
 	var ret strings.Builder
 
-	queries, err := doc.GetQueries(ctx)
+	queries, err := doc.GetQueries()
 	if err != nil {
 		return "", err
 	}

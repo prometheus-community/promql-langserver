@@ -23,12 +23,12 @@ import (
 
 // nolint:funlen
 func (s *server) diagnostics(uri string) {
-	d, ctx, err := s.cache.GetDocument(uri)
+	d, err := s.cache.GetDocument(uri)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
 	}
 
-	version, expired := d.GetVersion(ctx)
+	version, expired := d.GetVersion()
 	if expired != nil {
 		return
 	}
@@ -38,14 +38,14 @@ func (s *server) diagnostics(uri string) {
 		Version: version,
 	}
 
-	diagnostics, err := d.GetDiagnostics(ctx)
+	diagnostics, err := d.GetDiagnostics()
 	if err != nil {
 		return
 	}
 
 	reply.Diagnostics = diagnostics
 
-	if err = s.client.PublishDiagnostics(ctx, reply); err != nil {
+	if err = s.client.PublishDiagnostics(d.GetContext(), reply); err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
 		fmt.Fprintln(os.Stderr, err.Error())
 	}

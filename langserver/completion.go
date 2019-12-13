@@ -30,21 +30,21 @@ import (
 // nolint: wsl
 func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
 	fmt.Fprintln(os.Stderr, "0")
-	doc, docCtx, err := s.cache.GetDocument(params.TextDocument.URI)
+	doc, err := s.cache.GetDocument(params.TextDocument.URI)
 	if err != nil {
 		return nil, err
 	}
 
 	var pos token.Pos
 
-	pos, err = doc.ProtocolPositionToTokenPos(docCtx, params.TextDocumentPositionParams.Position)
+	pos, err = doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
 	if err != nil {
 		return nil, nil
 	}
 
 	var query *cache.CompiledQuery
 
-	query, err = doc.GetQuery(docCtx, pos-1)
+	query, err = doc.GetQuery(pos - 1)
 	if err != nil {
 		return nil, nil
 	}
@@ -67,7 +67,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 // nolint:funlen
-func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) getCompletions(ctx context.Context, doc *cache.DocumentHandle, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
 	var noLabelSelectors bool
@@ -93,7 +93,7 @@ func (s *server) getCompletions(ctx context.Context, doc *cache.Document, node p
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, node promql.Node, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHandle, node promql.Node, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
 	if s.prometheus == nil {
 		return nil, nil
 	}
@@ -109,12 +109,12 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, no
 
 	var editRange protocol.Range
 
-	editRange.Start, err = doc.PosToProtocolPosition(ctx, node.Pos())
+	editRange.Start, err = doc.PosToProtocolPosition(node.Pos())
 	if err != nil {
 		return nil, err
 	}
 
-	editRange.End, err = doc.PosToProtocolPosition(ctx, node.Pos()+token.Pos(len(metricName)))
+	editRange.End, err = doc.PosToProtocolPosition(node.Pos() + token.Pos(len(metricName)))
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.Document, no
 		}
 	}
 
-	querys, err := doc.GetQueries(ctx)
+	querys, err := doc.GetQueries()
 	if err != nil {
 		return nil, err
 	}

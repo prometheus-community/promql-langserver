@@ -25,142 +25,144 @@ import (
 // Call the (* Document) Functions with an expired context. Expected behaviour is that all
 // of these calls return an error
 func TestDocumentContext(t *testing.T) { //nolint: funlen
-	d := &Document{}
+	doc := &document{}
 
-	d.posData = token.NewFileSet().AddFile("", -1, 0)
+	doc.posData = token.NewFileSet().AddFile("", -1, 0)
 
-	d.compilers.initialize()
+	doc.compilers.initialize()
 
 	expired, cancel := context.WithCancel(context.Background())
 
 	cancel()
 
+	d := &DocumentHandle{doc, expired}
+
 	// From compile.go
 
 	// Necessary since compile() will call d.compilers.Done()
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	d.languageID = "promql"
+	d.doc.languageID = "promql"
 
-	if err := d.compile(expired); err == nil {
+	if err := d.compile(); err == nil {
 		panic("Expected compile to fail with expired context (languageID: promql)")
 	}
 
 	// Necessary since compile() will call d.compilers.Done()
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	d.languageID = "yaml"
+	d.doc.languageID = "yaml"
 
-	if err := d.compile(expired); err == nil {
-		panic("Expected compile to fail with expired context (languageID: promql)")
+	if err := d.compile(); err == nil {
+		panic("Expecexpiredted compile to fail with expired context (languageID: promql)")
 	}
 
 	// Necessary since compileQuery() will call d.compilers.Done()
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	if err := d.compileQuery(expired, true, token.NoPos, token.NoPos, ""); err == nil {
+	if err := d.compileQuery(true, token.NoPos, token.NoPos, ""); err == nil {
 		panic("Expected compileQuery to fail with expired context (fullFile: true)")
 	}
 
 	// Necessary since compileQuery() will call d.compilers.Done()
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	if err := d.compileQuery(expired, false, token.NoPos, token.NoPos, ""); err == nil {
+	if err := d.compileQuery(false, token.NoPos, token.NoPos, ""); err == nil {
 		panic("Expected compileQuery to fail with expired context (fullFile: false)")
 	}
 
-	if err := d.AddCompileResult(expired, &promql.MatrixSelector{}, nil, "", ""); err == nil {
+	if err := d.AddCompileResult(&promql.MatrixSelector{}, nil, "", ""); err == nil {
 		panic("Expected AddCompileResult to fail with expired context")
 	}
 
 	// From diagnostics.go
 
-	if _, err := d.promQLErrToProtocolDiagnostic(expired, &promql.ParseErr{}); err == nil {
+	if _, err := d.promQLErrToProtocolDiagnostic(&promql.ParseErr{}); err == nil {
 		panic("Expected promQLErrToProtocolDiagnostic to fail with expired context")
 	}
 
-	if err := d.warnQuotedYaml(expired, token.NoPos, token.NoPos); err == nil {
+	if err := d.warnQuotedYaml(token.NoPos, token.NoPos); err == nil {
 		panic("Expected warnQuotedYaml to fail with expired context")
 	}
 
-	if err := d.AddDiagnostic(expired, nil); err == nil {
+	if err := d.AddDiagnostic(nil); err == nil {
 		panic("Expected AddDiagnostic to fail with expired context")
 	}
 
 	// From document.go
 
-	if _, err := d.GetContent(expired); err == nil {
+	if _, err := d.GetContent(); err == nil {
 		panic("Expected GetContent to fail with expired context")
 	}
 
-	if _, err := d.GetSubstring(expired, token.NoPos, token.NoPos); err == nil {
+	if _, err := d.GetSubstring(token.NoPos, token.NoPos); err == nil {
 		panic("Expected GetSubstring to fail with expired context")
 	}
 
-	if _, err := d.GetQueries(expired); err == nil {
+	if _, err := d.GetQueries(); err == nil {
 		panic("Expected GetQueries to fail with expired context")
 	}
 
-	if _, err := d.GetQuery(expired, token.NoPos); err == nil {
+	if _, err := d.GetQuery(token.NoPos); err == nil {
 		panic("Expected GetQuery to fail with expired context")
 	}
 
-	if _, err := d.GetVersion(expired); err == nil {
+	if _, err := d.GetVersion(); err == nil {
 		panic("Expected GetVersion to fail with expired context")
 	}
 
-	if _, err := d.GetYamls(expired); err == nil {
+	if _, err := d.GetYamls(); err == nil {
 		panic("Expected GetYamls to fail with expired context")
 	}
 
-	if _, err := d.GetDiagnostics(expired); err == nil {
+	if _, err := d.GetDiagnostics(); err == nil {
 		panic("Expected GetDiagnostics to fail with expired context")
 	}
 
 	// From position.go
 
-	if _, err := d.PositionToProtocolPosition(expired, token.Position{}); err == nil {
+	if _, err := d.PositionToProtocolPosition(token.Position{}); err == nil {
 		panic("Expected PositionToProtocolPosition to fail with expired context")
 	}
 
-	if _, err := d.PosToProtocolPosition(expired, token.NoPos); err == nil {
+	if _, err := d.PosToProtocolPosition(token.NoPos); err == nil {
 		panic("Expected PosToProtocolPosition to fail with expired context")
 	}
 
-	if _, err := d.YamlPositionToTokenPos(expired, 0, 0, 0); err == nil {
+	if _, err := d.YamlPositionToTokenPos(0, 0, 0); err == nil {
 		panic("Expected YamlPositionToTokenPos to fail with expired context")
 	}
 
-	if _, err := d.TokenPosToTokenPosition(expired, token.NoPos); err == nil {
+	if _, err := d.TokenPosToTokenPosition(token.NoPos); err == nil {
 		panic("Expected TokenPosToTokenPosition to fail with expired context")
 	}
 
-	if _, err := d.GetVersion(expired); err == nil {
+	if _, err := d.GetVersion(); err == nil {
 		panic("Expected GetVersion to fail with expired context")
 	}
 
-	if _, err := d.GetYamls(expired); err == nil {
+	if _, err := d.GetYamls(); err == nil {
 		panic("Expected GetYamls to fail with expired context")
 	}
 
-	if _, err := d.GetDiagnostics(expired); err == nil {
+	if _, err := d.GetDiagnostics(); err == nil {
 		panic("Expected GetContent to fail with expired context")
 	}
 
 	// From yaml.go
 
-	if err := d.parseYamls(expired); err == nil {
+	if err := d.parseYamls(); err == nil {
 		panic("Expected ParseYamls to fail with expired context")
 	}
 
-	if err := d.addYaml(expired, nil); err == nil {
+	if err := d.addYaml(nil); err == nil {
 		panic("Expected addYaml to fail with expired context")
 	}
 
 	// Necessary since scanYamlTree will call d.compilers.Done()
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	if err := d.scanYamlTree(expired); err == nil {
+	if err := d.scanYamlTree(); err == nil {
 		panic("Expected scanYamlTree to fail with expired context")
 	}
 
@@ -170,7 +172,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 			panic("Expected scanYamlTreeRec to fail with expired context")
 		}
 	*/
-	if err := d.foundQuery(expired, &yaml.Node{}, token.NoPos, nil, 0); err == nil {
+	if err := d.foundQuery(&yaml.Node{}, token.NoPos, nil, 0); err == nil {
 		panic("Expected foundQuery to fail with expired context")
 	}
 }

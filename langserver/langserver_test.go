@@ -316,12 +316,12 @@ func TestServer(t *testing.T) { //nolint:funlen
 	}
 
 	// Wait for diagnostics
-	doc, docCtx, err := s.cache.GetDocument("test.promql")
+	doc, err := s.cache.GetDocument("test.promql")
 	if err != nil {
 		panic("Failed to get document")
 	}
 
-	if diagnostics, err := doc.GetDiagnostics(docCtx); err != nil && len(diagnostics) != 0 {
+	if diagnostics, err := doc.GetDiagnostics(); err != nil && len(diagnostics) != 0 {
 		panic("expected nonempty diagnostics")
 	}
 
@@ -355,18 +355,18 @@ func TestServer(t *testing.T) { //nolint:funlen
 	}
 
 	// Wait for diagnostics
-	doc, docCtx, err = s.cache.GetDocument("test.promql")
+	doc, err = s.cache.GetDocument("test.promql")
 	if err != nil {
 		panic("Failed to get document")
 	}
 
-	if diagnostics, err := doc.GetDiagnostics(docCtx); err != nil && len(diagnostics) != 0 {
+	if diagnostics, err := doc.GetDiagnostics(); err != nil && len(diagnostics) != 0 {
 		panic("expected empty diagnostics")
 	}
 
 	var content string
 
-	content, err = doc.GetContent(docCtx)
+	content, err = doc.GetContent()
 	if err != nil {
 		panic("failed to get document content")
 	}

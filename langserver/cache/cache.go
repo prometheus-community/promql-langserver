@@ -34,7 +34,7 @@ const maxDocumentSize = 1000000
 type DocumentCache struct {
 	fileSet *token.FileSet
 
-	documents map[protocol.DocumentURI]*Document
+	documents map[protocol.DocumentURI]*document
 	mu        sync.RWMutex
 }
 
@@ -42,12 +42,12 @@ type DocumentCache struct {
 func (c *DocumentCache) Init() {
 	c.fileSet = token.NewFileSet()
 	c.mu.Lock()
-	c.documents = make(map[protocol.DocumentURI]*Document)
+	c.documents = make(map[protocol.DocumentURI]*document)
 	c.mu.Unlock()
 }
 
 // AddDocument adds a Document to the cache
-func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*Document, error) {
+func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) { //nolint:lll
 	if _, ok := c.documents[doc.URI]; ok {
 		return nil, errors.New("document already exists")
 	}
@@ -62,7 +62,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	file.SetLinesForContent([]byte(doc.Text))
 
-	d := &Document{
+	d := &document{
 		posData:    file,
 		uri:        doc.URI,
 		languageID: doc.LanguageID,
@@ -70,7 +70,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	d.compilers.initialize()
 
-	err := d.SetContent(serverLifetime, doc.Text, doc.Version, true)
+	err := (&DocumentHandle{d, context.Background()}).SetContent(serverLifetime, doc.Text, doc.Version, true)
 
 	if err != nil {
 		return nil, err
@@ -80,29 +80,29 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 	c.documents[doc.URI] = d
 	c.mu.Unlock()
 
-	return d, nil
+	return &DocumentHandle{d, d.versionCtx}, nil
 }
 
 // GetDocument retrieve a Document from the cache
 // Additionally returns a context that expires as soon as the document changes
-func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*Document, context.Context, error) {
+func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*DocumentHandle, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	ret, ok := c.documents[uri]
 
 	if !ok {
-		return nil, nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
+		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
 	}
 
 	ret.mu.RLock()
 	defer ret.mu.RUnlock()
 
-	return ret, ret.versionCtx, nil
+	return &DocumentHandle{ret, ret.versionCtx}, nil
 }
 
 // RemoveDocument removes a Document from the cache
 func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
-	doc, _, err := c.GetDocument(uri)
+	d, err := c.GetDocument(uri)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	doc.obsoleteVersion()
+	d.doc.obsoleteVersion()
 
 	delete(c.documents, uri)
 

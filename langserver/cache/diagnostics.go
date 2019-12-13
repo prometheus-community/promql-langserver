@@ -14,19 +14,18 @@
 package cache
 
 import (
-	"context"
 	"go/token"
 
 	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
-func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
+func (d *DocumentHandle) promQLErrToProtocolDiagnostic(promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
 	var pos protocol.Position
 
 	var err error
 
-	if pos, err = d.PositionToProtocolPosition(ctx, promQLErr.Position); err != nil {
+	if pos, err = d.PositionToProtocolPosition(promQLErr.Position); err != nil {
 		return nil, err
 	}
 
@@ -43,19 +42,19 @@ func (d *Document) promQLErrToProtocolDiagnostic(ctx context.Context, promQLErr 
 	return message, nil
 }
 
-func (d *Document) warnQuotedYaml(ctx context.Context, start token.Pos, end token.Pos) error {
+func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 	var startPosition token.Position
 
 	var endPosition token.Position
 
 	var err error
 
-	startPosition, err = d.TokenPosToTokenPosition(ctx, start)
+	startPosition, err = d.TokenPosToTokenPosition(start)
 	if err != nil {
 		return err
 	}
 
-	endPosition, err = d.TokenPosToTokenPosition(ctx, end)
+	endPosition, err = d.TokenPosToTokenPosition(end)
 	if err != nil {
 		return err
 	}
@@ -66,27 +65,27 @@ func (d *Document) warnQuotedYaml(ctx context.Context, start token.Pos, end toke
 		Message:  "Quoted queries are not supported by the language server",
 	}
 
-	if message.Range.Start, err = d.PositionToProtocolPosition(ctx, startPosition); err != nil {
+	if message.Range.Start, err = d.PositionToProtocolPosition(startPosition); err != nil {
 		return err
 	}
 
-	if message.Range.End, err = d.PositionToProtocolPosition(ctx, endPosition); err != nil {
+	if message.Range.End, err = d.PositionToProtocolPosition(endPosition); err != nil {
 		return err
 	}
 
-	return d.AddDiagnostic(ctx, message)
+	return d.AddDiagnostic(message)
 }
 
 // AddDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddDiagnostic(ctx context.Context, diagnostic *protocol.Diagnostic) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
+func (d *DocumentHandle) AddDiagnostic(diagnostic *protocol.Diagnostic) error {
+	d.doc.mu.Lock()
+	defer d.doc.mu.Unlock()
 
 	select {
-	case <-ctx.Done():
-		return ctx.Err()
+	case <-d.ctx.Done():
+		return d.ctx.Err()
 	default:
-		d.diagnostics = append(d.diagnostics, *diagnostic)
+		d.doc.diagnostics = append(d.doc.diagnostics, *diagnostic)
 		return nil
 	}
 }

@@ -14,7 +14,6 @@
 package cache
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"go/token"
@@ -25,13 +24,13 @@ import (
 )
 
 // PositionToProtocolPosition converts a token.Position to a protocol.Position
-func (d *Document) PositionToProtocolPosition(ctx context.Context, pos token.Position) (protocol.Position, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return protocol.Position{}, ctx.Err()
+	case <-d.ctx.Done():
+		return protocol.Position{}, d.ctx.Err()
 	default:
 		line := pos.Line
 		char := pos.Column
@@ -50,10 +49,10 @@ func (d *Document) PositionToProtocolPosition(ctx context.Context, pos token.Pos
 			return protocol.Position{}, err
 		}
 
-		offset := int(lineStart) - d.posData.Base() + char - 1
+		offset := int(lineStart) - d.doc.posData.Base() + char - 1
 		point := span.NewPoint(line, char, offset)
 
-		char, err = span.ToUTF16Column(point, []byte(d.content))
+		char, err = span.ToUTF16Column(point, []byte(d.doc.content))
 		// Protocol has zero based positions
 		char--
 		line--
@@ -71,19 +70,19 @@ func (d *Document) PositionToProtocolPosition(ctx context.Context, pos token.Pos
 }
 
 // PosToProtocolPosition converts a token.Pos to a protocol.Position
-func (d *Document) PosToProtocolPosition(ctx context.Context, pos token.Pos) (protocol.Position, error) {
-	ret, err := d.PositionToProtocolPosition(ctx, d.posData.Position(pos))
+func (d *DocumentHandle) PosToProtocolPosition(pos token.Pos) (protocol.Position, error) {
+	ret, err := d.PositionToProtocolPosition(d.doc.posData.Position(pos))
 	return ret, err
 }
 
 // ProtocolPositionToTokenPos converts a token.Pos to a protocol.Position
-func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.Position) (token.Pos, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return 0, ctx.Err()
+	case <-d.ctx.Done():
+		return 0, d.ctx.Err()
 	default:
 		// protocol.Position is 0 based
 		line := int(pos.Line) + 1
@@ -94,10 +93,10 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 			return token.NoPos, err
 		}
 
-		offset := int(lineStart) - d.posData.Base()
+		offset := int(lineStart) - d.doc.posData.Base()
 		point := span.NewPoint(line, 1, offset)
 
-		point, err = span.FromUTF16Column(point, char, []byte(d.content))
+		point, err = span.FromUTF16Column(point, char, []byte(d.doc.content))
 		if err != nil {
 			return token.NoPos, err
 		}
@@ -109,12 +108,12 @@ func (d *Document) ProtocolPositionToTokenPos(ctx context.Context, pos protocol.
 }
 
 // YamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos
-func (d *Document) YamlPositionToTokenPos(ctx context.Context, line int, column int, lineOffset int) (token.Pos, error) { // nolint:lll
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) YamlPositionToTokenPos(line int, column int, lineOffset int) (token.Pos, error) { // nolint:lll
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 	select {
-	case <-ctx.Done():
-		return token.NoPos, ctx.Err()
+	case <-d.ctx.Done():
+		return token.NoPos, d.ctx.Err()
 	default:
 		if column < 1 {
 			return 0, errors.New("invalid position")
@@ -138,7 +137,7 @@ func EndOfLine(p protocol.Position) protocol.Position {
 }
 
 // LineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
-func (d *Document) LineStartSafe(line int) (pos token.Pos, err error) {
+func (d *DocumentHandle) LineStartSafe(line int) (pos token.Pos, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -149,17 +148,17 @@ func (d *Document) LineStartSafe(line int) (pos token.Pos, err error) {
 		}
 	}()
 
-	return d.posData.LineStart(line), nil
+	return d.doc.posData.LineStart(line), nil
 }
 
 // TokenPosToTokenPosition converts a token.Pos to a token.Position
-func (d *Document) TokenPosToTokenPosition(ctx context.Context, pos token.Pos) (token.Position, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) TokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 	select {
-	case <-ctx.Done():
-		return token.Position{}, ctx.Err()
+	case <-d.ctx.Done():
+		return token.Position{}, d.ctx.Err()
 	default:
-		return d.posData.Position(pos), nil
+		return d.doc.posData.Position(pos), nil
 	}
 }
