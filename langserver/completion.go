@@ -102,7 +102,7 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHand
 
 	allNames, _, err := api.LabelValues(ctx, "__name__")
 	if err != nil {
-		fmt.Printf("Could not get metric data from prometheus: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Could not get metric data from prometheus: %s", err.Error())
 
 		allNames = nil
 	}
