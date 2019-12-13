@@ -50,12 +50,12 @@ func TestCache(t *testing.T) {
 		panic("Should not be able to add same document twice")
 	}
 
-	doc1, _, err := c.GetDocument("test_file")
+	doc1, err := c.GetDocument("test_file")
 	if err != nil {
 		panic("Failed to GetDocument() from cache")
 	}
 
-	if doc1 != doc {
+	if doc1.doc != doc {
 		panic("Cache returned wrong document")
 	}
 

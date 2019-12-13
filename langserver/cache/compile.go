@@ -14,7 +14,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	"go/token"
 	"os"
@@ -30,22 +29,22 @@ type CompiledQuery struct {
 	Record  string
 }
 
-func (d *Document) compile(ctx context.Context) error {
-	defer d.compilers.Done()
+func (d *DocumentHandle) compile() error {
+	defer d.doc.compilers.Done()
 
 	switch d.GetLanguageID() {
 	case "promql":
-		d.compilers.Add(1)
-		return d.compileQuery(ctx, true, 0, 0, "")
+		d.doc.compilers.Add(1)
+		return d.compileQuery(true, 0, 0, "")
 	case "yaml":
-		err := d.parseYamls(ctx)
+		err := d.parseYamls()
 		if err != nil {
 			return err
 		}
 
-		d.compilers.Add(1)
+		d.doc.compilers.Add(1)
 
-		err = d.scanYamlTree(ctx)
+		err = d.scanYamlTree()
 		if err != nil {
 			return err
 		}
@@ -59,25 +58,25 @@ func (d *Document) compile(ctx context.Context) error {
 // compileQuery compiles the query at the position given by the last two arguments
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
-func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Pos, endPos token.Pos, record string) error { //nolint:lll
-	defer d.compilers.Done()
+func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token.Pos, record string) error { //nolint:lll
+	defer d.doc.compilers.Done()
 
 	var content string
 
 	var expired error
 
 	if fullFile {
-		content, expired = d.GetContent(ctx)
-		pos = token.Pos(d.posData.Base())
+		content, expired = d.GetContent()
+		pos = token.Pos(d.doc.posData.Base())
 	} else {
-		content, expired = d.GetSubstring(ctx, pos, endPos)
+		content, expired = d.GetSubstring(pos, endPos)
 	}
 
 	if expired != nil {
 		return expired
 	}
 
-	file := d.posData
+	file := d.doc.posData
 
 	ast, err := promql.ParsePartOfFile(content, file, pos)
 
@@ -89,18 +88,18 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 		parseErr = nil
 	}
 
-	err = d.AddCompileResult(ctx, ast, parseErr, record, content)
+	err = d.AddCompileResult(ast, parseErr, record, content)
 	if err != nil {
 		return err
 	}
 
 	if parseErr != nil {
-		diagnostic, err := d.promQLErrToProtocolDiagnostic(ctx, parseErr)
+		diagnostic, err := d.promQLErrToProtocolDiagnostic(parseErr)
 		if err != nil {
 			return err
 		}
 
-		err = d.AddDiagnostic(ctx, diagnostic)
+		err = d.AddDiagnostic(diagnostic)
 		if err != nil {
 			return err
 		}
@@ -109,16 +108,16 @@ func (d *Document) compileQuery(ctx context.Context, fullFile bool, pos token.Po
 	return nil
 }
 
-// AddCompileResult updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *Document) AddCompileResult(ctx context.Context, ast promql.Node, err *promql.ParseErr, record string, content string) error { //nolint: lll
-	d.mu.Lock()
-	defer d.mu.Unlock()
+// AddCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
+func (d *DocumentHandle) AddCompileResult(ast promql.Node, err *promql.ParseErr, record string, content string) error { //nolint: lll
+	d.doc.mu.Lock()
+	defer d.doc.mu.Unlock()
 
 	select {
-	case <-ctx.Done():
-		return ctx.Err()
+	case <-d.ctx.Done():
+		return d.ctx.Err()
 	default:
-		d.queries = append(d.queries, &CompiledQuery{ast, err, content, record})
+		d.doc.queries = append(d.doc.queries, &CompiledQuery{ast, err, content, record})
 		return nil
 	}
 }

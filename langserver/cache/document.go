@@ -49,24 +49,36 @@ type Document struct {
 	compilers waitGroup
 }
 
-// ApplyIncrementalChanges applies giver changes to a given Document Content
-func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
-	d.mu.RLock()
+// DocumentHandle bundles a Document together with a context.Context that expires
+// when the document changes
+type DocumentHandle struct {
+	doc *Document
+	ctx context.Context
+}
 
-	if version <= d.version {
+func (d *DocumentHandle) GetContext() context.Context {
+	return d.ctx
+}
+
+// ApplyIncrementalChanges applies giver changes to a given Document Content
+// The context in the DocumentHandle is ignored
+func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
+	d.doc.mu.RLock()
+
+	if version <= d.doc.version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
-	content := []byte(d.content)
-	uri := d.uri
+	content := []byte(d.doc.content)
+	uri := d.doc.uri
 
-	d.mu.RUnlock()
+	d.doc.mu.RUnlock()
 
 	for _, change := range changes {
 		// Update column mapper along with the content.
 		converter := span.NewContentConverter(uri, content)
 		m := &protocol.ColumnMapper{
-			URI:       span.URI(d.uri),
+			URI:       span.URI(d.doc.uri),
 			Converter: converter,
 			Content:   content,
 		}
@@ -99,11 +111,11 @@ func (d *Document) ApplyIncrementalChanges(changes []protocol.TextDocumentConten
 }
 
 // SetContent sets the content of a document
-func (d *Document) SetContent(serverLifetime context.Context, content string, version float64, new bool) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
+func (d *DocumentHandle) SetContent(serverLifetime context.Context, content string, version float64, new bool) error {
+	d.doc.mu.Lock()
+	defer d.doc.mu.Unlock()
 
-	if !new && version <= d.version {
+	if !new && version <= d.doc.version {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
 	}
 
@@ -112,60 +124,58 @@ func (d *Document) SetContent(serverLifetime context.Context, content string, ve
 	}
 
 	if !new {
-		d.obsoleteVersion()
+		d.doc.obsoleteVersion()
 	}
 
-	d.versionCtx, d.obsoleteVersion = context.WithCancel(serverLifetime)
+	d.doc.versionCtx, d.doc.obsoleteVersion = context.WithCancel(serverLifetime)
 
-	d.content = content
-	d.version = version
+	d.doc.content = content
+	d.doc.version = version
 
 	// An additional newline is appended, to make sure the last line is indexed
-	d.posData.SetLinesForContent(append([]byte(content), '\n'))
+	d.doc.posData.SetLinesForContent(append([]byte(content), '\n'))
 
-	d.queries = []*CompiledQuery{}
-	d.yamls = []*YamlDoc{}
-	d.diagnostics = []protocol.Diagnostic{}
+	d.doc.queries = []*CompiledQuery{}
+	d.doc.yamls = []*YamlDoc{}
+	d.doc.diagnostics = []protocol.Diagnostic{}
 
-	d.compilers.Add(1)
+	d.doc.compilers.Add(1)
 
-	go d.compile(d.versionCtx) //nolint:errcheck
+	go d.compile() //nolint:errcheck
 
 	return nil
 }
 
 // GetContent returns the content of a document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
-func (d *Document) GetContent(ctx context.Context) (string, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) GetContent() (string, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
+	case <-d.ctx.Done():
+		return "", d.ctx.Err()
 	default:
-		return d.content, nil
+		return d.doc.content, nil
 	}
 }
 
 // GetSubstring returns a substring of the content of a document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // The remaining parameters are the start and end of the substring, encoded
 // as token.Pos
-func (d *Document) GetSubstring(ctx context.Context, pos token.Pos, endPos token.Pos) (string, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) GetSubstring(pos token.Pos, endPos token.Pos) (string, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
+	case <-d.ctx.Done():
+		return "", d.ctx.Err()
 	default:
-		content := d.content
-		base := d.posData.Base()
+		content := d.doc.content
+		base := d.doc.posData.Base()
 		pos -= token.Pos(base)
 		endPos -= token.Pos(base)
 
@@ -178,32 +188,31 @@ func (d *Document) GetSubstring(ctx context.Context, pos token.Pos, endPos token
 }
 
 // GetQueries returns the Compilation Results of a document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetQueries(ctx context.Context) ([]*CompiledQuery, error) {
-	d.compilers.Wait()
+func (d *DocumentHandle) GetQueries() ([]*CompiledQuery, error) {
+	d.doc.compilers.Wait()
 
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+	d.doc.mu.RLock()
+
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-d.ctx.Done():
+		return nil, d.ctx.Err()
 	default:
-		return d.queries, nil
+		return d.doc.queries, nil
 	}
 }
 
 // GetQuery returns a successfully compiled query at the given position, if there is one
 // Otherwise an error will be returned
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetQuery(ctx context.Context, pos token.Pos) (*CompiledQuery, error) {
-	queries, err := d.GetQueries(ctx)
+func (d *DocumentHandle) GetQuery(pos token.Pos) (*CompiledQuery, error) {
+	queries, err := d.GetQueries()
 	if err != nil {
 		return nil, err
 	}
@@ -218,65 +227,62 @@ func (d *Document) GetQuery(ctx context.Context, pos token.Pos) (*CompiledQuery,
 }
 
 // GetVersion returns the content of a document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
-func (d *Document) GetVersion(ctx context.Context) (float64, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) GetVersion() (float64, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return 0, ctx.Err()
+	case <-d.ctx.Done():
+		return 0, d.ctx.Err()
 	default:
-		return d.version, nil
+		return d.doc.version, nil
 	}
 }
 
 // GetURI returns the content of a document
 // Since the URI never changes, it does not block or return errors
-func (d *Document) GetURI() string {
-	return d.uri
+func (d *DocumentHandle) GetURI() string {
+	return d.doc.uri
 }
 
 // GetLanguageID returns the content of a document
 // Since the URI never changes, it does not block or return errors
-func (d *Document) GetLanguageID() string {
-	return d.languageID
+func (d *DocumentHandle) GetLanguageID() string {
+	return d.doc.languageID
 }
 
 // GetYamls returns the yaml documents found in the document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetYamls(ctx context.Context) ([]*YamlDoc, error) {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+func (d *DocumentHandle) GetYamls() ([]*YamlDoc, error) {
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-d.ctx.Done():
+		return nil, d.ctx.Err()
 	default:
-		return d.yamls, nil
+		return d.doc.yamls, nil
 	}
 }
 
 // GetDiagnostics returns the Compilation Results of a document
-// It expects a context.Context retrieved using cache.GetDocument
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *Document) GetDiagnostics(ctx context.Context) ([]protocol.Diagnostic, error) {
-	d.compilers.Wait()
+func (d *DocumentHandle) GetDiagnostics() ([]protocol.Diagnostic, error) {
+	d.doc.compilers.Wait()
 
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-d.ctx.Done():
+		return nil, d.ctx.Err()
 	default:
-		return d.diagnostics, nil
+		return d.doc.diagnostics, nil
 	}
 }
