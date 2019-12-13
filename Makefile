@@ -7,7 +7,7 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
 
-all: install test lint
+all: install test golangci-lint
 
 generated: $(STATIK_FILES)
 
