@@ -25,9 +25,9 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
-// Document caches content, metadata and compile results of a document
+// document caches content, metadata and compile results of a document
 // All exported access methods should be threadsafe
-type Document struct {
+type document struct {
 	posData *token.File
 
 	uri        string
@@ -52,7 +52,7 @@ type Document struct {
 // DocumentHandle bundles a Document together with a context.Context that expires
 // when the document changes
 type DocumentHandle struct {
-	doc *Document
+	doc *document
 	ctx context.Context
 }
 

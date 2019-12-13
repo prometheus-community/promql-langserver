@@ -34,7 +34,7 @@ const maxDocumentSize = 1000000
 type DocumentCache struct {
 	fileSet *token.FileSet
 
-	documents map[protocol.DocumentURI]*Document
+	documents map[protocol.DocumentURI]*document
 	mu        sync.RWMutex
 }
 
@@ -42,12 +42,12 @@ type DocumentCache struct {
 func (c *DocumentCache) Init() {
 	c.fileSet = token.NewFileSet()
 	c.mu.Lock()
-	c.documents = make(map[protocol.DocumentURI]*Document)
+	c.documents = make(map[protocol.DocumentURI]*document)
 	c.mu.Unlock()
 }
 
 // AddDocument adds a Document to the cache
-func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*Document, error) {
+func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) { //nolint:lll
 	if _, ok := c.documents[doc.URI]; ok {
 		return nil, errors.New("document already exists")
 	}
@@ -62,7 +62,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	file.SetLinesForContent([]byte(doc.Text))
 
-	d := &Document{
+	d := &document{
 		posData:    file,
 		uri:        doc.URI,
 		languageID: doc.LanguageID,
@@ -80,7 +80,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 	c.documents[doc.URI] = d
 	c.mu.Unlock()
 
-	return d, nil
+	return &DocumentHandle{d, d.versionCtx}, nil
 }
 
 // GetDocument retrieve a Document from the cache

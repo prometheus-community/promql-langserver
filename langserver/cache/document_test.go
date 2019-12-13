@@ -25,7 +25,7 @@ import (
 // Call the (* Document) Functions with an expired context. Expected behaviour is that all
 // of these calls return an error
 func TestDocumentContext(t *testing.T) { //nolint: funlen
-	doc := &Document{}
+	doc := &document{}
 
 	doc.posData = token.NewFileSet().AddFile("", -1, 0)
 

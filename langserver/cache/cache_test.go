@@ -55,7 +55,7 @@ func TestCache(t *testing.T) {
 		panic("Failed to GetDocument() from cache")
 	}
 
-	if doc1.doc != doc {
+	if doc1.doc != doc.doc {
 		panic("Cache returned wrong document")
 	}
 
