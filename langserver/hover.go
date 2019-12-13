@@ -250,7 +250,7 @@ func (s *server) getRecordingRuleDocs(doc *cache.DocumentHandle, metric string) 
 		if len(records) == 1 {
 			fmt.Fprintf(&ret, "__Underlying Metric:__  \n```\n%s\n```\n\n", records[0].Content)
 		} else {
-			fmt.Fprintf(&ret, "__Recording rule defined multiple times__")
+			fmt.Fprintf(&ret, "__Recording rule defined multiple times__\n\n")
 		}
 	}
 
