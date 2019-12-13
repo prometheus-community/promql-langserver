@@ -42,8 +42,8 @@ type DocumentCache struct {
 func (c *DocumentCache) Init() {
 	c.fileSet = token.NewFileSet()
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.documents = make(map[protocol.DocumentURI]*document)
-	c.mu.Unlock()
 }
 
 // AddDocument adds a Document to the cache
@@ -77,8 +77,8 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 	}
 
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.documents[doc.URI] = d
-	c.mu.Unlock()
 
 	return &DocumentHandle{d, d.versionCtx}, nil
 }

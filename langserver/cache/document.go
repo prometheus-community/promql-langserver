@@ -64,6 +64,7 @@ func (d *DocumentHandle) GetContext() context.Context {
 // The context in the DocumentHandle is ignored
 func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) { //nolint:lll
 	d.doc.mu.RLock()
+	defer d.doc.mu.RUnlock()
 
 	if version <= d.doc.version {
 		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
@@ -71,8 +72,6 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 
 	content := []byte(d.doc.content)
 	uri := d.doc.uri
-
-	d.doc.mu.RUnlock()
 
 	for _, change := range changes {
 		// Update column mapper along with the content.

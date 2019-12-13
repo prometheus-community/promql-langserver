@@ -137,6 +137,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandl
 		}
 	}
 
+	// This will become obsolete once the VectorSelectors are made childs of MatrixSelectors upstream
 	if matrix, ok := node.(*promql.MatrixSelector); ok {
 		metric := matrix.Name
 
@@ -234,11 +235,22 @@ func (s *server) getRecordingRuleDocs(doc *cache.DocumentHandle, metric string) 
 		return "", err
 	}
 
+	var records []*cache.CompiledQuery
+
 	for _, q := range queries {
 		if q.Record == metric {
-			fmt.Fprintf(&ret, "### %s\n\n", metric)
-			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", "Recording Rule")
-			fmt.Fprintf(&ret, "__Underlying Metric:__  \n```\n%s\n```\n\n", q.Content)
+			records = append(records, q)
+		}
+	}
+
+	if len(records) > 0 {
+		fmt.Fprintf(&ret, "### %s\n\n", metric)
+		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", "Recording Rule")
+
+		if len(records) == 1 {
+			fmt.Fprintf(&ret, "__Underlying Metric:__  \n```\n%s\n```\n\n", records[0].Content)
+		} else {
+			fmt.Fprintf(&ret, "__Recording rule defined multiple times__")
 		}
 	}
 

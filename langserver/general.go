@@ -26,16 +26,13 @@ import (
 // nolint:funlen
 func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
-	state := s.state
-	s.stateMu.Unlock()
+	defer s.stateMu.Unlock()
 
-	if state != serverCreated {
+	if s.state != serverCreated {
 		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
 	}
 
-	s.stateMu.Lock()
 	s.state = serverInitializing
-	s.stateMu.Unlock()
 
 	s.cache.Init()
 

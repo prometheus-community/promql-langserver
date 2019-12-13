@@ -66,10 +66,9 @@ func (wg *waitGroup) Done() {
 // Beware that this might already have changed when the Wait returns
 func (wg *waitGroup) Wait() {
 	wg.mu.Lock()
+	defer wg.mu.Unlock()
 
 	for atomic.LoadInt32(&wg.workers) != 0 {
 		wg.cond.Wait()
 	}
-
-	wg.mu.Unlock()
 }
