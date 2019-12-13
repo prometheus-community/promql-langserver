@@ -140,7 +140,9 @@ func (d *DocumentHandle) SetContent(serverLifetime context.Context, content stri
 
 	d.doc.compilers.Add(1)
 
-	go d.compile() //nolint:errcheck
+	// We need to create a new document handler here since the old one
+	// still carries the deprecated version context
+	go (&DocumentHandle{d.doc, d.doc.versionCtx}).compile() //nolint:errcheck
 
 	return nil
 }
