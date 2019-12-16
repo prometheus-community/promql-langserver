@@ -21,6 +21,7 @@ package langserver
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"sync"
 
@@ -97,6 +98,24 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
 	return ctx, Server{s}
+}
+
+// TCPServer generates a Server listening on the provided TCP Address, creating a new language Server
+// instance for every connection
+func RunTCPServers(ctx context.Context, addr string, config *Config) error {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			return err
+		}
+
+		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn, conn), config)
+	}
 }
 
 // StdioServer generates a Server talking to stdio
