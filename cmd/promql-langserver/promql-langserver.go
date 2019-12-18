@@ -32,6 +32,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
 	}
-	ctx, s := langserver.StdioServer(context.Background(), config)
-	s.Run(ctx)
+	_, s := langserver.StdioServer(context.Background(), config)
+	s.Run()
 }

@@ -64,7 +64,7 @@ const (
 )
 
 // Run starts the language server instance
-func (s Server) Run(_ context.Context) error {
+func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
 }
 

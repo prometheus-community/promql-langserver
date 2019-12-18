@@ -76,7 +76,7 @@ func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), er
 		if err != nil {
 			// No special handling required here, since the
 			// error is already added to the ResponseWriter
-			// by the Upgrated call.
+			// by the upgraded call.
 			return
 		}
 
@@ -91,12 +91,11 @@ func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), er
 
 		var s Server
 
-		// TODO Create context from connection
-		ctx, s = ServerFromStream(ctx, wsConn{ws}, &Config{})
-		if err != nil {
-			// TODO
+		_, s = ServerFromStream(ctx, wsConn{ws}, &Config{})
+
+		if err := s.Run(); err != nil {
+			// If the client disconnects, the above will fail
 			return
 		}
-		s.Run(ctx)
 	}, nil
 }
