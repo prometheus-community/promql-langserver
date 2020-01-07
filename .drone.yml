@@ -24,6 +24,6 @@ steps:
     commands:
       - make test
   - name: golangci-lint
-    image: golangci/golangci-lint:v1.22.1
+    image: golangci/golangci-lint:v1.21.0
     commands:
       - make golangci-lint
