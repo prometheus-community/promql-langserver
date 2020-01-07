@@ -1,21 +1,21 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/slrtbtfs/promql-lsp)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
 [![Build Status](https://cloud.drone.io/api/badges/slrtbtfs/promql-lsp/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp)
 
-**Warning:** This software is not in a very useful state yet.
+**Warning:** This software is not in a particulary useful or stable state yet.
 
 # promql-lsp
 
 Implementation of the Language Server Protocol for PromQL.
 
-## Features
+## Roadmap
 
-Most of the planned features are not implemented yet.
-
-- [x] Connect to IDEs and text editors over stdio
-- [ ] Connect to remote clients over websocket or http
+- [x] Connect to IDEs and text editors over
+  - [x] Stdio
+  - [ ] Websocket
+  - [ ] HTTP
 - [x] Sync document content with the client
 - [x] Support plain PromQL queries
-- [x] Support queries inside yaml files
+- [x] Support queries inside yaml files (e.g. alertmanager configuration)
 - [x] Connect to a prometheus instance to get label and metric data
 - [x] Show error messages for incorrect queries in the client
 - [ ] Show documentation on hover
@@ -25,8 +25,10 @@ Most of the planned features are not implemented yet.
   - [x] Metric and label help strings from a prometheus instance
   - [ ] Even when the Query has syntax errors
 - [ ] Completion
-  - [ ] Functions
+  - [x] Functions
   - [x] Metrics
+  - [x] Recording Rules
+  - [ ] Aggregators
   - [ ] Labels
   - [ ] Context sensitive, i.e respecting function argument types
   - [ ] Even when the Query has syntax errors
