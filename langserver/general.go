@@ -54,7 +54,13 @@ func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 					WorkDoneProgress: false,
 				},
 			},
-			SignatureHelpProvider:            nil,
+			SignatureHelpProvider: &protocol.SignatureHelpOptions{
+				TriggerCharacters:   []string{"(", ","},
+				RetriggerCharacters: []string{"(", ","},
+				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
+					WorkDoneProgress: false,
+				},
+			},
 			DefinitionProvider:               false,
 			ReferencesProvider:               false,
 			DocumentHighlightProvider:        false,

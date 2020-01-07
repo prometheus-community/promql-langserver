@@ -112,11 +112,6 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
-	}
-
 	_, err = s.Definition(context.Background(), &protocol.DefinitionParams{})
 	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
