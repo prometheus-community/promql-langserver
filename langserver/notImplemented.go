@@ -113,11 +113,6 @@ func (s *server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protoc
 	return nil, notImplemented("Resolve")
 }
 
-// SignatureHelp is required by the protocol.Server interface
-func (s *server) SignatureHelp(_ context.Context, _ *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
-	return nil, notImplemented("SignatureHelp")
-}
-
 // Definition is required by the protocol.Server interface
 func (s *server) Definition(_ context.Context, _ *protocol.DefinitionParams) ([]protocol.Location, error) {
 	return nil, notImplemented("Definition")
