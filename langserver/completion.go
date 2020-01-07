@@ -133,6 +133,10 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHand
 						Range:   editRange,
 						NewText: name + "($1)",
 					},
+					Command: &protocol.Command{
+						// This might create problems with non VS Code clients
+						Command: "editor.action.triggerParameterHints",
+					},
 				}
 				items = append(items, item)
 			}
