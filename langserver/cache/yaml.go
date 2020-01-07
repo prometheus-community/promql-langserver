@@ -149,7 +149,7 @@ func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lin
 	return nil
 }
 
-//nolint:gocongnit
+//nolint:gocognit
 func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: lll
 	if node.Kind != yaml.MappingNode {
 		return nil
