@@ -32,7 +32,7 @@ Implementation of the Language Server Protocol for PromQL.
   - [ ] Labels
   - [ ] Context sensitive, i.e respecting function argument types
   - [ ] Even when the Query has syntax errors
-- [ ] Signature information for functions (while typing)
+- [x] Signature information for functions (while typing)
 - [ ] (Linting)
 - [ ] (Formatting)
 
