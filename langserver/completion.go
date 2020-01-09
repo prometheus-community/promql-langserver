@@ -44,21 +44,12 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 	var query *cache.CompiledQuery
 
-	query, err = doc.GetQuery(pos - 1)
+	query, err = doc.GetQuery(pos)
 	if err != nil {
 		return nil, nil
 	}
 
-	node := getSmallestSurroundingNode(query.Ast, pos-1)
-	if node == nil {
-		return nil, nil
-	}
-
-	if completions, err := s.getCompletions(ctx, doc, node, pos); err == nil && completions != nil {
-		return completions, nil
-	}
-
-	node = getSmallestSurroundingNode(query.Ast, pos)
+	node := getSmallestSurroundingNode(query.Ast, pos)
 	if node == nil {
 		return nil, nil
 	}
