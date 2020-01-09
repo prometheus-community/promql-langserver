@@ -29,32 +29,11 @@ import (
 // Completion is required by the protocol.Server interface
 // nolint: wsl
 func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
-	fmt.Fprintln(os.Stderr, "0")
-	doc, err := s.cache.GetDocument(params.TextDocument.URI)
-	if err != nil {
-		return nil, err
-	}
-
-	var pos token.Pos
-
-	pos, err = doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
+	location, err := s.find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
-
-	var query *cache.CompiledQuery
-
-	query, err = doc.GetQuery(pos)
-	if err != nil {
-		return nil, nil
-	}
-
-	node := getSmallestSurroundingNode(query.Ast, pos)
-	if node == nil {
-		return nil, nil
-	}
-
-	return s.getCompletions(ctx, doc, node, pos)
+	return s.getCompletions(ctx, location.doc, location.node, location.pos)
 }
 
 // nolint:funlen
