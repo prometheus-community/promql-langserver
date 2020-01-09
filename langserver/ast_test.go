@@ -62,7 +62,7 @@ func TestSmallestSurroundingNode(t *testing.T) {
 				continue
 			}
 
-			if int(node.Pos()) > pos || int(node.EndPos()) <= pos {
+			if int(node.Pos()) > pos || int(node.EndPos()) < pos {
 				panic("The smallestSurroundingNode is not actually surrounding for input " + test +
 					" and pos " + fmt.Sprintln(pos) + "Got: " + fmt.Sprintln(node) +
 					"Pos: " + fmt.Sprintln(node.Pos()) + "EndPos: " + fmt.Sprintln(node.EndPos()))
