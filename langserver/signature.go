@@ -16,40 +16,19 @@ package langserver
 import (
 	"context"
 	"errors"
-	"go/token"
 
 	"github.com/slrtbtfs/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // SignatureHelp is required by the protocol.Server interface
 func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) { //nolint:lll
-	doc, err := s.cache.GetDocument(params.TextDocument.URI)
-	if err != nil {
-		return nil, err
-	}
-
-	var pos token.Pos
-
-	pos, err = doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
+	location, err := s.find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
 
-	var query *cache.CompiledQuery
-
-	query, err = doc.GetQuery(pos)
-	if err != nil {
-		return nil, nil
-	}
-
-	node := getSmallestSurroundingNode(query.Ast, pos)
-	if node == nil {
-		return nil, nil
-	}
-
-	call, ok := node.(*promql.Call)
+	call, ok := location.node.(*promql.Call)
 	if !ok {
 		return nil, nil
 	}
