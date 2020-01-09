@@ -22,7 +22,6 @@ import (
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/slrtbtfs/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
@@ -33,16 +32,12 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	if err != nil {
 		return nil, nil
 	}
-	return s.getCompletions(ctx, location.doc, location.node, location.pos)
-}
 
-// nolint:funlen
-func (s *server) getCompletions(ctx context.Context, doc *cache.DocumentHandle, node promql.Node, pos token.Pos) (*protocol.CompletionList, error) { // nolint:lll
 	var metricName string
 
 	var noLabelSelectors bool
 
-	switch n := node.(type) {
+	switch n := location.node.(type) {
 	case *promql.VectorSelector:
 		metricName = n.Name
 
@@ -55,15 +50,15 @@ func (s *server) getCompletions(ctx context.Context, doc *cache.DocumentHandle, 
 		return nil, nil
 	}
 
-	if node.Pos()+token.Pos(len(metricName)) >= pos {
-		return s.completeMetricName(ctx, doc, node, metricName, noLabelSelectors)
+	if location.node.Pos()+token.Pos(len(metricName)) >= location.pos {
+		return s.completeMetricName(ctx, location, metricName, noLabelSelectors)
 	}
 
 	return nil, nil
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHandle, node promql.Node, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeMetricName(ctx context.Context, location *location, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
 	if s.prometheus == nil {
 		return nil, nil
 	}
@@ -79,12 +74,12 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHand
 
 	var editRange protocol.Range
 
-	editRange.Start, err = doc.PosToProtocolPosition(node.Pos())
+	editRange.Start, err = location.doc.PosToProtocolPosition(location.node.Pos())
 	if err != nil {
 		return nil, err
 	}
 
-	editRange.End, err = doc.PosToProtocolPosition(node.Pos() + token.Pos(len(metricName)))
+	editRange.End, err = location.doc.PosToProtocolPosition(location.node.Pos() + token.Pos(len(metricName)))
 	if err != nil {
 		return nil, err
 	}
@@ -128,12 +123,12 @@ func (s *server) completeMetricName(ctx context.Context, doc *cache.DocumentHand
 		}
 	}
 
-	querys, err := doc.GetQueries()
+	queries, err := location.doc.GetQueries()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, q := range querys {
+	for _, q := range queries {
 		if rec := q.Record; rec != "" && strings.HasPrefix(rec, metricName) {
 			item := protocol.CompletionItem{
 				Label:            rec,
