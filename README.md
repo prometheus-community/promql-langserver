@@ -1,5 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/slrtbtfs/promql-lsp)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
-[![Build Status](https://cloud.drone.io/api/badges/slrtbtfs/promql-lsp/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp)
+[![Build Status](https://cloud.drone.io/api/badges/slrtbtfs/promql-lsp/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp/langserver)
+[![GoDoc](https://godoc.org/github.com/slrtbtfs/promql-lsp?status.png)](https://godoc.org/github.com/slrtbtfs/promql-lsp/langserver)
 
 **Warning:** This software is not in a particulary useful or stable state yet.
 
