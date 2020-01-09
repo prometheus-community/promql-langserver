@@ -48,48 +48,30 @@ func initializeFunctionDocumentation() http.FileSystem {
 // Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	doc, err := s.cache.GetDocument(params.TextDocumentPositionParams.TextDocument.URI)
-	if err != nil {
-		return nil, err
-	}
-
-	pos, err := doc.ProtocolPositionToTokenPos(params.TextDocumentPositionParams.Position)
-	if err != nil {
-		return nil, err
+	location, err := s.find(&params.TextDocumentPositionParams)
+	if err != nil || location.node == nil {
+		return nil, nil
 	}
 
 	markdown := ""
 
-	var compileResult *cache.CompiledQuery
+	var hoverRange *protocol.Range
 
-	compileResult, err = doc.GetQuery(pos)
+	markdown = s.nodeToDocMarkdown(ctx, location.doc, location.node)
+
+	start, err := location.doc.PosToProtocolPosition(location.node.Pos())
 	if err != nil {
 		return nil, nil
 	}
 
-	var hoverRange *protocol.Range
+	end, err := location.doc.PosToProtocolPosition(location.node.EndPos())
+	if err != nil {
+		return nil, nil
+	}
 
-	if compileResult != nil && compileResult.Ast != nil {
-		node := getSmallestSurroundingNode(compileResult.Ast, pos)
-
-		markdown = s.nodeToDocMarkdown(ctx, doc, node)
-
-		if node != nil {
-			start, err := doc.PosToProtocolPosition(node.Pos())
-			if err != nil {
-				return nil, nil
-			}
-
-			end, err := doc.PosToProtocolPosition(node.EndPos())
-			if err != nil {
-				return nil, nil
-			}
-
-			hoverRange = &protocol.Range{
-				Start: start,
-				End:   end,
-			}
-		}
+	hoverRange = &protocol.Range{
+		Start: start,
+		End:   end,
 	}
 
 	return &protocol.Hover{
