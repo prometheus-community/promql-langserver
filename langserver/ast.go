@@ -16,7 +16,7 @@ package langserver
 import (
 	"go/token"
 
-	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/prometheus/prometheus/promql"
 )
 
 func getSmallestSurroundingNode(ast promql.Node, pos token.Pos) promql.Node {

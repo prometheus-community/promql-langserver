@@ -22,8 +22,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/prometheus/prometheus/promql"
 	"github.com/rakyll/statik/fs"
-	"github.com/slrtbtfs/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"

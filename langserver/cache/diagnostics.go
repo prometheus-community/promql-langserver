@@ -16,7 +16,7 @@ package cache
 import (
 	"go/token"
 
-	"github.com/slrtbtfs/prometheus/promql"
+	"github.com/prometheus/prometheus/promql"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
