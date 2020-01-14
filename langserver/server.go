@@ -25,6 +25,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	"github.com/prometheus/client_golang/api"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
@@ -80,14 +82,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	}
 
 	if config.PrometheusURL != "" {
-		var err error
-
-		s.prometheus, err = api.NewClient(api.Config{Address: config.PrometheusURL})
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to connect to prometheus %s\n", config.PrometheusURL)
-		}
-
-		fmt.Fprintln(os.Stderr, "Prometheus: ", config.PrometheusURL)
+		s.connectPrometheus(config.PrometheusURL) // nolint: errcheck
 	} else {
 		fmt.Fprintln(os.Stderr, "No Prometheus")
 	}
@@ -98,6 +93,21 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
 	return ctx, Server{s}
+}
+
+func (s *server) connectPrometheus(url string) error {
+	var err error
+
+	s.prometheus, err = api.NewClient(api.Config{Address: url})
+	err = errors.Wrapf(err, "Failed to connect to prometheus: %s\n", url)
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	} else {
+		fmt.Fprintln(os.Stderr, "Prometheus: ", url)
+	}
+
+	return err
 }
 
 // TCPServer generates a Server listening on the provided TCP Address, creating a new language Server
