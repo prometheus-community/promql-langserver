@@ -20,13 +20,19 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
-func (d *DocumentHandle) promQLErrToProtocolDiagnostic(promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
+func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
 	var pos protocol.Position
 
 	var err error
 
-	if pos, err = d.PositionToProtocolPosition(promQLErr.Position); err != nil {
+	if pos, err = d.PosToProtocolPosition(queryPos); err != nil {
 		return nil, err
+	}
+
+	pos.Line += float64(promQLErr.Line)
+	if promQLErr.Line == 0 {
+		// TODO: get weird unicode right
+		pos.Character += float64(promQLErr.Pos)
 	}
 
 	message := &protocol.Diagnostic{

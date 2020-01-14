@@ -71,13 +71,13 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected compileQuery to fail with expired context (fullFile: false)")
 	}
 
-	if err := d.AddCompileResult(&promql.MatrixSelector{}, nil, "", ""); err == nil {
+	if err := d.AddCompileResult(token.NoPos, &promql.MatrixSelector{}, nil, "", ""); err == nil {
 		panic("Expected AddCompileResult to fail with expired context")
 	}
 
 	// From diagnostics.go
 
-	if _, err := d.promQLErrToProtocolDiagnostic(&promql.ParseErr{}); err == nil {
+	if _, err := d.promQLErrToProtocolDiagnostic(token.NoPos, &promql.ParseErr{}); err == nil {
 		panic("Expected promQLErrToProtocolDiagnostic to fail with expired context")
 	}
 

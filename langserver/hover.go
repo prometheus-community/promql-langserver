@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go/token"
 	"log"
 	"net/http"
 	"os"
@@ -59,12 +60,12 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 
 	markdown = s.nodeToDocMarkdown(ctx, location.doc, location.node)
 
-	start, err := location.doc.PosToProtocolPosition(location.node.Pos())
+	start, err := location.doc.PosToProtocolPosition(token.Pos(location.node.PositionRange().Start) + location.query.Pos)
 	if err != nil {
 		return nil, nil
 	}
 
-	end, err := location.doc.PosToProtocolPosition(location.node.EndPos())
+	end, err := location.doc.PosToProtocolPosition(token.Pos(location.node.PositionRange().End) + location.query.Pos)
 	if err != nil {
 		return nil, nil
 	}
@@ -101,27 +102,6 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandl
 
 	if vector, ok := node.(*promql.VectorSelector); ok {
 		metric := vector.Name
-
-		doc, err := s.getRecordingRuleDocs(doc, metric)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
-		}
-
-		if doc == "" {
-			doc, err = s.getMetricDocs(ctx, metric)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
-			}
-		}
-
-		if _, err := ret.WriteString(doc); err != nil {
-			return ""
-		}
-	}
-
-	// This will become obsolete once the VectorSelectors are made childs of MatrixSelectors upstream
-	if matrix, ok := node.(*promql.MatrixSelector); ok {
-		metric := matrix.Name
 
 		doc, err := s.getRecordingRuleDocs(doc, metric)
 		if err != nil {

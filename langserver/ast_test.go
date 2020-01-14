@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/prometheus/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 )
 
 func TestSmallestSurroundingNode(t *testing.T) {
@@ -41,7 +42,7 @@ func TestSmallestSurroundingNode(t *testing.T) {
 			panic("Parser should not have failed on " + test.input)
 		}
 
-		node := getSmallestSurroundingNode(parseResult, test.pos)
+		node := getSmallestSurroundingNode(&cache.CompiledQuery{Ast: parseResult}, test.pos)
 
 		if !reflect.DeepEqual(node, parseResult) {
 			panic("Whole Expression should have been matched for " + test.input)
@@ -56,16 +57,16 @@ func TestSmallestSurroundingNode(t *testing.T) {
 		}
 
 		for pos := 1; pos <= len(test); pos++ {
-			node := getSmallestSurroundingNode(parseResult, token.Pos(pos))
+			node := getSmallestSurroundingNode(&cache.CompiledQuery{Ast: parseResult}, token.Pos(pos))
 			// If we are outside the outermost Expression, nothing should be matched
-			if node == nil && (int(parseResult.Pos()) > pos || int(parseResult.EndPos()) >= pos) {
+			if node == nil && (int(parseResult.PositionRange().Start) > pos || int(parseResult.PositionRange().End) >= pos) {
 				continue
 			}
 
-			if int(node.Pos()) > pos || int(node.EndPos()) < pos {
+			if int(node.PositionRange().Start) > pos || int(node.PositionRange().End) < pos {
 				panic("The smallestSurroundingNode is not actually surrounding for input " + test +
 					" and pos " + fmt.Sprintln(pos) + "Got: " + fmt.Sprintln(node) +
-					"Pos: " + fmt.Sprintln(node.Pos()) + "EndPos: " + fmt.Sprintln(node.EndPos()))
+					"Pos: " + fmt.Sprintln(node.PositionRange().Start) + "EndPos: " + fmt.Sprintln(node.PositionRange().End))
 			}
 		}
 	}

@@ -219,7 +219,7 @@ func (d *DocumentHandle) GetQuery(pos token.Pos) (*CompiledQuery, error) {
 	}
 
 	for _, query := range queries {
-		if query.Ast != nil && query.Ast.Pos() <= pos && query.Ast.EndPos() >= pos {
+		if query.Ast != nil && query.Pos <= pos && query.Pos+token.Pos(query.Ast.PositionRange().End) >= pos {
 			return query, nil
 		}
 	}

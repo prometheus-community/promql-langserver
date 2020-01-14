@@ -43,7 +43,7 @@ func (s *server) find(where *protocol.TextDocumentPositionParams) (there *locati
 		return
 	}
 
-	there.node = getSmallestSurroundingNode(there.query.Ast, there.pos)
+	there.node = getSmallestSurroundingNode(there.query, there.pos)
 
 	return
 }

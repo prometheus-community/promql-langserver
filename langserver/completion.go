@@ -41,16 +41,14 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	case *promql.VectorSelector:
 		metricName = n.Name
 
-		if n.LBrace == token.NoPos {
+		if posRange := n.PositionRange(); int(posRange.End-posRange.Start) == len(n.Name) {
 			noLabelSelectors = true
 		}
-	case *promql.MatrixSelector:
-		metricName = n.Name
 	default:
 		return nil, nil
 	}
 
-	if location.node.Pos()+token.Pos(len(metricName)) >= location.pos {
+	if location.query.Pos+token.Pos(location.node.PositionRange().Start)+token.Pos(len(metricName)) >= location.pos {
 		return s.completeMetricName(ctx, location, metricName, noLabelSelectors)
 	}
 
@@ -74,12 +72,12 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 
 	var editRange protocol.Range
 
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.node.Pos())
+	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
 	if err != nil {
 		return nil, err
 	}
 
-	editRange.End, err = location.doc.PosToProtocolPosition(location.node.Pos() + token.Pos(len(metricName)))
+	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
 	if err != nil {
 		return nil, err
 	}

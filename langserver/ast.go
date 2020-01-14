@@ -17,10 +17,15 @@ import (
 	"go/token"
 
 	"github.com/prometheus/prometheus/promql"
+	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 )
 
-func getSmallestSurroundingNode(ast promql.Node, pos token.Pos) promql.Node {
-	if pos < ast.Pos() || pos > ast.EndPos() {
+func getSmallestSurroundingNode(query *cache.CompiledQuery, tokenPos token.Pos) promql.Node {
+	ast := query.Ast
+
+	pos := promql.Pos(tokenPos - query.Pos)
+
+	if pos < ast.PositionRange().Start || pos > ast.PositionRange().End {
 		return nil
 	}
 
@@ -28,8 +33,8 @@ func getSmallestSurroundingNode(ast promql.Node, pos token.Pos) promql.Node {
 
 BIG_LOOP:
 	for {
-		for _, child := range ret.Children() {
-			if child.Pos() <= pos && child.EndPos() >= pos {
+		for _, child := range promql.Children(ret) {
+			if child.PositionRange().Start <= pos && child.PositionRange().End >= pos {
 				ret = child
 				continue BIG_LOOP
 			}
