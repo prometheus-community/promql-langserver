@@ -9,6 +9,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/procfs v0.0.6 // indirect
+	github.com/prometheus/prometheus v1.8.2-0.20200114161215-0c8e9ef09e20 // indirect
 	github.com/rakyll/statik v0.1.7-0.20191104211043-6b2f3ee522b6
 	github.com/slrtbtfs/prometheus v1.8.2-0.20191209151656-4c3278f97849
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
