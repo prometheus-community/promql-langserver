@@ -19,10 +19,12 @@ import (
 	"fmt"
 	"go/token"
 	"os"
+	"strconv"
 	"strings"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/prometheus/promql"
+	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
@@ -219,7 +221,12 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 
 	if isValue && lastLabel != "" {
 		loc.node = &item
-		return s.completeLabelValue(ctx, &loc, metricName)
+		return s.completeLabelValue(ctx, &loc, lastLabel)
+	}
+
+	if item.Typ == promql.EQL || item.Typ == promql.NEQ && lastLabel != "" {
+		loc.node = &promql.Item{Pos: item.Pos + 1}
+		return s.completeLabelValue(ctx, &loc, lastLabel)
 	}
 
 	return nil, nil
@@ -274,6 +281,98 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 	}, nil
 }
 
+// nolint: funlen
 func (s *server) completeLabelValue(ctx context.Context, location *location, labelName string) (*protocol.CompletionList, error) { // nolint:lll
-	return nil, nil
+	if s.prometheus == nil {
+		return nil, nil
+	}
+
+	api := v1.NewAPI(s.prometheus)
+
+	allNames, _, err := api.LabelValues(ctx, labelName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not get label value data from prometheus: %s", err.Error())
+
+		allNames = nil
+	}
+
+	var editRange protocol.Range
+
+	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
+	if err != nil {
+		return nil, err
+	}
+
+	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
+	if err != nil {
+		return nil, err
+	}
+
+	quoted := location.node.(*promql.Item).Val
+
+	var quote byte
+
+	var unquoted string
+
+	if len(quoted) != 0 {
+		quote = quoted[0]
+
+		unquoted, err = strutil.Unquote(quoted)
+		if err != nil {
+			return nil, nil
+		}
+	} else {
+		quote = '"'
+	}
+
+	var items []protocol.CompletionItem
+
+	for _, name := range allNames {
+		if strings.HasPrefix(string(name), unquoted) {
+			var quoted string
+
+			if quote == '`' {
+				var needsEscaping bool
+
+				for _, c := range name {
+					if c == '`' {
+						needsEscaping = true
+					}
+				}
+
+				if needsEscaping {
+					quote = '"'
+				} else {
+					quoted = fmt.Sprint('`', name, '`')
+				}
+			}
+
+			if quoted == "" {
+				quoted = strconv.Quote(string(name))
+			}
+
+			if quote == '\'' {
+				quoted = quoted[1 : len(quoted)-1]
+
+				quoted = strings.ReplaceAll(quoted, `\"`, `"`)
+				quoted = strings.ReplaceAll(quoted, `'`, `\'`)
+				quoted = fmt.Sprint('\'', quoted, '\'')
+			}
+
+			item := protocol.CompletionItem{
+				Label: quoted,
+				Kind:  12, //Value
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: quoted,
+				},
+			}
+			items = append(items, item)
+		}
+	}
+
+	return &protocol.CompletionList{
+		IsIncomplete: true,
+		Items:        items,
+	}, nil
 }
