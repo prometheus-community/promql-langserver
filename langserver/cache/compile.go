@@ -25,7 +25,7 @@ import (
 type CompiledQuery struct {
 	Pos     token.Pos
 	Ast     promql.Node
-	Err     *promql.ParseErr
+	Err     promql.ParseErrors
 	Content string
 	Record  string
 }
@@ -79,11 +79,11 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 
 	ast, err := promql.ParseExpr(content)
 
-	var parseErr *promql.ParseErr
+	var parseErr promql.ParseErrors
 
 	var ok bool
 
-	if parseErr, ok = err.(*promql.ParseErr); !ok {
+	if parseErr, ok = err.(promql.ParseErrors); !ok {
 		parseErr = nil
 	}
 
@@ -92,8 +92,8 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 		return err
 	}
 
-	if parseErr != nil {
-		diagnostic, err := d.promQLErrToProtocolDiagnostic(pos, parseErr)
+	for _, e := range parseErr {
+		diagnostic, err := d.promQLErrToProtocolDiagnostic(pos, &e) //nolint:scopelint
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
-func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err *promql.ParseErr, record string, content string) error { //nolint: lll
+func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error { //nolint: lll
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 
