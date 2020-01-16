@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint:lll
 package cache
 
 import (
@@ -20,25 +21,23 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
-func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) { // nolint: lll
-	var pos protocol.Position
-
-	var err error
-
-	if pos, err = d.PosToProtocolPosition(queryPos); err != nil {
+func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) {
+	start, err := d.PosToProtocolPosition(
+		queryPos + token.Pos(promQLErr.PositionRange.Start))
+	if err != nil {
 		return nil, err
 	}
 
-	pos.Line += float64(promQLErr.Line)
-	if promQLErr.Line == 0 {
-		// TODO: get weird unicode right
-		pos.Character += float64(promQLErr.Pos)
+	end, err := d.PosToProtocolPosition(
+		queryPos + token.Pos(promQLErr.PositionRange.End))
+	if err != nil {
+		return nil, err
 	}
 
 	message := &protocol.Diagnostic{
 		Range: protocol.Range{
-			Start: pos,
-			End:   EndOfLine(pos),
+			Start: start,
+			End:   end,
 		},
 		Severity: 1, // Error
 		Source:   "promql-lsp",
