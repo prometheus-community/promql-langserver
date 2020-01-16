@@ -154,7 +154,7 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 // nolint: funlen
 func (s *server) completeLabels(ctx context.Context, location *location, metricName string) (*protocol.CompletionList, error) { // nolint:lll
 	offset := location.node.PositionRange().Start
-	l := promql.Lex(location.query.Content)
+	l := promql.Lex(location.query.Content[offset:])
 
 	var (
 		item         promql.Item
@@ -205,7 +205,7 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 		}
 	}
 
-	//item.Pos += offset
+	item.Pos += offset
 
 	loc := *location
 

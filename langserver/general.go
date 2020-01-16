@@ -46,7 +46,7 @@ func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 			HoverProvider: true,
 			CompletionProvider: &protocol.CompletionOptions{
 				TriggerCharacters: []string{
-					" ", "\n", "\t", "(", ")", "[", "]", "{", "}", "+", "-", "*", "/", "!", "=", "\"", ",",
+					" ", "\n", "\t", "(", ")", "[", "]", "{", "}", "+", "-", "*", "/", "!", "=", "\"", ",", "'", "\"", "`",
 				},
 				AllCommitCharacters: nil,
 				ResolveProvider:     false,
