@@ -49,6 +49,8 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 			return s.completeMetricName(ctx, location, metricName, noLabelSelectors)
 		}
 		return s.completeLabels(ctx, location, metricName)
+	case *promql.AggregateExpr, *promql.BinaryExpr:
+		return s.completeLabels(ctx, location, metricName)
 	default:
 		return nil, nil
 	}
@@ -150,7 +152,7 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 // nolint: funlen
 func (s *server) completeLabels(ctx context.Context, location *location, metricName string) (*protocol.CompletionList, error) { // nolint:lll
 	offset := location.node.PositionRange().Start
-	l := promql.Lex(location.query.Content[offset:])
+	l := promql.Lex(location.query.Content)
 
 	var (
 		item         promql.Item
@@ -162,7 +164,7 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 		wantValue    bool
 	)
 
-	for token.Pos(item.Pos)+token.Pos(offset)+location.query.Pos < location.pos {
+	for token.Pos(item.Pos)+token.Pos(len(item.Val))+token.Pos(offset)+location.query.Pos < location.pos {
 		isLabel = false
 		isValue = false
 
@@ -201,22 +203,29 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 		}
 	}
 
-	item.Pos += offset
+	//item.Pos += offset
 
 	loc := *location
 
 	if isLabel {
+		loc.node = &item
+		return s.completeLabel(ctx, &loc, metricName)
+	}
+
+	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
+		loc.node = &promql.Item{Pos: item.Pos + 1}
 		return s.completeLabel(ctx, &loc, metricName)
 	}
 
 	if isValue && lastLabel != "" {
+		loc.node = &item
 		return s.completeLabelValue(ctx, &loc, metricName)
 	}
 
 	return nil, nil
 }
 
-// nolint:funlen
+// nolint:funlen, unparam
 func (s *server) completeLabel(ctx context.Context, location *location, metricName string) (*protocol.CompletionList, error) { // nolint:lll
 	if s.prometheus == nil {
 		return nil, nil
@@ -238,7 +247,7 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 		return nil, err
 	}
 
-	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
+	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +255,7 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 	var items []protocol.CompletionItem
 
 	for _, name := range allNames {
-		if strings.HasPrefix(name, metricName) {
+		if strings.HasPrefix(name, location.node.(*promql.Item).Val) {
 			item := protocol.CompletionItem{
 				Label: name,
 				Kind:  12, //Value
