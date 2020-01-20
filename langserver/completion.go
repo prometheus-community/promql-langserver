@@ -112,14 +112,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		allNames = nil
 	}
 
-	var editRange protocol.Range
-
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
-	if err != nil {
-		return err
-	}
-
-	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
+	editRange, err := getEditRange(location, metricName)
 	if err != nil {
 		return err
 	}
@@ -164,16 +157,9 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 }
 
 func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
-	var editRange protocol.Range
-
 	var err error
 
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
-	if err != nil {
-		return err
-	}
-
-	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
+	editRange, err := getEditRange(location, metricName)
 	if err != nil {
 		return err
 	}
@@ -319,14 +305,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 		allNames = nil
 	}
 
-	var editRange protocol.Range
-
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
-	if err != nil {
-		return err
-	}
-
-	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
+	editRange, err := getEditRange(location, "")
 	if err != nil {
 		return err
 	}
@@ -367,14 +346,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 		allNames = nil
 	}
 
-	var editRange protocol.Range
-
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
-	if err != nil {
-		return err
-	}
-
-	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
+	editRange, err := getEditRange(location, "")
 	if err != nil {
 		return err
 	}
@@ -433,4 +405,26 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 	}
 
 	return nil
+}
+
+// getEditRange computes the editRange for a completion. In case the completion area is shorter than
+// the node, the oldname of the token to be completed must be provided. The latter mechanism only
+// works if oldname is an ASCII string, which can be safely assumed for metric and function names.
+func getEditRange(location *location, oldname string) (editRange protocol.Range, err error) {
+	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
+	if err != nil {
+		return
+	}
+
+	if oldname == "" {
+		editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
+		if err != nil {
+			return
+		}
+	} else {
+		editRange.End = editRange.Start
+		editRange.End.Character += float64(len(oldname))
+	}
+
+	return //nolint: nakedret
 }

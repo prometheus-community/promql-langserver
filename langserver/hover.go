@@ -17,7 +17,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"go/token"
 	"log"
 	"net/http"
 	"strings"
@@ -56,23 +55,11 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 
 	markdown := ""
 
-	var hoverRange *protocol.Range
-
 	markdown = s.nodeToDocMarkdown(ctx, location.doc, location.node)
 
-	start, err := location.doc.PosToProtocolPosition(token.Pos(location.node.PositionRange().Start) + location.query.Pos)
+	hoverRange, err := getEditRange(location, "")
 	if err != nil {
 		return nil, nil
-	}
-
-	end, err := location.doc.PosToProtocolPosition(token.Pos(location.node.PositionRange().End) + location.query.Pos)
-	if err != nil {
-		return nil, nil
-	}
-
-	hoverRange = &protocol.Range{
-		Start: start,
-		End:   end,
 	}
 
 	return &protocol.Hover{
@@ -80,7 +67,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 			Kind:  "markdown",
 			Value: markdown,
 		},
-		Range: hoverRange,
+		Range: &hoverRange,
 	}, nil
 }
 
