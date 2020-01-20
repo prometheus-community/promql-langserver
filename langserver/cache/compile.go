@@ -14,9 +14,7 @@
 package cache
 
 import (
-	"fmt"
 	"go/token"
-	"os"
 
 	"github.com/prometheus/prometheus/promql"
 )
@@ -50,7 +48,6 @@ func (d *DocumentHandle) compile() error {
 			return err
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "Unsupported Filetype: %s\n", d.GetLanguageID())
 	}
 
 	return nil

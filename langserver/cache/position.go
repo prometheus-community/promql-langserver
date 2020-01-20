@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"go/token"
-	"os"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
@@ -58,7 +57,6 @@ func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protoco
 		line--
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
 			return protocol.Position{}, err
 		}
 
