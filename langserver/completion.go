@@ -112,6 +112,28 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 				items = append(items, item)
 			}
 		}
+
+		aggregators := []string{"sum", "max", "min", "max", "avg", "stddev", "stdvar", "count", "count_values", "bottomk", "topk", "quantile"}
+
+		for _, name := range aggregators {
+			if strings.HasPrefix(strings.ToLower(name), metricName) {
+				item := protocol.CompletionItem{
+					Label:            name,
+					SortText:         "__1__" + name,
+					Kind:             3, //Function
+					InsertTextFormat: 2, //Snippet
+					TextEdit: &protocol.TextEdit{
+						Range:   editRange,
+						NewText: name + "($1)",
+					},
+					Command: &protocol.Command{
+						// This might create problems with non VS Code clients
+						Command: "editor.action.triggerParameterHints",
+					},
+				}
+				items = append(items, item)
+			}
+		}
 	}
 
 	for _, name := range allNames {
