@@ -332,18 +332,10 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 			var quoted string
 
 			if quote == '`' {
-				var needsEscaping bool
-
-				for _, c := range name {
-					if c == '`' {
-						needsEscaping = true
-					}
-				}
-
-				if needsEscaping {
+				if strings.ContainsRune(string(name), '`') {
 					quote = '"'
 				} else {
-					quoted = fmt.Sprint('`', name, '`')
+					quoted = fmt.Sprint("`", name, "`")
 				}
 			}
 
@@ -356,7 +348,7 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 
 				quoted = strings.ReplaceAll(quoted, `\"`, `"`)
 				quoted = strings.ReplaceAll(quoted, `'`, `\'`)
-				quoted = fmt.Sprint('\'', quoted, '\'')
+				quoted = fmt.Sprint("'", quoted, "'")
 			}
 
 			item := protocol.CompletionItem{
