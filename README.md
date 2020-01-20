@@ -22,17 +22,17 @@ Implementation of the Language Server Protocol for PromQL.
 - [ ] Show documentation on hover
   - [x] Type information
   - [x] Function documentation
-  - [ ] Operator documentation
+  - [ ] Aggregator documentation
+  - [ ] Keyword documentation
   - [x] Metric and label help strings from a prometheus instance
-  - [ ] Even when the Query has syntax errors
 - [ ] Completion
   - [x] Functions
   - [x] Metrics
   - [x] Recording Rules
   - [ ] Aggregators
-  - [ ] Labels
+  - [x] Labels
+  - [x] Label Values
   - [ ] Context sensitive, i.e respecting function argument types
-  - [ ] Even when the Query has syntax errors
 - [x] Signature information for functions (while typing)
 - [ ] (Linting)
 - [ ] (Formatting)
