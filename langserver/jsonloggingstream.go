@@ -35,10 +35,6 @@ type jsonLogStream struct {
 func JSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
 	ret := &jsonLogStream{str, w}
 
-	if _, err := w.Write([]byte("hi")); err != nil {
-		panic("Failed to write logs")
-	}
-
 	return ret
 }
 

@@ -81,12 +81,6 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		stream = JSONLogStream(stream, os.Stderr)
 	}
 
-	if config.PrometheusURL != "" {
-		s.connectPrometheus(config.PrometheusURL) // nolint: errcheck
-	} else {
-		fmt.Fprintln(os.Stderr, "No Prometheus")
-	}
-
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	s.config = config
 
@@ -101,10 +95,12 @@ func (s *server) connectPrometheus(url string) error {
 	s.prometheus, err = api.NewClient(api.Config{Address: url})
 	err = errors.Wrapf(err, "Failed to connect to prometheus: %s\n", url)
 
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	} else {
-		fmt.Fprintln(os.Stderr, "Prometheus: ", url)
+	if err == nil {
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Info,
+			Message: fmt.Sprint("Prometheus: ", url),
+		})
 	}
 
 	return err

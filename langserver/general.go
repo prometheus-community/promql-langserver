@@ -105,6 +105,22 @@ func (s *server) Initialized(ctx context.Context, params *protocol.InitializedPa
 		return errors.New("cannot initialize server: wrong server state")
 	}
 
+	if s.config.PrometheusURL != "" {
+		if err := s.connectPrometheus(s.config.PrometheusURL); err != nil {
+			// nolint: errcheck
+			s.client.LogMessage(ctx, &protocol.LogMessageParams{
+				Type:    protocol.Info,
+				Message: err.Error(),
+			})
+		}
+	} else {
+		// nolint: errcheck
+		s.client.LogMessage(ctx, &protocol.LogMessageParams{
+			Type:    protocol.Info,
+			Message: "No Prometheus",
+		})
+	}
+
 	s.state = serverInitialized
 
 	return nil
