@@ -18,9 +18,10 @@ import (
 	"context"
 	"fmt"
 	"go/token"
-	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/prometheus/promql"
@@ -68,7 +69,11 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 
 	allNames, _, err := api.LabelValues(ctx, "__name__")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not get metric data from prometheus: %s", err.Error())
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "could not get metric data from Prometheus").Error(),
+		})
 
 		allNames = nil
 	}
@@ -242,7 +247,11 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 
 	allNames, _, err := api.LabelNames(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not get label data from prometheus: %s", err.Error())
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+		})
 
 		allNames = nil
 	}
@@ -291,7 +300,11 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 
 	allNames, _, err := api.LabelValues(ctx, labelName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not get label value data from prometheus: %s", err.Error())
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
+		})
 
 		allNames = nil
 	}

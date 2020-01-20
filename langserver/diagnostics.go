@@ -15,8 +15,8 @@ package langserver
 
 import (
 	"context"
-	"fmt"
-	"os"
+
+	"github.com/pkg/errors"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
@@ -25,7 +25,11 @@ import (
 func (s *server) diagnostics(uri string) {
 	d, err := s.cache.GetDocument(uri)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Document %v doesn't exist any more", uri)
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "document not found in cache").Error(),
+		})
 	}
 
 	version, expired := d.GetVersion()
@@ -45,9 +49,12 @@ func (s *server) diagnostics(uri string) {
 
 	reply.Diagnostics = diagnostics
 
-	if err = s.client.PublishDiagnostics(d.GetContext(), reply); err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
-		fmt.Fprintln(os.Stderr, err.Error())
+	if err = s.client.PublishDiagnostics(s.lifetime, reply); err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(d.GetContext(), &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
+		})
 	}
 }
 
@@ -59,7 +66,10 @@ func (s *server) clearDiagnostics(ctx context.Context, uri string, version float
 	}
 
 	if err := s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to publish diagnostics")
-		fmt.Fprintln(os.Stderr, err.Error())
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
+		})
 	}
 }

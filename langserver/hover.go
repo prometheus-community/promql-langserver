@@ -20,9 +20,9 @@ import (
 	"go/token"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/rakyll/statik/fs"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -105,13 +105,21 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandl
 
 		doc, err := s.getRecordingRuleDocs(doc, metric)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to get recording rule data: ", err.Error())
+			// nolint: errcheck
+			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+				Type:    protocol.Error,
+				Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
+			})
 		}
 
 		if doc == "" {
 			doc, err = s.getMetricDocs(ctx, metric)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to get metric data: ", err.Error())
+				// nolint: errcheck
+				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+					Type:    protocol.Error,
+					Message: errors.Wrapf(err, "failed to get metric data").Error(),
+				})
 			}
 		}
 
