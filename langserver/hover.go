@@ -76,6 +76,27 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 	var ret bytes.Buffer
 
 	switch n := location.node.(type) {
+	case *promql.AggregateExpr:
+		name := strings.ToLower(n.Op.String())
+
+		if _, err := ret.WriteString("## "); err != nil {
+			return ""
+		}
+
+		if _, err := ret.WriteString(name); err != nil {
+			return ""
+		}
+
+		if desc, ok := aggregators[name]; ok {
+			if _, err := ret.WriteString("\n\n"); err != nil {
+				return ""
+			}
+
+			if _, err := ret.WriteString(desc); err != nil {
+				return ""
+			}
+		}
+
 	case *promql.Call:
 		doc := funcDocStrings(n.Func.Name)
 
@@ -83,9 +104,6 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 			return ""
 		}
 
-		if err := ret.WriteByte('\n'); err != nil {
-			return ""
-		}
 	case *promql.VectorSelector:
 		metric := n.Name
 
@@ -112,10 +130,11 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 		if _, err := ret.WriteString(doc); err != nil {
 			return ""
 		}
+	default:
 	}
 
 	if expr, ok := location.node.(promql.Expr); ok {
-		_, err := ret.WriteString(fmt.Sprintf("__PromQL Type:__ %v\n\n", expr.Type()))
+		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %v\n\n", expr.Type()))
 		if err != nil {
 			return ""
 		}

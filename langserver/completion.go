@@ -184,15 +184,14 @@ func (s *server) completeFunctionName(_ context.Context, completions *[]protocol
 		}
 	}
 
-	aggregators := []string{"sum", "max", "min", "max", "avg", "stddev", "stdvar", "count", "count_values", "bottomk", "topk", "quantile"}
-
-	for _, name := range aggregators {
+	for name, desc := range aggregators {
 		if strings.HasPrefix(strings.ToLower(name), metricName) {
 			item := protocol.CompletionItem{
 				Label:            name,
 				SortText:         "__1__" + name,
 				Kind:             3, //Function
 				InsertTextFormat: 2, //Snippet
+				Detail:           desc,
 				TextEdit: &protocol.TextEdit{
 					Range:   editRange,
 					NewText: name + "($1)",
@@ -203,6 +202,20 @@ func (s *server) completeFunctionName(_ context.Context, completions *[]protocol
 	}
 
 	return nil
+}
+
+var aggregators = map[string]string{ // nolint:gochecknoglobals
+	"sum":          "calculate sum over dimensions",
+	"max":          "select maximum over dimensions",
+	"min":          "select minimum over dimensions",
+	"avg":          "calculate the average over dimensions",
+	"stddev":       "calculate population standard deviation over dimensions",
+	"stdvar":       "calculate population standard variance over dimensions",
+	"count":        "count number of elements in the vector",
+	"count_values": "count number of elements with the same value",
+	"bottomk":      "smallest k elements by sample value",
+	"topk":         "largest k elements by sample value",
+	"quantile":     "calculate φ-quantile (0 ≤ φ ≤ 1) over dimensions",
 }
 
 // nolint: funlen
