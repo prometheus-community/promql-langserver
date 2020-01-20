@@ -42,16 +42,41 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	completions := &ret.Items
 
 	switch n := location.node.(type) {
-	case *promql.VectorSelector:
-		var noLabelSelectors bool
+	case *promql.Call:
+		var name string
 
+		name, err = location.doc.GetSubstring(
+			location.query.Pos+token.Pos(location.node.PositionRange().Start),
+			location.query.Pos+token.Pos(location.node.PositionRange().End),
+		)
+
+		i := 0
+		for j, c := range name {
+			if 'a' <= c && c <= 'Z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' {
+				i = j
+			} else {
+				break
+			}
+		}
+
+		name = name[:i]
+
+		if err != nil {
+			return
+		}
+		if err = s.completeFunctionName(ctx, completions, location, name); err != nil {
+			return
+		}
+	case *promql.VectorSelector:
 		metricName := n.Name
 
 		if posRange := n.PositionRange(); int(posRange.End-posRange.Start) == len(n.Name) {
-			noLabelSelectors = true
+			if err = s.completeFunctionName(ctx, completions, location, metricName); err != nil {
+				return
+			}
 		}
 		if location.query.Pos+token.Pos(location.node.PositionRange().Start)+token.Pos(len(metricName)) >= location.pos {
-			if err = s.completeMetricName(ctx, completions, location, metricName, noLabelSelectors); err != nil {
+			if err = s.completeMetricName(ctx, completions, location, metricName); err != nil {
 				return
 			}
 		} else {
@@ -69,7 +94,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string, noLabelSelectors bool) error { // nolint:lll
+func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
 	if s.prometheus == nil {
 		return nil
 	}
@@ -97,50 +122,6 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
 	if err != nil {
 		return err
-	}
-
-	if noLabelSelectors {
-		for name := range promql.Functions {
-			if strings.HasPrefix(strings.ToLower(name), metricName) {
-				item := protocol.CompletionItem{
-					Label:            name,
-					SortText:         "__1__" + name,
-					Kind:             3, //Function
-					InsertTextFormat: 2, //Snippet
-					TextEdit: &protocol.TextEdit{
-						Range:   editRange,
-						NewText: name + "($1)",
-					},
-					Command: &protocol.Command{
-						// This might create problems with non VS Code clients
-						Command: "editor.action.triggerParameterHints",
-					},
-				}
-				*completions = append(*completions, item)
-			}
-		}
-
-		aggregators := []string{"sum", "max", "min", "max", "avg", "stddev", "stdvar", "count", "count_values", "bottomk", "topk", "quantile"}
-
-		for _, name := range aggregators {
-			if strings.HasPrefix(strings.ToLower(name), metricName) {
-				item := protocol.CompletionItem{
-					Label:            name,
-					SortText:         "__1__" + name,
-					Kind:             3, //Function
-					InsertTextFormat: 2, //Snippet
-					TextEdit: &protocol.TextEdit{
-						Range:   editRange,
-						NewText: name + "($1)",
-					},
-					Command: &protocol.Command{
-						// This might create problems with non VS Code clients
-						Command: "editor.action.triggerParameterHints",
-					},
-				}
-				*completions = append(*completions, item)
-			}
-		}
 	}
 
 	for _, name := range allNames {
@@ -173,6 +154,62 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 				TextEdit: &protocol.TextEdit{
 					Range:   editRange,
 					NewText: rec,
+				},
+			}
+			*completions = append(*completions, item)
+		}
+	}
+
+	return nil
+}
+
+func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
+	var editRange protocol.Range
+
+	var err error
+
+	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
+	if err != nil {
+		return err
+	}
+
+	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
+	if err != nil {
+		return err
+	}
+
+	for name := range promql.Functions {
+		if strings.HasPrefix(strings.ToLower(name), metricName) {
+			item := protocol.CompletionItem{
+				Label:            name,
+				SortText:         "__1__" + name,
+				Kind:             3, //Function
+				InsertTextFormat: 2, //Snippet
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: name + "($1)",
+				},
+				Command: &protocol.Command{
+					// This might create problems with non VS Code clients
+					Command: "editor.action.triggerParameterHints",
+				},
+			}
+			*completions = append(*completions, item)
+		}
+	}
+
+	aggregators := []string{"sum", "max", "min", "max", "avg", "stddev", "stdvar", "count", "count_values", "bottomk", "topk", "quantile"}
+
+	for _, name := range aggregators {
+		if strings.HasPrefix(strings.ToLower(name), metricName) {
+			item := protocol.CompletionItem{
+				Label:            name,
+				SortText:         "__1__" + name,
+				Kind:             3, //Function
+				InsertTextFormat: 2, //Snippet
+				TextEdit: &protocol.TextEdit{
+					Range:   editRange,
+					NewText: name + "($1)",
 				},
 			}
 			*completions = append(*completions, item)
