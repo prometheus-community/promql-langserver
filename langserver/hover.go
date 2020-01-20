@@ -55,7 +55,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 
 	markdown := ""
 
-	markdown = s.nodeToDocMarkdown(ctx, location.doc, location.node)
+	markdown = s.nodeToDocMarkdown(ctx, location)
 
 	hoverRange, err := getEditRange(location, "")
 	if err != nil {
@@ -72,11 +72,12 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 }
 
 // nolint:funlen
-func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandle, node promql.Node) string { //nolint: lll, golint
+func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) string { //nolint: lll, golint
 	var ret bytes.Buffer
 
-	if call, ok := node.(*promql.Call); ok {
-		doc := funcDocStrings(call.Func.Name)
+	switch n := location.node.(type) {
+	case *promql.Call:
+		doc := funcDocStrings(n.Func.Name)
 
 		if _, err := ret.WriteString(doc); err != nil {
 			return ""
@@ -85,12 +86,10 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandl
 		if err := ret.WriteByte('\n'); err != nil {
 			return ""
 		}
-	}
+	case *promql.VectorSelector:
+		metric := n.Name
 
-	if vector, ok := node.(*promql.VectorSelector); ok {
-		metric := vector.Name
-
-		doc, err := s.getRecordingRuleDocs(doc, metric)
+		doc, err := s.getRecordingRuleDocs(location.doc, metric)
 		if err != nil {
 			// nolint: errcheck
 			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -115,7 +114,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, doc *cache.DocumentHandl
 		}
 	}
 
-	if expr, ok := node.(promql.Expr); ok {
+	if expr, ok := location.node.(promql.Expr); ok {
 		_, err := ret.WriteString(fmt.Sprintf("__PromQL Type:__ %v\n\n", expr.Type()))
 		if err != nil {
 			return ""
