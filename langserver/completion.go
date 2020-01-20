@@ -31,38 +31,47 @@ import (
 
 // Completion is required by the protocol.Server interface
 // nolint: wsl
-func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
+func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
 
-	var metricName string
+	ret = &protocol.CompletionList{}
 
-	var noLabelSelectors bool
+	completions := &ret.Items
 
 	switch n := location.node.(type) {
 	case *promql.VectorSelector:
-		metricName = n.Name
+		var noLabelSelectors bool
+
+		metricName := n.Name
 
 		if posRange := n.PositionRange(); int(posRange.End-posRange.Start) == len(n.Name) {
 			noLabelSelectors = true
 		}
 		if location.query.Pos+token.Pos(location.node.PositionRange().Start)+token.Pos(len(metricName)) >= location.pos {
-			return s.completeMetricName(ctx, location, metricName, noLabelSelectors)
+			if err = s.completeMetricName(ctx, completions, location, metricName, noLabelSelectors); err != nil {
+				return
+			}
+		} else {
+			if err = s.completeLabels(ctx, completions, location, metricName); err != nil {
+				return
+			}
 		}
-		return s.completeLabels(ctx, location, metricName)
 	case *promql.AggregateExpr, *promql.BinaryExpr:
-		return s.completeLabels(ctx, location, metricName)
-	default:
-		return nil, nil
+		if err = s.completeLabels(ctx, completions, location, ""); err != nil {
+			return
+		}
 	}
+
+	return //nolint: nakedret
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, location *location, metricName string, noLabelSelectors bool) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string, noLabelSelectors bool) error { // nolint:lll
 	if s.prometheus == nil {
-		return nil, nil
+		return nil
 	}
 
 	api := v1.NewAPI(s.prometheus)
@@ -82,15 +91,13 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 
 	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start) + token.Pos(len(metricName)))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	var items []protocol.CompletionItem
 
 	if noLabelSelectors {
 		for name := range promql.Functions {
@@ -109,7 +116,7 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 						Command: "editor.action.triggerParameterHints",
 					},
 				}
-				items = append(items, item)
+				*completions = append(*completions, item)
 			}
 		}
 
@@ -131,7 +138,7 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 						Command: "editor.action.triggerParameterHints",
 					},
 				}
-				items = append(items, item)
+				*completions = append(*completions, item)
 			}
 		}
 	}
@@ -147,13 +154,13 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 					NewText: string(name),
 				},
 			}
-			items = append(items, item)
+			*completions = append(*completions, item)
 		}
 	}
 
 	queries, err := location.doc.GetQueries()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, q := range queries {
@@ -168,18 +175,15 @@ func (s *server) completeMetricName(ctx context.Context, location *location, met
 					NewText: rec,
 				},
 			}
-			items = append(items, item)
+			*completions = append(*completions, item)
 		}
 	}
 
-	return &protocol.CompletionList{
-		IsIncomplete: true,
-		Items:        items,
-	}, nil
+	return nil
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, location *location, metricName string) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
 	offset := location.node.PositionRange().Start
 	l := promql.Lex(location.query.Content[offset:])
 
@@ -228,7 +232,7 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 		case promql.COMMA:
 			lastLabel = ""
 		case 0:
-			return nil, nil
+			return nil
 		}
 	}
 
@@ -238,31 +242,31 @@ func (s *server) completeLabels(ctx context.Context, location *location, metricN
 
 	if isLabel {
 		loc.node = &item
-		return s.completeLabel(ctx, &loc, metricName)
+		return s.completeLabel(ctx, completions, &loc, metricName)
 	}
 
 	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
 		loc.node = &promql.Item{Pos: item.Pos + 1}
-		return s.completeLabel(ctx, &loc, metricName)
+		return s.completeLabel(ctx, completions, &loc, metricName)
 	}
 
 	if isValue && lastLabel != "" {
 		loc.node = &item
-		return s.completeLabelValue(ctx, &loc, lastLabel)
+		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
 	if item.Typ == promql.EQL || item.Typ == promql.NEQ && lastLabel != "" {
 		loc.node = &promql.Item{Pos: item.Pos + 1}
-		return s.completeLabelValue(ctx, &loc, lastLabel)
+		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
-	return nil, nil
+	return nil
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(ctx context.Context, location *location, metricName string) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
 	if s.prometheus == nil {
-		return nil, nil
+		return nil
 	}
 
 	api := v1.NewAPI(s.prometheus)
@@ -282,15 +286,13 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 
 	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	var items []protocol.CompletionItem
 
 	for _, name := range allNames {
 		if strings.HasPrefix(name, location.node.(*promql.Item).Val) {
@@ -302,20 +304,17 @@ func (s *server) completeLabel(ctx context.Context, location *location, metricNa
 					NewText: name,
 				},
 			}
-			items = append(items, item)
+			*completions = append(*completions, item)
 		}
 	}
 
-	return &protocol.CompletionList{
-		IsIncomplete: true,
-		Items:        items,
-	}, nil
+	return nil
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(ctx context.Context, location *location, labelName string) (*protocol.CompletionList, error) { // nolint:lll
+func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *location, labelName string) error { // nolint:lll
 	if s.prometheus == nil {
-		return nil, nil
+		return nil
 	}
 
 	api := v1.NewAPI(s.prometheus)
@@ -335,12 +334,12 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 
 	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	quoted := location.node.(*promql.Item).Val
@@ -354,13 +353,11 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 
 		unquoted, err = strutil.Unquote(quoted)
 		if err != nil {
-			return nil, nil
+			return nil
 		}
 	} else {
 		quote = '"'
 	}
-
-	var items []protocol.CompletionItem
 
 	for _, name := range allNames {
 		if strings.HasPrefix(string(name), unquoted) {
@@ -394,12 +391,9 @@ func (s *server) completeLabelValue(ctx context.Context, location *location, lab
 					NewText: quoted,
 				},
 			}
-			items = append(items, item)
+			*completions = append(*completions, item)
 		}
 	}
 
-	return &protocol.CompletionList{
-		IsIncomplete: true,
-		Items:        items,
-	}, nil
+	return nil
 }
