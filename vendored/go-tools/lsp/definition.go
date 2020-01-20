@@ -14,12 +14,19 @@ import (
 
 func (s *Server) definition(ctx context.Context, params *protocol.DefinitionParams) ([]protocol.Location, error) {
 	uri := span.NewURI(params.TextDocument.URI)
-	view := s.session.ViewOf(uri)
-	f, err := view.GetFile(ctx, uri)
+	view, err := s.session.ViewOf(uri)
 	if err != nil {
 		return nil, err
 	}
-	ident, err := source.Identifier(ctx, view, f, params.Position)
+	snapshot := view.Snapshot()
+	fh, err := snapshot.GetFile(uri)
+	if err != nil {
+		return nil, err
+	}
+	if fh.Identity().Kind != source.Go {
+		return nil, nil
+	}
+	ident, err := source.Identifier(ctx, snapshot, fh, params.Position, source.WidestPackageHandle)
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +44,19 @@ func (s *Server) definition(ctx context.Context, params *protocol.DefinitionPara
 
 func (s *Server) typeDefinition(ctx context.Context, params *protocol.TypeDefinitionParams) ([]protocol.Location, error) {
 	uri := span.NewURI(params.TextDocument.URI)
-	view := s.session.ViewOf(uri)
-	f, err := view.GetFile(ctx, uri)
+	view, err := s.session.ViewOf(uri)
 	if err != nil {
 		return nil, err
 	}
-	ident, err := source.Identifier(ctx, view, f, params.Position)
+	snapshot := view.Snapshot()
+	fh, err := snapshot.GetFile(uri)
+	if err != nil {
+		return nil, err
+	}
+	if fh.Identity().Kind != source.Go {
+		return nil, nil
+	}
+	ident, err := source.Identifier(ctx, snapshot, fh, params.Position, source.WidestPackageHandle)
 	if err != nil {
 		return nil, err
 	}

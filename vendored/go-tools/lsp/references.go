@@ -10,69 +10,41 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
 )
 
 func (s *Server) references(ctx context.Context, params *protocol.ReferenceParams) ([]protocol.Location, error) {
 	uri := span.NewURI(params.TextDocument.URI)
-	view := s.session.ViewOf(uri)
-	f, err := view.GetFile(ctx, uri)
+	view, err := s.session.ViewOf(uri)
+	if err != nil {
+		return nil, err
+	}
+	snapshot := view.Snapshot()
+	fh, err := snapshot.GetFile(uri)
 	if err != nil {
 		return nil, err
 	}
 	// Find all references to the identifier at the position.
-	ident, err := source.Identifier(ctx, view, f, params.Position)
+	if fh.Identity().Kind != source.Go {
+		return nil, nil
+	}
+
+	references, err := source.References(ctx, view.Snapshot(), fh, params.Position, params.Context.IncludeDeclaration)
 	if err != nil {
 		return nil, err
 	}
-	references, err := ident.References(ctx)
-	if err != nil {
-		log.Error(ctx, "no references", err, tag.Of("Identifier", ident.Name))
-	}
 
-	// Get the location of each reference to return as the result.
-	locations := make([]protocol.Location, 0, len(references))
-	seen := make(map[span.Span]bool)
+	var locations []protocol.Location
 	for _, ref := range references {
-		refSpan, err := ref.Span()
-		if err != nil {
-			return nil, err
-		}
-		if seen[refSpan] {
-			continue // already added this location
-		}
-		seen[refSpan] = true
 		refRange, err := ref.Range()
 		if err != nil {
 			return nil, err
 		}
+
 		locations = append(locations, protocol.Location{
 			URI:   protocol.NewURI(ref.URI()),
 			Range: refRange,
 		})
 	}
-	// The declaration of this identifier may not be in the
-	// scope that we search for references, so make sure
-	// it is added to the beginning of the list if IncludeDeclaration
-	// was specified.
-	if params.Context.IncludeDeclaration {
-		decSpan, err := ident.Declaration.Span()
-		if err != nil {
-			return nil, err
-		}
-		if !seen[decSpan] {
-			rng, err := ident.Declaration.Range()
-			if err != nil {
-				return nil, err
-			}
-			locations = append([]protocol.Location{
-				{
-					URI:   protocol.NewURI(ident.Declaration.URI()),
-					Range: rng,
-				},
-			}, locations...)
-		}
-	}
+
 	return locations, nil
 }

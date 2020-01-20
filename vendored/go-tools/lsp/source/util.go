@@ -8,10 +8,12 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/printer"
 	"go/token"
 	"go/types"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -26,6 +28,18 @@ type mappedRange struct {
 	// protocolRange is the result of converting the spanRange using the mapper.
 	// It is computed on-demand.
 	protocolRange *protocol.Range
+}
+
+func newMappedRange(fset *token.FileSet, m *protocol.ColumnMapper, start, end token.Pos) mappedRange {
+	return mappedRange{
+		spanRange: span.Range{
+			FileSet:   fset,
+			Start:     start,
+			End:       end,
+			Converter: m.Converter,
+		},
+		m: m,
+	}
 }
 
 func (s mappedRange) Range() (protocol.Range, error) {
@@ -51,58 +65,93 @@ func (s mappedRange) URI() span.URI {
 	return s.m.URI
 }
 
-// NarrowestCheckPackageHandle picks the "narrowest" package for a given file.
+// getParsedFile is a convenience function that extracts the Package and ParseGoHandle for a File in a Snapshot.
+// selectPackage is typically Narrowest/WidestPackageHandle below.
+func getParsedFile(ctx context.Context, snapshot Snapshot, fh FileHandle, selectPackage PackagePolicy) (Package, ParseGoHandle, error) {
+	phs, err := snapshot.PackageHandles(ctx, fh)
+	if err != nil {
+		return nil, nil, err
+	}
+	ph, err := selectPackage(phs)
+	if err != nil {
+		return nil, nil, err
+	}
+	pkg, err := ph.Check(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	pgh, err := pkg.File(fh.Identity().URI)
+	return pkg, pgh, err
+}
+
+type PackagePolicy func([]PackageHandle) (PackageHandle, error)
+
+// NarrowestPackageHandle picks the "narrowest" package for a given file.
 //
 // By "narrowest" package, we mean the package with the fewest number of files
 // that includes the given file. This solves the problem of test variants,
 // as the test will have more files than the non-test package.
-func NarrowestCheckPackageHandle(handles []CheckPackageHandle) (CheckPackageHandle, error) {
+func NarrowestPackageHandle(handles []PackageHandle) (PackageHandle, error) {
 	if len(handles) < 1 {
-		return nil, errors.Errorf("no CheckPackageHandles")
+		return nil, errors.Errorf("no PackageHandles")
 	}
 	result := handles[0]
 	for _, handle := range handles[1:] {
-		if result == nil || len(handle.Files()) < len(result.Files()) {
+		if result == nil || len(handle.CompiledGoFiles()) < len(result.CompiledGoFiles()) {
 			result = handle
 		}
 	}
 	if result == nil {
-		return nil, errors.Errorf("nil CheckPackageHandles have been returned")
+		return nil, errors.Errorf("nil PackageHandles have been returned")
 	}
 	return result, nil
 }
 
-// WidestCheckPackageHandle returns the CheckPackageHandle containing the most files.
+// WidestPackageHandle returns the PackageHandle containing the most files.
 //
 // This is useful for something like diagnostics, where we'd prefer to offer diagnostics
 // for as many files as possible.
-func WidestCheckPackageHandle(handles []CheckPackageHandle) (CheckPackageHandle, error) {
+func WidestPackageHandle(handles []PackageHandle) (PackageHandle, error) {
 	if len(handles) < 1 {
-		return nil, errors.Errorf("no CheckPackageHandles")
+		return nil, errors.Errorf("no PackageHandles")
 	}
 	result := handles[0]
 	for _, handle := range handles[1:] {
-		if result == nil || len(handle.Files()) > len(result.Files()) {
+		if result == nil || len(handle.CompiledGoFiles()) > len(result.CompiledGoFiles()) {
 			result = handle
 		}
 	}
 	if result == nil {
-		return nil, errors.Errorf("nil CheckPackageHandles have been returned")
+		return nil, errors.Errorf("nil PackageHandles have been returned")
 	}
 	return result, nil
 }
 
-func IsGenerated(ctx context.Context, view View, uri span.URI) bool {
-	f, err := view.GetFile(ctx, uri)
+// SpecificPackageHandle creates a PackagePolicy to select a
+// particular PackageHandle when you alread know the one you want.
+func SpecificPackageHandle(desiredID string) PackagePolicy {
+	return func(handles []PackageHandle) (PackageHandle, error) {
+		for _, h := range handles {
+			if h.ID() == desiredID {
+				return h, nil
+			}
+		}
+
+		return nil, fmt.Errorf("no package handle with expected id %q", desiredID)
+	}
+}
+
+func IsGenerated(ctx context.Context, snapshot Snapshot, uri span.URI) bool {
+	fh, err := snapshot.GetFile(uri)
 	if err != nil {
 		return false
 	}
-	ph := view.Session().Cache().ParseGoHandle(view.Snapshot().Handle(ctx, f), ParseHeader)
+	ph := snapshot.View().Session().Cache().ParseGoHandle(fh, ParseHeader)
 	parsed, _, _, err := ph.Parse(ctx)
 	if err != nil {
 		return false
 	}
-	tok := view.Session().Cache().FileSet().File(parsed.Pos())
+	tok := snapshot.View().Session().Cache().FileSet().File(parsed.Pos())
 	if tok == nil {
 		return false
 	}
@@ -119,15 +168,15 @@ func IsGenerated(ctx context.Context, view View, uri span.URI) bool {
 	return false
 }
 
-func nodeToProtocolRange(ctx context.Context, view View, m *protocol.ColumnMapper, n ast.Node) (protocol.Range, error) {
-	mrng, err := nodeToMappedRange(ctx, view, m, n)
+func nodeToProtocolRange(view View, pkg Package, n ast.Node) (protocol.Range, error) {
+	mrng, err := posToMappedRange(view, pkg, n.Pos(), n.End())
 	if err != nil {
 		return protocol.Range{}, err
 	}
 	return mrng.Range()
 }
 
-func objToMappedRange(ctx context.Context, pkg Package, obj types.Object) (mappedRange, error) {
+func objToMappedRange(v View, pkg Package, obj types.Object) (mappedRange, error) {
 	if pkgName, ok := obj.(*types.PkgName); ok {
 		// An imported Go package has a package-local, unqualified name.
 		// When the name matches the imported package name, there is no
@@ -138,51 +187,31 @@ func objToMappedRange(ctx context.Context, pkg Package, obj types.Object) (mappe
 		// 		import a "go/ast"  	// name "a" does not match package name
 		//
 		// When the identifier does not appear in the source, have the range
-		// of the object be the point at the beginning of the declaration.
+		// of the object be the import path, including quotes.
 		if pkgName.Imported().Name() == pkgName.Name() {
-			return nameToMappedRange(ctx, pkg, obj.Pos(), "")
+			return posToMappedRange(v, pkg, obj.Pos(), obj.Pos()+token.Pos(len(pkgName.Imported().Path())+2))
 		}
 	}
-	return nameToMappedRange(ctx, pkg, obj.Pos(), obj.Name())
+	return nameToMappedRange(v, pkg, obj.Pos(), obj.Name())
 }
 
-func nameToMappedRange(ctx context.Context, pkg Package, pos token.Pos, name string) (mappedRange, error) {
-	return posToMappedRange(ctx, pkg, pos, pos+token.Pos(len(name)))
+func nameToMappedRange(v View, pkg Package, pos token.Pos, name string) (mappedRange, error) {
+	return posToMappedRange(v, pkg, pos, pos+token.Pos(len(name)))
 }
 
-func nodeToMappedRange(ctx context.Context, view View, m *protocol.ColumnMapper, n ast.Node) (mappedRange, error) {
-	return posToRange(ctx, view, m, n.Pos(), n.End())
-}
-
-func posToMappedRange(ctx context.Context, pkg Package, pos, end token.Pos) (mappedRange, error) {
-	m, err := posToMapper(ctx, pkg, pos)
+func posToMappedRange(v View, pkg Package, pos, end token.Pos) (mappedRange, error) {
+	logicalFilename := v.Session().Cache().FileSet().File(pos).Position(pos).Filename
+	m, err := findMapperInPackage(v, pkg, span.FileURI(logicalFilename))
 	if err != nil {
 		return mappedRange{}, err
 	}
-	return posToRange(ctx, pkg.View(), m, pos, end)
-}
-
-func posToRange(ctx context.Context, view View, m *protocol.ColumnMapper, pos, end token.Pos) (mappedRange, error) {
 	if !pos.IsValid() {
 		return mappedRange{}, errors.Errorf("invalid position for %v", pos)
 	}
 	if !end.IsValid() {
 		return mappedRange{}, errors.Errorf("invalid position for %v", end)
 	}
-	return mappedRange{
-		m:         m,
-		spanRange: span.NewRange(view.Session().Cache().FileSet(), pos, end),
-	}, nil
-}
-
-func posToMapper(ctx context.Context, pkg Package, pos token.Pos) (*protocol.ColumnMapper, error) {
-	posn := pkg.View().Session().Cache().FileSet().Position(pos)
-	ph, _, err := pkg.FindFile(ctx, span.FileURI(posn.Filename))
-	if err != nil {
-		return nil, err
-	}
-	_, m, _, err := ph.Cached()
-	return m, err
+	return newMappedRange(v.Session().Cache().FileSet(), m, pos, end), nil
 }
 
 // Matches cgo generated comment as well as the proposed standard:
@@ -218,6 +247,19 @@ func (k FileKind) String() string {
 	default:
 		return "go"
 	}
+}
+
+// Returns the index and the node whose position is contained inside the node list.
+func nodeAtPos(nodes []ast.Node, pos token.Pos) (ast.Node, int) {
+	if nodes == nil {
+		return nil, -1
+	}
+	for i, node := range nodes {
+		if node.Pos() <= pos && pos <= node.End() {
+			return node, i
+		}
+	}
+	return nil, -1
 }
 
 // indexExprAtPos returns the index of the expression containing pos.
@@ -269,24 +311,42 @@ func fieldSelections(T types.Type) (fields []*types.Var) {
 	return fields
 }
 
+// typeIsValid reports whether typ doesn't contain any Invalid types.
+func typeIsValid(typ types.Type) bool {
+	switch typ := typ.Underlying().(type) {
+	case *types.Basic:
+		return typ.Kind() != types.Invalid
+	case *types.Array:
+		return typeIsValid(typ.Elem())
+	case *types.Slice:
+		return typeIsValid(typ.Elem())
+	case *types.Pointer:
+		return typeIsValid(typ.Elem())
+	case *types.Map:
+		return typeIsValid(typ.Key()) && typeIsValid(typ.Elem())
+	case *types.Chan:
+		return typeIsValid(typ.Elem())
+	case *types.Signature:
+		return typeIsValid(typ.Params()) && typeIsValid(typ.Results())
+	case *types.Tuple:
+		for i := 0; i < typ.Len(); i++ {
+			if !typeIsValid(typ.At(i).Type()) {
+				return false
+			}
+		}
+		return true
+	case *types.Struct, *types.Interface, *types.Named:
+		// Don't bother checking structs, interfaces, or named types for validity.
+		return true
+	default:
+		return false
+	}
+}
+
 // resolveInvalid traverses the node of the AST that defines the scope
 // containing the declaration of obj, and attempts to find a user-friendly
 // name for its invalid type. The resulting Object and its Type are fake.
-func resolveInvalid(obj types.Object, node ast.Node, info *types.Info) types.Object {
-	// Construct a fake type for the object and return a fake object with this type.
-	formatResult := func(expr ast.Expr) types.Object {
-		var typename string
-		switch t := expr.(type) {
-		case *ast.SelectorExpr:
-			typename = fmt.Sprintf("%s.%s", t.X, t.Sel)
-		case *ast.Ident:
-			typename = t.String()
-		default:
-			return nil
-		}
-		typ := types.NewNamed(types.NewTypeName(token.NoPos, obj.Pkg(), typename, nil), types.Typ[types.Invalid], nil)
-		return types.NewVar(obj.Pos(), obj.Pkg(), obj.Name(), typ)
-	}
+func resolveInvalid(fset *token.FileSet, obj types.Object, node ast.Node, info *types.Info) types.Object {
 	var resultExpr ast.Expr
 	ast.Inspect(node, func(node ast.Node) bool {
 		switch n := node.(type) {
@@ -304,12 +364,14 @@ func resolveInvalid(obj types.Object, node ast.Node, info *types.Info) types.Obj
 				}
 			}
 			return false
-		// TODO(rstambler): Handle range statements.
 		default:
 			return true
 		}
 	})
-	return formatResult(resultExpr)
+	// Construct a fake type for the object and return a fake object with this type.
+	typename := formatNode(fset, resultExpr)
+	typ := types.NewNamed(types.NewTypeName(token.NoPos, obj.Pkg(), typename, nil), types.Typ[types.Invalid], nil)
+	return types.NewVar(obj.Pos(), obj.Pkg(), obj.Name(), typ)
 }
 
 func isPointer(T types.Type) bool {
@@ -317,12 +379,21 @@ func isPointer(T types.Type) bool {
 	return ok
 }
 
-// deref returns a pointer's element type; otherwise it returns typ.
+func isVar(obj types.Object) bool {
+	_, ok := obj.(*types.Var)
+	return ok
+}
+
+// deref returns a pointer's element type, traversing as many levels as needed.
+// Otherwise it returns typ.
 func deref(typ types.Type) types.Type {
-	if p, ok := typ.Underlying().(*types.Pointer); ok {
-		return p.Elem()
+	for {
+		p, ok := typ.Underlying().(*types.Pointer)
+		if !ok {
+			return typ
+		}
+		typ = p.Elem()
 	}
-	return typ
 }
 
 func isTypeName(obj types.Object) bool {
@@ -340,6 +411,13 @@ func isEmptyInterface(T types.Type) bool {
 	return intf != nil && intf.NumMethods() == 0
 }
 
+func isUntyped(T types.Type) bool {
+	if basic, ok := T.(*types.Basic); ok {
+		return basic.Info()&types.IsUntyped > 0
+	}
+	return false
+}
+
 // isSelector returns the enclosing *ast.SelectorExpr when pos is in the
 // selector.
 func enclosingSelector(path []ast.Node, pos token.Pos) *ast.SelectorExpr {
@@ -354,6 +432,16 @@ func enclosingSelector(path []ast.Node, pos token.Pos) *ast.SelectorExpr {
 	if _, ok := path[0].(*ast.Ident); ok && len(path) > 1 {
 		if sel, ok := path[1].(*ast.SelectorExpr); ok && pos >= sel.Sel.Pos() {
 			return sel
+		}
+	}
+
+	return nil
+}
+
+func enclosingValueSpec(path []ast.Node, pos token.Pos) *ast.ValueSpec {
+	for _, n := range path {
+		if vs, ok := n.(*ast.ValueSpec); ok {
+			return vs
 		}
 	}
 
@@ -381,14 +469,28 @@ func typeConversion(call *ast.CallExpr, info *types.Info) types.Type {
 	return nil
 }
 
-func formatParams(tup *types.Tuple, variadic bool, qf types.Qualifier) []string {
-	params := make([]string, 0, tup.Len())
-	for i := 0; i < tup.Len(); i++ {
-		el := tup.At(i)
-		typ := types.TypeString(el.Type(), qf)
+// fieldsAccessible returns whether s has at least one field accessible by p.
+func fieldsAccessible(s *types.Struct, p *types.Package) bool {
+	for i := 0; i < s.NumFields(); i++ {
+		f := s.Field(i)
+		if f.Exported() || f.Pkg() == p {
+			return true
+		}
+	}
+	return false
+}
+
+func formatParams(ctx context.Context, s Snapshot, pkg Package, sig *types.Signature, qf types.Qualifier) []string {
+	params := make([]string, 0, sig.Params().Len())
+	for i := 0; i < sig.Params().Len(); i++ {
+		el := sig.Params().At(i)
+		typ, err := formatFieldType(ctx, s, pkg, el, qf)
+		if err != nil {
+			typ = types.TypeString(el.Type(), qf)
+		}
 
 		// Handle a variadic parameter (can only be the final parameter).
-		if variadic && i == tup.Len()-1 {
+		if sig.Variadic() && i == sig.Params().Len()-1 {
 			typ = strings.Replace(typ, "[]", "...", 1)
 		}
 
@@ -399,6 +501,33 @@ func formatParams(tup *types.Tuple, variadic bool, qf types.Qualifier) []string 
 		}
 	}
 	return params
+}
+
+func formatFieldType(ctx context.Context, s Snapshot, srcpkg Package, obj types.Object, qf types.Qualifier) (string, error) {
+	file, pkg, err := findPosInPackage(s.View(), srcpkg, obj.Pos())
+	if err != nil {
+		return "", err
+	}
+	ident, err := findIdentifier(ctx, s, pkg, file, obj.Pos())
+	if err != nil {
+		return "", err
+	}
+	if i := ident.ident; i == nil || i.Obj == nil || i.Obj.Decl == nil {
+		return "", errors.Errorf("no object for ident %v", i.Name)
+	}
+	f, ok := ident.ident.Obj.Decl.(*ast.Field)
+	if !ok {
+		return "", errors.Errorf("ident %s is not a field type", ident.Name)
+	}
+	return formatNode(s.View().Session().Cache().FileSet(), f.Type), nil
+}
+
+func formatNode(fset *token.FileSet, n ast.Node) string {
+	var buf strings.Builder
+	if err := printer.Fprint(&buf, fset, n); err != nil {
+		return ""
+	}
+	return buf.String()
 }
 
 func formatResults(tup *types.Tuple, qf types.Qualifier) ([]string, bool) {
@@ -471,4 +600,104 @@ func formatFunction(params []string, results []string, writeResultParens bool) s
 	}
 
 	return detail.String()
+}
+
+func SortDiagnostics(d []Diagnostic) {
+	sort.Slice(d, func(i int, j int) bool {
+		return CompareDiagnostic(d[i], d[j]) < 0
+	})
+}
+
+func CompareDiagnostic(a, b Diagnostic) int {
+	if r := protocol.CompareRange(a.Range, b.Range); r != 0 {
+		return r
+	}
+	if a.Message < b.Message {
+		return -1
+	}
+	if a.Message == b.Message {
+		return 0
+	}
+	return 1
+}
+
+func findPosInPackage(v View, searchpkg Package, pos token.Pos) (*ast.File, Package, error) {
+	tok := v.Session().Cache().FileSet().File(pos)
+	if tok == nil {
+		return nil, nil, errors.Errorf("no file for pos in package %s", searchpkg.ID())
+	}
+	uri := span.FileURI(tok.Name())
+
+	var (
+		ph  ParseGoHandle
+		pkg Package
+		err error
+	)
+	// Special case for ignored files.
+	if v.Ignore(uri) {
+		ph, err = findIgnoredFile(v, uri)
+	} else {
+		ph, pkg, err = findFileInPackage(searchpkg, uri)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	file, _, _, err := ph.Cached()
+	if err != nil {
+		return nil, nil, err
+	}
+	if !(file.Pos() <= pos && pos <= file.End()) {
+		return nil, nil, fmt.Errorf("pos %v, apparently in file %q, is not between %v and %v", pos, ph.File().Identity().URI, file.Pos(), file.End())
+	}
+	return file, pkg, nil
+}
+
+func findMapperInPackage(v View, searchpkg Package, uri span.URI) (*protocol.ColumnMapper, error) {
+	var (
+		ph  ParseGoHandle
+		err error
+	)
+	// Special case for ignored files.
+	if v.Ignore(uri) {
+		ph, err = findIgnoredFile(v, uri)
+	} else {
+		ph, _, err = findFileInPackage(searchpkg, uri)
+	}
+	if err != nil {
+		return nil, err
+	}
+	_, m, _, err := ph.Cached()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func findIgnoredFile(v View, uri span.URI) (ParseGoHandle, error) {
+	fh, err := v.Snapshot().GetFile(uri)
+	if err != nil {
+		return nil, err
+	}
+	return v.Session().Cache().ParseGoHandle(fh, ParseFull), nil
+}
+
+func findFileInPackage(pkg Package, uri span.URI) (ParseGoHandle, Package, error) {
+	queue := []Package{pkg}
+	seen := make(map[string]bool)
+
+	for len(queue) > 0 {
+		pkg := queue[0]
+		queue = queue[1:]
+		seen[pkg.ID()] = true
+
+		if f, err := pkg.File(uri); err == nil {
+			return f, pkg, nil
+		}
+		for _, dep := range pkg.Imports() {
+			if !seen[dep.ID()] {
+				queue = append(queue, dep)
+			}
+		}
+	}
+	return nil, nil, errors.Errorf("no file for %s in package %s", uri, pkg.ID())
 }

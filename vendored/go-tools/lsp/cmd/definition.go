@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
 	guru "golang.org/x/tools/cmd/guru/serial"
@@ -59,6 +60,15 @@ $ gopls definition internal/lsp/cmd/definition.go:#%[3]v
 func (d *definition) Run(ctx context.Context, args ...string) error {
 	if len(args) != 1 {
 		return tool.CommandLineErrorf("definition expects 1 argument")
+	}
+	// Plaintext makes more sense for the command line.
+	opts := d.query.app.options
+	d.query.app.options = func(o *source.Options) {
+		opts(o)
+		o.PreferredContentFormat = protocol.PlainText
+		if d.query.MarkdownSupported {
+			o.PreferredContentFormat = protocol.Markdown
+		}
 	}
 	conn, err := d.query.app.connect(ctx)
 	if err != nil {

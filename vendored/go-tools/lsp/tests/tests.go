@@ -13,19 +13,23 @@ import (
 	"go/ast"
 	"go/token"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/txtar"
 	"golang.org/x/tools/go/expect"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/packages/packagestest"
+	"golang.org/x/tools/txtar"
 )
 
 const (
@@ -39,19 +43,20 @@ var UpdateGolden = flag.Bool("golden", false, "Update golden files")
 
 type Diagnostics map[span.URI][]source.Diagnostic
 type CompletionItems map[token.Pos]*source.CompletionItem
-type Completions map[span.Span]Completion
-type CompletionSnippets map[span.Span]CompletionSnippet
-type UnimportedCompletions map[span.Span]Completion
-type DeepCompletions map[span.Span]Completion
-type FuzzyCompletions map[span.Span]Completion
-type CaseSensitiveCompletions map[span.Span]Completion
-type RankCompletions map[span.Span]Completion
+type Completions map[span.Span][]Completion
+type CompletionSnippets map[span.Span][]CompletionSnippet
+type UnimportedCompletions map[span.Span][]Completion
+type DeepCompletions map[span.Span][]Completion
+type FuzzyCompletions map[span.Span][]Completion
+type CaseSensitiveCompletions map[span.Span][]Completion
+type RankCompletions map[span.Span][]Completion
 type FoldingRanges []span.Span
 type Formats []span.Span
 type Imports []span.Span
 type SuggestedFixes []span.Span
 type Definitions map[span.Span]Definition
-type Highlights map[string][]span.Span
+type Implementations map[span.Span][]span.Span
+type Highlights map[span.Span][]span.Span
 type References map[span.Span][]span.Span
 type Renames map[span.Span]string
 type PrepareRenames map[span.Span]*source.PrepareItem
@@ -77,6 +82,7 @@ type Data struct {
 	Imports                  Imports
 	SuggestedFixes           SuggestedFixes
 	Definitions              Definitions
+	Implementations          Implementations
 	Highlights               Highlights
 	References               References
 	Renames                  Renames
@@ -104,16 +110,17 @@ type Tests interface {
 	FuzzyCompletion(*testing.T, span.Span, Completion, CompletionItems)
 	CaseSensitiveCompletion(*testing.T, span.Span, Completion, CompletionItems)
 	RankCompletion(*testing.T, span.Span, Completion, CompletionItems)
-	FoldingRange(*testing.T, span.Span)
+	FoldingRanges(*testing.T, span.Span)
 	Format(*testing.T, span.Span)
 	Import(*testing.T, span.Span)
 	SuggestedFix(*testing.T, span.Span)
 	Definition(*testing.T, span.Span, Definition)
-	Highlight(*testing.T, string, []span.Span)
+	Implementation(*testing.T, span.Span, []span.Span)
+	Highlight(*testing.T, span.Span, []span.Span)
 	References(*testing.T, span.Span, []span.Span)
 	Rename(*testing.T, span.Span, string)
 	PrepareRename(*testing.T, span.Span, *source.PrepareItem)
-	Symbol(*testing.T, span.URI, []protocol.DocumentSymbol)
+	Symbols(*testing.T, span.URI, []protocol.DocumentSymbol)
 	SignatureHelp(*testing.T, span.Span, *source.SignatureInformation)
 	Link(*testing.T, span.URI, []Link)
 }
@@ -141,7 +148,7 @@ const (
 	CompletionFuzzy
 
 	// CaseSensitive tests case sensitive completion
-	CompletionCaseSensitve
+	CompletionCaseSensitive
 
 	// CompletionRank candidates in test must be valid and in the right relative order.
 	CompletionRank
@@ -180,13 +187,18 @@ func DefaultOptions() source.Options {
 			protocol.SourceOrganizeImports: true,
 			protocol.QuickFix:              true,
 		},
-		source.Mod: {},
+		source.Mod: {
+			protocol.SourceOrganizeImports: true,
+		},
 		source.Sum: {},
 	}
 	o.HoverKind = source.SynopsisDocumentation
 	o.InsertTextFormat = protocol.SnippetTextFormat
+	o.CompletionBudget = time.Minute
 	return o
 }
+
+var haveCgo = false
 
 func Load(t testing.TB, exporter packagestest.Exporter, dir string) *Data {
 	t.Helper()
@@ -202,6 +214,7 @@ func Load(t testing.TB, exporter packagestest.Exporter, dir string) *Data {
 		RankCompletions:          make(RankCompletions),
 		CaseSensitiveCompletions: make(CaseSensitiveCompletions),
 		Definitions:              make(Definitions),
+		Implementations:          make(Implementations),
 		Highlights:               make(Highlights),
 		References:               make(References),
 		Renames:                  make(Renames),
@@ -287,29 +300,30 @@ func Load(t testing.TB, exporter packagestest.Exporter, dir string) *Data {
 
 	// Collect any data that needs to be used by subsequent tests.
 	if err := data.Exported.Expect(map[string]interface{}{
-		"diag":          data.collectDiagnostics,
-		"item":          data.collectCompletionItems,
-		"complete":      data.collectCompletions(CompletionDefault),
-		"unimported":    data.collectCompletions(CompletionUnimported),
-		"deep":          data.collectCompletions(CompletionDeep),
-		"fuzzy":         data.collectCompletions(CompletionFuzzy),
-		"casesensitive": data.collectCompletions(CompletionCaseSensitve),
-		"rank":          data.collectCompletions(CompletionRank),
-		"snippet":       data.collectCompletionSnippets,
-		"fold":          data.collectFoldingRanges,
-		"format":        data.collectFormats,
-		"import":        data.collectImports,
-		"godef":         data.collectDefinitions,
-		"typdef":        data.collectTypeDefinitions,
-		"hover":         data.collectHoverDefinitions,
-		"highlight":     data.collectHighlights,
-		"refs":          data.collectReferences,
-		"rename":        data.collectRenames,
-		"prepare":       data.collectPrepareRenames,
-		"symbol":        data.collectSymbols,
-		"signature":     data.collectSignatures,
-		"link":          data.collectLinks,
-		"suggestedfix":  data.collectSuggestedFixes,
+		"diag":            data.collectDiagnostics,
+		"item":            data.collectCompletionItems,
+		"complete":        data.collectCompletions(CompletionDefault),
+		"unimported":      data.collectCompletions(CompletionUnimported),
+		"deep":            data.collectCompletions(CompletionDeep),
+		"fuzzy":           data.collectCompletions(CompletionFuzzy),
+		"casesensitive":   data.collectCompletions(CompletionCaseSensitive),
+		"rank":            data.collectCompletions(CompletionRank),
+		"snippet":         data.collectCompletionSnippets,
+		"fold":            data.collectFoldingRanges,
+		"format":          data.collectFormats,
+		"import":          data.collectImports,
+		"godef":           data.collectDefinitions,
+		"implementations": data.collectImplementations,
+		"typdef":          data.collectTypeDefinitions,
+		"hover":           data.collectHoverDefinitions,
+		"highlight":       data.collectHighlights,
+		"refs":            data.collectReferences,
+		"rename":          data.collectRenames,
+		"prepare":         data.collectPrepareRenames,
+		"symbol":          data.collectSymbols,
+		"signature":       data.collectSignatures,
+		"link":            data.collectLinks,
+		"suggestedfix":    data.collectSuggestedFixes,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -333,80 +347,70 @@ func Run(t *testing.T, tests Tests, data *Data) {
 	t.Helper()
 	checkData(t, data)
 
+	eachCompletion := func(t *testing.T, cases map[span.Span][]Completion, test func(*testing.T, span.Span, Completion, CompletionItems)) {
+		t.Helper()
+
+		for src, exp := range cases {
+			for i, e := range exp {
+				t.Run(spanName(src)+"_"+strconv.Itoa(i), func(t *testing.T) {
+					t.Helper()
+					if (!haveCgo || runtime.GOOS == "android") && strings.Contains(t.Name(), "cgo") {
+						t.Skip("test requires cgo, not supported")
+					}
+					test(t, src, e, data.CompletionItems)
+				})
+			}
+
+		}
+	}
+
 	t.Run("Completion", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.Completions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.Completion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.Completions, tests.Completion)
 	})
 
 	t.Run("CompletionSnippets", func(t *testing.T) {
 		t.Helper()
 		for _, placeholders := range []bool{true, false} {
-			for src, expected := range data.CompletionSnippets {
-				name := spanName(src)
-				if placeholders {
-					name += "_placeholders"
+			for src, expecteds := range data.CompletionSnippets {
+				for i, expected := range expecteds {
+					name := spanName(src) + "_" + strconv.Itoa(i+1)
+					if placeholders {
+						name += "_placeholders"
+					}
+
+					t.Run(name, func(t *testing.T) {
+						t.Helper()
+						tests.CompletionSnippet(t, src, expected, placeholders, data.CompletionItems)
+					})
 				}
-				t.Run(name, func(t *testing.T) {
-					t.Helper()
-					tests.CompletionSnippet(t, src, expected, placeholders, data.CompletionItems)
-				})
 			}
 		}
 	})
 
 	t.Run("UnimportedCompletion", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.UnimportedCompletions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.UnimportedCompletion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.UnimportedCompletions, tests.UnimportedCompletion)
 	})
 
 	t.Run("DeepCompletion", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.DeepCompletions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.DeepCompletion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.DeepCompletions, tests.DeepCompletion)
 	})
 
 	t.Run("FuzzyCompletion", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.FuzzyCompletions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.FuzzyCompletion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.FuzzyCompletions, tests.FuzzyCompletion)
 	})
 
 	t.Run("CaseSensitiveCompletion", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.CaseSensitiveCompletions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.CaseSensitiveCompletion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.CaseSensitiveCompletions, tests.CaseSensitiveCompletion)
 	})
 
 	t.Run("RankCompletions", func(t *testing.T) {
 		t.Helper()
-		for src, test := range data.RankCompletions {
-			t.Run(spanName(src), func(t *testing.T) {
-				t.Helper()
-				tests.RankCompletion(t, src, test, data.CompletionItems)
-			})
-		}
+		eachCompletion(t, data.RankCompletions, tests.RankCompletion)
 	})
 
 	t.Run("Diagnostics", func(t *testing.T) {
@@ -424,7 +428,7 @@ func Run(t *testing.T, tests Tests, data *Data) {
 		for _, spn := range data.FoldingRanges {
 			t.Run(uriName(spn.URI()), func(t *testing.T) {
 				t.Helper()
-				tests.FoldingRange(t, spn)
+				tests.FoldingRanges(t, spn)
 			})
 		}
 	})
@@ -464,17 +468,30 @@ func Run(t *testing.T, tests Tests, data *Data) {
 		for spn, d := range data.Definitions {
 			t.Run(spanName(spn), func(t *testing.T) {
 				t.Helper()
+				if (!haveCgo || runtime.GOOS == "android") && strings.Contains(t.Name(), "cgo") {
+					t.Skip("test requires cgo, not supported")
+				}
 				tests.Definition(t, spn, d)
+			})
+		}
+	})
+
+	t.Run("Implementation", func(t *testing.T) {
+		t.Helper()
+		for spn, m := range data.Implementations {
+			t.Run(spanName(spn), func(t *testing.T) {
+				t.Helper()
+				tests.Implementation(t, spn, m)
 			})
 		}
 	})
 
 	t.Run("Highlight", func(t *testing.T) {
 		t.Helper()
-		for name, locations := range data.Highlights {
-			t.Run(name, func(t *testing.T) {
+		for pos, locations := range data.Highlights {
+			t.Run(spanName(pos), func(t *testing.T) {
 				t.Helper()
-				tests.Highlight(t, name, locations)
+				tests.Highlight(t, pos, locations)
 			})
 		}
 	})
@@ -514,7 +531,7 @@ func Run(t *testing.T, tests Tests, data *Data) {
 		for uri, expectedSymbols := range data.Symbols {
 			t.Run(uriName(uri), func(t *testing.T) {
 				t.Helper()
-				tests.Symbol(t, uri, expectedSymbols)
+				tests.Symbols(t, uri, expectedSymbols)
 			})
 		}
 	})
@@ -574,13 +591,25 @@ func checkData(t *testing.T, data *Data) {
 		}
 	}
 
-	fmt.Fprintf(buf, "CompletionsCount = %v\n", len(data.Completions))
-	fmt.Fprintf(buf, "CompletionSnippetCount = %v\n", len(data.CompletionSnippets))
-	fmt.Fprintf(buf, "UnimportedCompletionsCount = %v\n", len(data.UnimportedCompletions))
-	fmt.Fprintf(buf, "DeepCompletionsCount = %v\n", len(data.DeepCompletions))
-	fmt.Fprintf(buf, "FuzzyCompletionsCount = %v\n", len(data.FuzzyCompletions))
-	fmt.Fprintf(buf, "RankedCompletionsCount = %v\n", len(data.RankCompletions))
-	fmt.Fprintf(buf, "CaseSensitiveCompletionsCount = %v\n", len(data.CaseSensitiveCompletions))
+	snippetCount := 0
+	for _, want := range data.CompletionSnippets {
+		snippetCount += len(want)
+	}
+
+	countCompletions := func(c map[span.Span][]Completion) (count int) {
+		for _, want := range c {
+			count += len(want)
+		}
+		return count
+	}
+
+	fmt.Fprintf(buf, "CompletionsCount = %v\n", countCompletions(data.Completions))
+	fmt.Fprintf(buf, "CompletionSnippetCount = %v\n", snippetCount)
+	fmt.Fprintf(buf, "UnimportedCompletionsCount = %v\n", countCompletions(data.UnimportedCompletions))
+	fmt.Fprintf(buf, "DeepCompletionsCount = %v\n", countCompletions(data.DeepCompletions))
+	fmt.Fprintf(buf, "FuzzyCompletionsCount = %v\n", countCompletions(data.FuzzyCompletions))
+	fmt.Fprintf(buf, "RankedCompletionsCount = %v\n", countCompletions(data.RankCompletions))
+	fmt.Fprintf(buf, "CaseSensitiveCompletionsCount = %v\n", countCompletions(data.CaseSensitiveCompletions))
 	fmt.Fprintf(buf, "DiagnosticsCount = %v\n", diagnosticsCount)
 	fmt.Fprintf(buf, "FoldingRangesCount = %v\n", len(data.FoldingRanges))
 	fmt.Fprintf(buf, "FormatCount = %v\n", len(data.Formats))
@@ -595,6 +624,7 @@ func checkData(t *testing.T, data *Data) {
 	fmt.Fprintf(buf, "SymbolsCount = %v\n", len(data.Symbols))
 	fmt.Fprintf(buf, "SignaturesCount = %v\n", len(data.Signatures))
 	fmt.Fprintf(buf, "LinksCount = %v\n", linksCount)
+	fmt.Fprintf(buf, "ImplementationsCount = %v\n", len(data.Implementations))
 
 	want := string(data.Golden("summary", "summary.txt", func() ([]byte, error) {
 		return buf.Bytes(), nil
@@ -684,7 +714,6 @@ func (data *Data) collectDiagnostics(spn span.Span, msgSource, msg string) {
 	// This is not the correct way to do this,
 	// but it seems excessive to do the full conversion here.
 	want := source.Diagnostic{
-		URI: spn.URI(),
 		Range: protocol.Range{
 			Start: protocol.Position{
 				Line:      float64(spn.Start().Line()) - 1,
@@ -703,10 +732,10 @@ func (data *Data) collectDiagnostics(spn span.Span, msgSource, msg string) {
 }
 
 func (data *Data) collectCompletions(typ CompletionTestType) func(span.Span, []token.Pos) {
-	result := func(m map[span.Span]Completion, src span.Span, expected []token.Pos) {
-		m[src] = Completion{
+	result := func(m map[span.Span][]Completion, src span.Span, expected []token.Pos) {
+		m[src] = append(m[src], Completion{
 			CompletionItems: expected,
-		}
+		})
 	}
 	switch typ {
 	case CompletionDeep:
@@ -725,7 +754,7 @@ func (data *Data) collectCompletions(typ CompletionTestType) func(span.Span, []t
 		return func(src span.Span, expected []token.Pos) {
 			result(data.RankCompletions, src, expected)
 		}
-	case CompletionCaseSensitve:
+	case CompletionCaseSensitive:
 		return func(src span.Span, expected []token.Pos) {
 			result(data.CaseSensitiveCompletions, src, expected)
 		}
@@ -738,7 +767,9 @@ func (data *Data) collectCompletions(typ CompletionTestType) func(span.Span, []t
 
 func (data *Data) collectCompletionItems(pos token.Pos, args []string) {
 	if len(args) < 3 {
-		return
+		loc := data.Exported.ExpectFileSet.Position(pos)
+		data.t.Fatalf("%s:%d: @item expects at least 3 args, got %d",
+			loc.Filename, loc.Line, len(args))
 	}
 	label, detail, kind := args[0], args[1], args[2]
 	var documentation string
@@ -776,6 +807,10 @@ func (data *Data) collectDefinitions(src, target span.Span) {
 	}
 }
 
+func (data *Data) collectImplementations(src span.Span, targets []span.Span) {
+	data.Implementations[src] = targets
+}
+
 func (data *Data) collectHoverDefinitions(src, target span.Span) {
 	data.Definitions[src] = Definition{
 		Src:       src,
@@ -798,8 +833,9 @@ func (data *Data) collectDefinitionNames(src span.Span, name string) {
 	data.Definitions[src] = d
 }
 
-func (data *Data) collectHighlights(name string, rng span.Span) {
-	data.Highlights[name] = append(data.Highlights[name], rng)
+func (data *Data) collectHighlights(src span.Span, expected []span.Span) {
+	// Declaring a highlight in a test file: @highlight(src, expected1, expected2)
+	data.Highlights[src] = append(data.Highlights[src], expected...)
 }
 
 func (data *Data) collectReferences(src span.Span, expected []span.Span) {
@@ -811,11 +847,6 @@ func (data *Data) collectRenames(src span.Span, newText string) {
 }
 
 func (data *Data) collectPrepareRenames(src span.Span, rng span.Range, placeholder string) {
-	if int(rng.End-rng.Start) != len(placeholder) {
-		// If the length of the placeholder and the length of the range do not match,
-		// make the range just be the start.
-		rng = span.NewRange(rng.FileSet, rng.Start, rng.Start)
-	}
 	m, err := data.Mapper(src.URI())
 	if err != nil {
 		data.t.Fatal(err)
@@ -868,11 +899,11 @@ func (data *Data) collectSignatures(spn span.Span, signature string, activeParam
 }
 
 func (data *Data) collectCompletionSnippets(spn span.Span, item token.Pos, plain, placeholder string) {
-	data.CompletionSnippets[spn] = CompletionSnippet{
+	data.CompletionSnippets[spn] = append(data.CompletionSnippets[spn], CompletionSnippet{
 		CompletionItem:     item,
 		PlainSnippet:       plain,
 		PlaceholderSnippet: placeholder,
-	}
+	})
 }
 
 func (data *Data) collectLinks(spn span.Span, link string, note *expect.Note, fset *token.FileSet) {
@@ -891,4 +922,36 @@ func uriName(uri span.URI) string {
 
 func spanName(spn span.Span) string {
 	return fmt.Sprintf("%v_%v_%v", uriName(spn.URI()), spn.Start().Line(), spn.Start().Column())
+}
+
+func CopyFolderToTempDir(folder string) (string, error) {
+	if _, err := os.Stat(folder); err != nil {
+		return "", err
+	}
+	dst, err := ioutil.TempDir("", "modfile_test")
+	if err != nil {
+		return "", err
+	}
+	fds, err := ioutil.ReadDir(folder)
+	if err != nil {
+		return "", err
+	}
+	for _, fd := range fds {
+		srcfp := filepath.Join(folder, fd.Name())
+		stat, err := os.Stat(srcfp)
+		if err != nil {
+			return "", err
+		}
+		if !stat.Mode().IsRegular() {
+			return "", fmt.Errorf("cannot copy non regular file %s", srcfp)
+		}
+		contents, err := ioutil.ReadFile(srcfp)
+		if err != nil {
+			return "", err
+		}
+		if err := ioutil.WriteFile(filepath.Join(dst, fd.Name()), contents, stat.Mode()); err != nil {
+			return "", err
+		}
+	}
+	return dst, nil
 }

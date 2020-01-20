@@ -67,7 +67,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 			Kind:  "markdown",
 			Value: markdown,
 		},
-		Range: &hoverRange,
+		Range: hoverRange,
 	}, nil
 }
 

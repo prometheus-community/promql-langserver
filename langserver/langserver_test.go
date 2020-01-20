@@ -97,6 +97,11 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
+	_, err = s.NonstandardRequest(context.Background(), "", nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
 	_, err = s.Declaration(context.Background(), &protocol.DeclarationParams{})
 	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
@@ -228,12 +233,12 @@ func TestServer(t *testing.T) { //nolint:funlen
 	s := server.server
 
 	// Initialize Server
-	_, err := s.Initialize(context.Background(), &protocol.ParamInitia{})
+	_, err := s.Initialize(context.Background(), &protocol.ParamInitialize{})
 	if err != nil {
 		panic("Failed to initialize Server")
 	}
 
-	_, err = s.Initialize(context.Background(), &protocol.ParamInitia{})
+	_, err = s.Initialize(context.Background(), &protocol.ParamInitialize{})
 	if err == nil {
 		panic("cannot initialize server twice")
 	}

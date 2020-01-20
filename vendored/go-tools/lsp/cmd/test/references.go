@@ -6,33 +6,31 @@ package cmdtest
 
 import (
 	"fmt"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"sort"
 	"testing"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 )
 
 func (r *runner) References(t *testing.T, spn span.Span, itemList []span.Span) {
-	var expect string
+	var itemStrings []string
 	for _, i := range itemList {
-		expect += fmt.Sprintln(i)
+		itemStrings = append(itemStrings, fmt.Sprint(i))
 	}
+	sort.Strings(itemStrings)
+	var expect string
+	for _, i := range itemStrings {
+		expect += i + "\n"
+	}
+	expect = r.Normalize(expect)
 
 	uri := spn.URI()
 	filename := uri.Filename()
 	target := filename + fmt.Sprintf(":%v:%v", spn.Start().Line(), spn.Start().Column())
-
-	app := cmd.New("gopls-test", r.data.Config.Dir, r.data.Config.Env, r.options)
-	got := CaptureStdOut(t, func() {
-		err := tool.Run(r.ctx, app, append([]string{"-remote=internal", "references"}, target))
-		if err != nil {
-			fmt.Println(spn.Start().Line())
-			fmt.Println(err)
-		}
-	})
-
-	if expect != got {
+	got, stderr := r.NormalizeGoplsCmd(t, "references", "-d", target)
+	if stderr != "" {
+		t.Errorf("references failed for %s: %s", target, stderr)
+	} else if expect != got {
 		t.Errorf("references failed for %s expected:\n%s\ngot:\n%s", target, expect, got)
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"context"
 	"go/token"
 	"html/template"
+	stdlog "log"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -16,7 +17,9 @@ import (
 	"path"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
@@ -24,6 +27,14 @@ import (
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
 )
+
+type Instance interface {
+	Logfile() string
+	StartTime() time.Time
+	Address() string
+	Debug() string
+	Workdir() string
+}
 
 type Cache interface {
 	ID() string
@@ -161,10 +172,12 @@ func getFile(r *http.Request) interface{} {
 	return session.File(hash)
 }
 
-func getInfo(r *http.Request) interface{} {
-	buf := &bytes.Buffer{}
-	PrintVersionInfo(buf, true, HTML)
-	return template.HTML(buf.String())
+func getInfo(s Instance) dataFunc {
+	return func(r *http.Request) interface{} {
+		buf := &bytes.Buffer{}
+		PrintServerInfo(buf, s)
+		return template.HTML(buf.String())
+	}
 }
 
 func getMemory(r *http.Request) interface{} {
@@ -204,7 +217,7 @@ func DropView(view View) {
 // Serve starts and runs a debug server in the background.
 // It also logs the port the server starts on, to allow for :0 auto assigned
 // ports.
-func Serve(ctx context.Context, addr string) error {
+func Serve(ctx context.Context, addr string, instance Instance) error {
 	mu.Lock()
 	defer mu.Unlock()
 	if addr == "" {
@@ -214,7 +227,12 @@ func Serve(ctx context.Context, addr string) error {
 	if err != nil {
 		return err
 	}
-	log.Print(ctx, "Debug serving", tag.Of("Port", listener.Addr().(*net.TCPAddr).Port))
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	if strings.HasSuffix(addr, ":0") {
+		stdlog.Printf("debug server listening on port %d", port)
+	}
+	log.Print(ctx, "Debug serving", tag.Of("Port", port))
 	prometheus := prometheus.New()
 	rpcs := &rpcs{}
 	traces := &traces{}
@@ -235,7 +253,7 @@ func Serve(ctx context.Context, addr string) error {
 		mux.HandleFunc("/session/", Render(sessionTmpl, getSession))
 		mux.HandleFunc("/view/", Render(viewTmpl, getView))
 		mux.HandleFunc("/file/", Render(fileTmpl, getFile))
-		mux.HandleFunc("/info", Render(infoTmpl, getInfo))
+		mux.HandleFunc("/info", Render(infoTmpl, getInfo(instance)))
 		mux.HandleFunc("/memory", Render(memoryTmpl, getMemory))
 		if err := http.Serve(listener, mux); err != nil {
 			log.Error(ctx, "Debug server failed", err)
@@ -246,10 +264,10 @@ func Serve(ctx context.Context, addr string) error {
 	return nil
 }
 
-func Render(tmpl *template.Template, fun func(*http.Request) interface{}) func(http.ResponseWriter, *http.Request) {
+type dataFunc func(*http.Request) interface{}
+
+func Render(tmpl *template.Template, fun dataFunc) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
 		var data interface{}
 		if fun != nil {
 			data = fun(r)

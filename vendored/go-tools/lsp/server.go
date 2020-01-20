@@ -21,15 +21,18 @@ import (
 func NewClientServer(ctx context.Context, cache source.Cache, client protocol.Client) (context.Context, *Server) {
 	ctx = protocol.WithClient(ctx, client)
 	return ctx, &Server{
-		client:  client,
-		session: cache.NewSession(ctx),
+		client:    client,
+		session:   cache.NewSession(ctx),
+		delivered: make(map[span.URI]sentDiagnostics),
 	}
 }
 
 // NewServer starts an LSP server on the supplied stream, and waits until the
 // stream is closed.
 func NewServer(ctx context.Context, cache source.Cache, stream jsonrpc2.Stream) (context.Context, *Server) {
-	s := &Server{}
+	s := &Server{
+		delivered: make(map[span.URI]sentDiagnostics),
+	}
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
 	s.session = cache.NewSession(ctx)
 	return ctx, s
@@ -41,8 +44,8 @@ func RunServerOnPort(ctx context.Context, cache source.Cache, port int, h func(c
 	return RunServerOnAddress(ctx, cache, fmt.Sprintf(":%v", port), h)
 }
 
-// RunServerOnPort starts an LSP server on the given port and does not exit.
-// This function exists for debugging purposes.
+// RunServerOnAddress starts an LSP server on the given address and does not
+// exit. This function exists for debugging purposes.
 func RunServerOnAddress(ctx context.Context, cache source.Cache, addr string, h func(ctx context.Context, s *Server)) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -79,19 +82,30 @@ type Server struct {
 
 	session source.Session
 
-	// undelivered is a cache of any diagnostics that the server
-	// failed to deliver for some reason.
-	undeliveredMu sync.Mutex
-	undelivered   map[span.URI][]source.Diagnostic
+	// changedFiles tracks files for which there has been a textDocument/didChange.
+	changedFiles map[span.URI]struct{}
 
 	// folders is only valid between initialize and initialized, and holds the
 	// set of folders to build views for when we are ready
 	pendingFolders []protocol.WorkspaceFolder
+
+	// delivered is a cache of the diagnostics that the server has sent.
+	deliveredMu sync.Mutex
+	delivered   map[span.URI]sentDiagnostics
+}
+
+// sentDiagnostics is used to cache diagnostics that have been sent for a given file.
+type sentDiagnostics struct {
+	version      float64
+	identifier   string
+	sorted       []source.Diagnostic
+	withAnalysis bool
+	snapshotID   uint64
 }
 
 // General
 
-func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
+func (s *Server) Initialize(ctx context.Context, params *protocol.ParamInitialize) (*protocol.InitializeResult, error) {
 	return s.initialize(ctx, params)
 }
 
@@ -107,14 +121,18 @@ func (s *Server) Exit(ctx context.Context) error {
 	return s.exit(ctx)
 }
 
+func (s *Server) CancelRequest(ctx context.Context, params *protocol.CancelParams) error {
+	return nil
+}
+
 // Workspace
 
 func (s *Server) DidChangeWorkspaceFolders(ctx context.Context, params *protocol.DidChangeWorkspaceFoldersParams) error {
 	return s.changeFolders(ctx, params.Event)
 }
 
-func (s *Server) DidChangeConfiguration(context.Context, *protocol.DidChangeConfigurationParams) error {
-	return notImplemented("DidChangeConfiguration")
+func (s *Server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
+	return s.updateConfiguration(ctx, params.Settings)
 }
 
 func (s *Server) DidChangeWatchedFiles(ctx context.Context, params *protocol.DidChangeWatchedFilesParams) error {
@@ -173,16 +191,16 @@ func (s *Server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 	return s.signatureHelp(ctx, params)
 }
 
-func (s *Server) Definition(ctx context.Context, params *protocol.DefinitionParams) ([]protocol.Location, error) {
+func (s *Server) Definition(ctx context.Context, params *protocol.DefinitionParams) (protocol.Definition, error) {
 	return s.definition(ctx, params)
 }
 
-func (s *Server) TypeDefinition(ctx context.Context, params *protocol.TypeDefinitionParams) ([]protocol.Location, error) {
+func (s *Server) TypeDefinition(ctx context.Context, params *protocol.TypeDefinitionParams) (protocol.Definition, error) {
 	return s.typeDefinition(ctx, params)
 }
 
-func (s *Server) Implementation(context.Context, *protocol.ImplementationParams) ([]protocol.Location, error) {
-	return nil, notImplemented("Implementation")
+func (s *Server) Implementation(ctx context.Context, params *protocol.ImplementationParams) (protocol.Definition, error) {
+	return s.implementation(ctx, params)
 }
 
 func (s *Server) References(ctx context.Context, params *protocol.ReferenceParams) ([]protocol.Location, error) {
@@ -241,7 +259,7 @@ func (s *Server) Rename(ctx context.Context, params *protocol.RenameParams) (*pr
 	return s.rename(ctx, params)
 }
 
-func (s *Server) Declaration(context.Context, *protocol.DeclarationParams) ([]protocol.DeclarationLink, error) {
+func (s *Server) Declaration(context.Context, *protocol.DeclarationParams) (protocol.Declaration, error) {
 	return nil, notImplemented("Declaration")
 }
 
@@ -253,7 +271,7 @@ func (s *Server) LogTraceNotification(context.Context, *protocol.LogTraceParams)
 	return notImplemented("LogtraceNotification")
 }
 
-func (s *Server) PrepareRename(ctx context.Context, params *protocol.PrepareRenameParams) (*protocol.Range, error) {
+func (s *Server) PrepareRename(ctx context.Context, params *protocol.PrepareRenameParams) (interface{}, error) {
 	// TODO(suzmue): support sending placeholder text.
 	return s.prepareRename(ctx, params)
 }
@@ -268,6 +286,38 @@ func (s *Server) SetTraceNotification(context.Context, *protocol.SetTraceParams)
 
 func (s *Server) SelectionRange(context.Context, *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
 	return nil, notImplemented("SelectionRange")
+}
+
+// Nonstandard requests
+func (s *Server) NonstandardRequest(ctx context.Context, method string, params interface{}) (interface{}, error) {
+	paramMap := params.(map[string]interface{})
+	if method == "gopls/diagnoseFiles" {
+		for _, file := range paramMap["files"].([]interface{}) {
+			uri := span.URI(file.(string))
+			view, err := s.session.ViewOf(uri)
+			if err != nil {
+				return nil, err
+			}
+			fileID, diagnostics, err := source.FileDiagnostics(ctx, view.Snapshot(), uri)
+			if err != nil {
+				return nil, err
+			}
+			if err := s.client.PublishDiagnostics(ctx, &protocol.PublishDiagnosticsParams{
+				URI:         protocol.NewURI(uri),
+				Diagnostics: toProtocolDiagnostics(diagnostics),
+				Version:     fileID.Version,
+			}); err != nil {
+				return nil, err
+			}
+		}
+		if err := s.client.PublishDiagnostics(ctx, &protocol.PublishDiagnosticsParams{
+			URI: "gopls://diagnostics-done",
+		}); err != nil {
+			return nil, err
+		}
+		return struct{}{}, nil
+	}
+	return nil, notImplemented(method)
 }
 
 func notImplemented(method string) *jsonrpc2.Error {

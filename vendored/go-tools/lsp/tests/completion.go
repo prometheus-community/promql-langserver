@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -19,7 +20,7 @@ func ToProtocolCompletionItems(items []source.CompletionItem) []protocol.Complet
 }
 
 func ToProtocolCompletionItem(item source.CompletionItem) protocol.CompletionItem {
-	return protocol.CompletionItem{
+	pItem := protocol.CompletionItem{
 		Label:         item.Label,
 		Kind:          item.Kind,
 		Detail:        item.Detail,
@@ -28,7 +29,13 @@ func ToProtocolCompletionItem(item source.CompletionItem) protocol.CompletionIte
 		TextEdit: &protocol.TextEdit{
 			NewText: item.Snippet(),
 		},
+		// Negate score so best score has lowest sort text like real API.
+		SortText: fmt.Sprint(-item.Score),
 	}
+	if pItem.InsertText == "" {
+		pItem.InsertText = pItem.Label
+	}
+	return pItem
 }
 
 func FilterBuiltins(items []protocol.CompletionItem) []protocol.CompletionItem {
@@ -60,11 +67,13 @@ func isBuiltin(label, detail string, kind protocol.CompletionItemKind) bool {
 	return false
 }
 
-func CheckCompletionOrder(want, got []protocol.CompletionItem) string {
+func CheckCompletionOrder(want, got []protocol.CompletionItem, strictScores bool) string {
 	var (
 		matchedIdxs []int
 		lastGotIdx  int
+		lastGotSort float64
 		inOrder     = true
+		errorMsg    = "completions out of order"
 	)
 	for _, w := range want {
 		var found bool
@@ -72,10 +81,19 @@ func CheckCompletionOrder(want, got []protocol.CompletionItem) string {
 			if w.Label == g.Label && w.Detail == g.Detail && w.Kind == g.Kind {
 				matchedIdxs = append(matchedIdxs, i)
 				found = true
+
 				if i < lastGotIdx {
 					inOrder = false
 				}
 				lastGotIdx = i
+
+				sort, _ := strconv.ParseFloat(g.SortText, 64)
+				if strictScores && len(matchedIdxs) > 1 && sort <= lastGotSort {
+					inOrder = false
+					errorMsg = "candidate scores not strictly decreasing"
+				}
+				lastGotSort = sort
+
 				break
 			}
 		}
@@ -91,7 +109,7 @@ func CheckCompletionOrder(want, got []protocol.CompletionItem) string {
 	}
 
 	if !inOrder {
-		return summarizeCompletionItems(-1, want, matched, "completions out of order")
+		return summarizeCompletionItems(-1, want, matched, errorMsg)
 	}
 
 	return ""

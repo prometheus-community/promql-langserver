@@ -36,12 +36,12 @@ func (c *completer) structFieldSnippet(label, detail string) *snippet.Builder {
 	snip.WriteText(label + ": ")
 	snip.WritePlaceholder(func(b *snippet.Builder) {
 		// A placeholder snippet turns "Foo{Ba<>" into "Foo{Bar: <*int*>".
-		if c.opts.Placeholders {
+		if c.opts.placeholders {
 			b.WriteText(detail)
 		}
 	})
 
-	fset := c.view.Session().Cache().FileSet()
+	fset := c.snapshot.View().Session().Cache().FileSet()
 
 	// If the cursor position is on a different line from the literal's opening brace,
 	// we are in a multiline literal.
@@ -55,7 +55,7 @@ func (c *completer) structFieldSnippet(label, detail string) *snippet.Builder {
 // functionCallSnippets calculates the snippet for function calls.
 func (c *completer) functionCallSnippet(name string, params []string) *snippet.Builder {
 	// If there is no suffix then we need to reuse existing call parens
-	// "()" if present. If there is an identifer suffix then we always
+	// "()" if present. If there is an identifier suffix then we always
 	// need to include "()" since we don't overwrite the suffix.
 	if c.surrounding != nil && c.surrounding.Suffix() == "" && len(c.path) > 1 {
 		// If we are the left side (i.e. "Fun") part of a call expression,
@@ -79,7 +79,7 @@ func (c *completer) functionCallSnippet(name string, params []string) *snippet.B
 	snip := &snippet.Builder{}
 	snip.WriteText(name + "(")
 
-	if c.opts.Placeholders {
+	if c.opts.placeholders {
 		// A placeholder snippet turns "someFun<>" into "someFunc(<*i int*>, *s string*)".
 		for i, p := range params {
 			if i > 0 {

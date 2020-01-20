@@ -16,7 +16,6 @@ import (
 	cmdtest "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd/test"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
 	"golang.org/x/tools/go/packages/packagestest"
 )
 
@@ -53,9 +52,8 @@ func TestDefinitionHelpExample(t *testing.T) {
 		fmt.Sprintf("%v:%v:%v", thisFile, cmd.ExampleLine, cmd.ExampleColumn),
 		fmt.Sprintf("%v:#%v", thisFile, cmd.ExampleOffset)} {
 		args := append(baseArgs, query)
-		got := cmdtest.CaptureStdOut(t, func() {
-			_ = tool.Run(tests.Context(t), cmd.New("gopls-test", "", nil, nil), args)
-		})
+		r := cmdtest.NewRunner(nil, nil, tests.Context(t), nil)
+		got, _ := r.NormalizeGoplsCmd(t, args...)
 		if !expect.MatchString(got) {
 			t.Errorf("test with %v\nexpected:\n%s\ngot:\n%s", args, expect, got)
 		}

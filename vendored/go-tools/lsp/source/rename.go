@@ -41,86 +41,84 @@ type PrepareItem struct {
 	Text  string
 }
 
-func PrepareRename(ctx context.Context, view View, f File, pos protocol.Position) (*PrepareItem, error) {
+func PrepareRename(ctx context.Context, s Snapshot, f FileHandle, pp protocol.Position) (*PrepareItem, error) {
 	ctx, done := trace.StartSpan(ctx, "source.PrepareRename")
 	defer done()
 
-	i, err := Identifier(ctx, view, f, pos)
+	qos, err := qualifiedObjsAtProtocolPos(ctx, s, f, pp)
 	if err != nil {
 		return nil, err
-	}
-
-	// TODO(rstambler): We should handle this in a better way.
-	// If the object declaration is nil, assume it is an import spec.
-	if i.Declaration.obj == nil {
-		// Find the corresponding package name for this import spec
-		// and rename that instead.
-		ident, err := i.getPkgName(ctx)
-		if err != nil {
-			return nil, err
-		}
-		i = ident
 	}
 
 	// Do not rename builtin identifiers.
-	if i.Declaration.obj.Parent() == types.Universe {
-		return nil, errors.Errorf("cannot rename builtin %q", i.Name)
+	if qos[0].obj.Parent() == types.Universe {
+		return nil, errors.Errorf("cannot rename builtin %q", qos[0].obj.Name())
 	}
-	rng, err := i.mappedRange.Range()
+
+	mr, err := posToMappedRange(s.View(), qos[0].sourcePkg, qos[0].node.Pos(), qos[0].node.End())
 	if err != nil {
 		return nil, err
 	}
+
+	rng, err := mr.Range()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, isImport := qos[0].node.(*ast.ImportSpec); isImport {
+		// We're not really renaming the import path.
+		rng.End = rng.Start
+	}
+
 	return &PrepareItem{
 		Range: rng,
-		Text:  i.Name,
+		Text:  qos[0].obj.Name(),
 	}, nil
 }
 
 // Rename returns a map of TextEdits for each file modified when renaming a given identifier within a package.
-func (i *IdentifierInfo) Rename(ctx context.Context, view View, newName string) (map[span.URI][]protocol.TextEdit, error) {
+func Rename(ctx context.Context, s Snapshot, f FileHandle, pp protocol.Position, newName string) (map[span.URI][]protocol.TextEdit, error) {
 	ctx, done := trace.StartSpan(ctx, "source.Rename")
 	defer done()
 
-	// TODO(rstambler): We should handle this in a better way.
-	// If the object declaration is nil, assume it is an import spec.
-	if i.Declaration.obj == nil {
-		// Find the corresponding package name for this import spec
-		// and rename that instead.
-		ident, err := i.getPkgName(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return ident.Rename(ctx, view, newName)
+	qos, err := qualifiedObjsAtProtocolPos(ctx, s, f, pp)
+	if err != nil {
+		return nil, err
 	}
-	if i.Name == newName {
+
+	obj := qos[0].obj
+	pkg := qos[0].pkg
+	sourcePkg := qos[0].sourcePkg
+
+	if obj.Name() == newName {
 		return nil, errors.Errorf("old and new names are the same: %s", newName)
 	}
 	if !isValidIdentifier(newName) {
-		return nil, errors.Errorf("invalid identifier to rename: %q", i.Name)
+		return nil, errors.Errorf("invalid identifier to rename: %q", newName)
 	}
 	// Do not rename builtin identifiers.
-	if i.Declaration.obj.Parent() == types.Universe {
-		return nil, errors.Errorf("cannot rename builtin %q", i.Name)
+	if obj.Parent() == types.Universe {
+		return nil, errors.Errorf("cannot rename builtin %q", obj.Name())
 	}
-	if i.pkg == nil || i.pkg.IsIllTyped() {
-		return nil, errors.Errorf("package for %s is ill typed", i.File.File().Identity().URI)
+	if pkg == nil || pkg.IsIllTyped() {
+		return nil, errors.Errorf("package for %s is ill typed", f.Identity().URI)
 	}
 	// Do not rename identifiers declared in another package.
-	if i.pkg.GetTypes() != i.Declaration.obj.Pkg() {
-		return nil, errors.Errorf("failed to rename because %q is declared in package %q", i.Name, i.Declaration.obj.Pkg().Name())
+	if pkg != sourcePkg {
+		return nil, errors.Errorf("rename failed because %q is declared in a different package (%s)", obj.Name(), pkg.PkgPath())
 	}
 
-	refs, err := i.References(ctx)
+	refs, err := References(ctx, s, f, pp, true)
 	if err != nil {
 		return nil, err
 	}
 
 	r := renamer{
 		ctx:          ctx,
-		fset:         view.Session().Cache().FileSet(),
+		fset:         s.View().Session().Cache().FileSet(),
 		refs:         refs,
 		objsToUpdate: make(map[types.Object]bool),
-		from:         i.Name,
+		from:         obj.Name(),
 		to:           newName,
 		packages:     make(map[*types.Package]Package),
 	}
@@ -147,11 +145,10 @@ func (i *IdentifierInfo) Rename(ctx context.Context, view View, newName string) 
 	for uri, edits := range changes {
 		// These edits should really be associated with FileHandles for maximal correctness.
 		// For now, this is good enough.
-		f, err := view.GetFile(ctx, uri)
+		fh, err := s.GetFile(uri)
 		if err != nil {
 			return nil, err
 		}
-		fh := i.Snapshot.Handle(ctx, f)
 		data, _, err := fh.Read(ctx)
 		if err != nil {
 			return nil, err
@@ -171,69 +168,6 @@ func (i *IdentifierInfo) Rename(ctx context.Context, view View, newName string) 
 		result[uri] = protocolEdits
 	}
 	return result, nil
-}
-
-// getPkgName gets the pkg name associated with an identifer representing
-// the import path in an import spec.
-func (i *IdentifierInfo) getPkgName(ctx context.Context) (*IdentifierInfo, error) {
-	ph, err := i.pkg.File(i.URI())
-	if err != nil {
-		return nil, err
-	}
-	file, _, _, err := ph.Cached()
-	if err != nil {
-		return nil, err
-	}
-	var namePos token.Pos
-	for _, spec := range file.Imports {
-		if spec.Path.Pos() == i.spanRange.Start {
-			namePos = spec.Pos()
-			break
-		}
-	}
-	if !namePos.IsValid() {
-		return nil, errors.Errorf("import spec not found for %q", i.Name)
-	}
-	// Look for the object defined at NamePos.
-	for _, obj := range i.pkg.GetTypesInfo().Defs {
-		pkgName, ok := obj.(*types.PkgName)
-		if ok && pkgName.Pos() == namePos {
-			return getPkgNameIdentifier(ctx, i, pkgName)
-		}
-	}
-	for _, obj := range i.pkg.GetTypesInfo().Implicits {
-		pkgName, ok := obj.(*types.PkgName)
-		if ok && pkgName.Pos() == namePos {
-			return getPkgNameIdentifier(ctx, i, pkgName)
-		}
-	}
-	return nil, errors.Errorf("no package name for %q", i.Name)
-}
-
-// getPkgNameIdentifier returns an IdentifierInfo representing pkgName.
-// pkgName must be in the same package and file as ident.
-func getPkgNameIdentifier(ctx context.Context, ident *IdentifierInfo, pkgName *types.PkgName) (*IdentifierInfo, error) {
-	decl := Declaration{
-		obj:         pkgName,
-		wasImplicit: true,
-	}
-	var err error
-	if decl.mappedRange, err = objToMappedRange(ctx, ident.pkg, decl.obj); err != nil {
-		return nil, err
-	}
-	if decl.node, err = objToNode(ctx, ident.pkg, decl.obj); err != nil {
-		return nil, err
-	}
-	return &IdentifierInfo{
-		Snapshot:         ident.Snapshot,
-		Name:             pkgName.Name(),
-		mappedRange:      decl.mappedRange,
-		File:             ident.File,
-		Declaration:      decl,
-		pkg:              ident.pkg,
-		wasEmbeddedField: false,
-		qf:               ident.qf,
-	}, nil
 }
 
 // Rename all references to the identifier.

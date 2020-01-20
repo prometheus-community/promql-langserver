@@ -56,8 +56,8 @@ type fileData struct {
 	err   error
 }
 
-func (c *cache) GetFile(uri span.URI, kind source.FileKind) source.FileHandle {
-	underlying := c.fs.GetFile(uri, kind)
+func (c *cache) GetFile(uri span.URI) source.FileHandle {
+	underlying := c.fs.GetFile(uri)
 	key := fileKey{
 		identity: underlying.Identity(),
 	}
@@ -76,11 +76,10 @@ func (c *cache) GetFile(uri span.URI, kind source.FileKind) source.FileHandle {
 func (c *cache) NewSession(ctx context.Context) source.Session {
 	index := atomic.AddInt64(&sessionIndex, 1)
 	s := &session{
-		cache:         c,
-		id:            strconv.FormatInt(index, 10),
-		options:       source.DefaultOptions,
-		overlays:      make(map[span.URI]*overlay),
-		filesWatchMap: NewWatchMap(),
+		cache:    c,
+		id:       strconv.FormatInt(index, 10),
+		options:  source.DefaultOptions,
+		overlays: make(map[span.URI]*overlay),
 	}
 	debug.AddSession(debugSession{s})
 	return s

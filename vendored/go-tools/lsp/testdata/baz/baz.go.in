@@ -8,6 +8,8 @@ import (
 	f "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo"
 )
 
+var FooStruct f.StructFoo
+
 func Baz() {
 	defer bar.Bar() //@complete("B", Bar)
 	// TODO(rstambler): Test completion here.

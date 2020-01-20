@@ -7,7 +7,7 @@ package lsp
 import (
 	"context"
 	"fmt"
-	"sort"
+	"strings"
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
@@ -18,14 +18,24 @@ import (
 
 func (s *Server) completion(ctx context.Context, params *protocol.CompletionParams) (*protocol.CompletionList, error) {
 	uri := span.NewURI(params.TextDocument.URI)
-	view := s.session.ViewOf(uri)
-	options := view.Options()
-	f, err := view.GetFile(ctx, uri)
+	view, err := s.session.ViewOf(uri)
 	if err != nil {
 		return nil, err
 	}
-	options.Completion.FullDocumentation = options.HoverKind == source.FullDocumentation
-	candidates, surrounding, err := source.Completion(ctx, view, f, params.Position, options.Completion)
+	snapshot := view.Snapshot()
+	fh, err := snapshot.GetFile(uri)
+	if err != nil {
+		return nil, err
+	}
+	var candidates []source.CompletionItem
+	var surrounding *source.Selection
+	switch fh.Identity().Kind {
+	case source.Go:
+		candidates, surrounding, err = source.Completion(ctx, snapshot, fh, params.Position)
+	case source.Mod:
+		candidates, surrounding = nil, nil
+	}
+
 	if err != nil {
 		log.Print(ctx, "no completions found", tag.Of("At", params.Position), tag.Of("Failure", err))
 	}
@@ -39,27 +49,24 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 	if err != nil {
 		return nil, err
 	}
-	// Sort the candidates by score, since that is not supported by LSP yet.
-	sort.SliceStable(candidates, func(i, j int) bool {
-		return candidates[i].Score > candidates[j].Score
-	})
 
 	// When using deep completions/fuzzy matching, report results as incomplete so
 	// client fetches updated completions after every key stroke.
-	incompleteResults := options.Completion.Deep || options.Completion.FuzzyMatching
+	options := view.Options()
+	incompleteResults := options.DeepCompletion || options.Matcher == source.Fuzzy
 
 	items := toProtocolCompletionItems(candidates, rng, options)
 
 	if incompleteResults {
-		prefix := surrounding.Prefix()
-		for i := range items {
-			// We send the prefix as the filterText to trick VSCode into not
-			// reordering our candidates. All the candidates will appear to
-			// be a perfect match, so VSCode's fuzzy matching/ranking just
-			// maintains the natural "sortText" ordering. We can only do
-			// this in tandem with "incompleteResults" since otherwise
-			// client side filtering is important.
-			items[i].FilterText = prefix
+		for i := 1; i < len(items); i++ {
+			// Give all the candidates the same filterText to trick VSCode
+			// into not reordering our candidates. All the candidates will
+			// appear to be equally good matches, so VSCode's fuzzy
+			// matching/ranking just maintains the natural "sortText"
+			// ordering. We can only do this in tandem with
+			// "incompleteResults" since otherwise client side filtering is
+			// important.
+			items[i].FilterText = items[0].FilterText
 		}
 	}
 
@@ -78,7 +85,7 @@ func toProtocolCompletionItems(candidates []source.CompletionItem, rng protocol.
 		// Limit the number of deep completions to not overwhelm the user in cases
 		// with dozens of deep completion matches.
 		if candidate.Depth > 0 {
-			if !options.Completion.Deep {
+			if !options.DeepCompletion {
 				continue
 			}
 			if numDeepCompletionsSeen >= source.MaxDeepCompletions {
@@ -110,8 +117,12 @@ func toProtocolCompletionItems(candidates []source.CompletionItem, rng protocol.
 			// This is a hack so that the client sorts completion results in the order
 			// according to their score. This can be removed upon the resolution of
 			// https://github.com/Microsoft/language-server-protocol/issues/348.
-			SortText:      fmt.Sprintf("%05d", i),
-			FilterText:    candidate.InsertText,
+			SortText: fmt.Sprintf("%05d", i),
+
+			// Trim operators (VSCode doesn't like weird characters in
+			// filterText).
+			FilterText: strings.TrimLeft(candidate.InsertText, "&*"),
+
 			Preselect:     i == 0,
 			Documentation: candidate.Documentation,
 		}

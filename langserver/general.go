@@ -24,7 +24,7 @@ import (
 // Initialize handles a call from the client to initialize the server
 // required by the protocol.Server interface
 // nolint:funlen
-func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (*protocol.InitializeResult, error) {
+func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitialize) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
 
@@ -44,53 +44,14 @@ func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitia) (
 				Change: 2,
 			},
 			HoverProvider: true,
-			CompletionProvider: &protocol.CompletionOptions{
+			CompletionProvider: protocol.CompletionOptions{
 				TriggerCharacters: []string{
 					" ", "\n", "\t", "(", ")", "[", "]", "{", "}", "+", "-", "*", "/", "!", "=", "\"", ",", "'", "\"", "`",
 				},
-				AllCommitCharacters: nil,
-				ResolveProvider:     false,
-				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{
-					WorkDoneProgress: false,
-				},
 			},
-			SignatureHelpProvider: &protocol.SignatureHelpOptions{
+			SignatureHelpProvider: protocol.SignatureHelpOptions{
 				TriggerCharacters: []string{"(", ","},
 			},
-			DefinitionProvider:               false,
-			ReferencesProvider:               false,
-			DocumentHighlightProvider:        false,
-			DocumentSymbolProvider:           false,
-			CodeActionProvider:               nil,
-			WorkspaceSymbolProvider:          false,
-			CodeLensProvider:                 nil,
-			DocumentFormattingProvider:       false,
-			DocumentRangeFormattingProvider:  false,
-			DocumentOnTypeFormattingProvider: nil,
-			RenameProvider:                   nil,
-			DocumentLinkProvider:             nil,
-			ExecuteCommandProvider:           nil,
-			Experimental:                     nil,
-			ImplementationProvider:           false,
-			TypeDefinitionProvider:           false,
-			Workspace: &struct {
-				WorkspaceFolders *struct {
-					Supported           bool   "json:\"supported,omitempty\""
-					ChangeNotifications string "json:\"changeNotifications,omitempty\""
-				} "json:\"workspaceFolders,omitempty\""
-			}{
-				WorkspaceFolders: &struct {
-					Supported           bool   "json:\"supported,omitempty\""
-					ChangeNotifications string "json:\"changeNotifications,omitempty\""
-				}{
-					Supported:           false,
-					ChangeNotifications: "",
-				},
-			},
-			ColorProvider:          false,
-			FoldingRangeProvider:   false,
-			DeclarationProvider:    false,
-			SelectionRangeProvider: false,
 		},
 	}, nil
 }

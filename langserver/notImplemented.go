@@ -99,7 +99,7 @@ func (s *server) FoldingRange(_ context.Context, _ *protocol.FoldingRangeParams)
 }
 
 // Declaration is required by the protocol.Server interface
-func (s *server) Declaration(_ context.Context, _ *protocol.DeclarationParams) ([]protocol.DeclarationLink, error) {
+func (s *server) Declaration(_ context.Context, _ *protocol.DeclarationParams) ([]protocol.Location, error) {
 	return nil, notImplemented("Declaration")
 }
 
@@ -138,6 +138,16 @@ func (s *server) CodeAction(_ context.Context, _ *protocol.CodeActionParams) ([]
 	return nil, notImplemented("CodeAction")
 }
 
+// NonstandardRequest is required by the protocol.Server interface
+func (s *server) NonstandardRequest(_ context.Context, _ string, _ interface{}) (interface{}, error) {
+	return nil, notImplemented("NonstandardRequest")
+}
+
+// PrepareRename is required by the protocol.Server interface
+func (s *server) PrepareRename(_ context.Context, _ *protocol.PrepareRenameParams) (interface{}, error) {
+	return nil, notImplemented("PrepareRename")
+}
+
 // Symbol is required by the protocol.Server interface
 func (s *server) Symbol(_ context.Context, _ *protocol.WorkspaceSymbolParams) ([]protocol.SymbolInformation, error) {
 	return nil, notImplemented("Symbol")
@@ -171,11 +181,6 @@ func (s *server) OnTypeFormatting(_ context.Context, _ *protocol.DocumentOnTypeF
 // Rename is required by the protocol.Server interface
 func (s *server) Rename(_ context.Context, _ *protocol.RenameParams) (*protocol.WorkspaceEdit, error) {
 	return nil, notImplemented("Rename")
-}
-
-// PrepareRename is required by the protocol.Server interface
-func (s *server) PrepareRename(_ context.Context, _ *protocol.PrepareRenameParams) (*protocol.Range, error) {
-	return nil, notImplemented("PrepareRename")
 }
 
 // DocumentLink is required by the protocol.Server interface
