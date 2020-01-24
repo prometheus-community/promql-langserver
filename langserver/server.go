@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/prometheus/client_golang/api"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -50,7 +51,8 @@ type server struct {
 
 	config *Config
 
-	prometheus api.Client
+	prometheus   api.Client
+	prometheusMu sync.Mutex
 
 	lifetime context.Context
 	exit     func()
@@ -90,6 +92,9 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 }
 
 func (s *server) connectPrometheus(url string) error {
+	s.prometheusMu.Lock()
+	defer s.prometheusMu.Unlock()
+
 	var err error
 
 	s.prometheus, err = api.NewClient(api.Config{Address: url})
@@ -104,6 +109,17 @@ func (s *server) connectPrometheus(url string) error {
 	}
 
 	return err
+}
+
+func (s *server) getPrometheus() v1.API {
+	s.prometheusMu.Lock()
+	defer s.prometheusMu.Unlock()
+
+	if s.prometheus != nil {
+		return v1.NewAPI(s.prometheus)
+	}
+
+	return nil
 }
 
 // TCPServer generates a Server listening on the provided TCP Address, creating a new language Server

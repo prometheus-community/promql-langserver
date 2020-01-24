@@ -23,7 +23,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
@@ -95,21 +95,23 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 // nolint:funlen
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
-	if s.prometheus == nil {
-		return nil
-	}
+	api := s.getPrometheus()
 
-	api := v1.NewAPI(s.prometheus)
+	var allNames model.LabelValues
 
-	allNames, _, err := api.LabelValues(ctx, "__name__")
-	if err != nil {
-		// nolint: errcheck
-		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
-			Message: errors.Wrapf(err, "could not get metric data from Prometheus").Error(),
-		})
+	if api != nil {
+		var err error
 
-		allNames = nil
+		allNames, _, err = api.LabelValues(ctx, "__name__")
+		if err != nil {
+			// nolint: errcheck
+			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+				Type:    protocol.Error,
+				Message: errors.Wrapf(err, "could not get metric data from Prometheus").Error(),
+			})
+
+			allNames = nil
+		}
 	}
 
 	editRange, err := getEditRange(location, metricName)
@@ -301,21 +303,23 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 
 // nolint:funlen, unparam
 func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
-	if s.prometheus == nil {
-		return nil
-	}
+	api := s.getPrometheus()
 
-	api := v1.NewAPI(s.prometheus)
+	var allNames []string
 
-	allNames, _, err := api.LabelNames(ctx)
-	if err != nil {
-		// nolint: errcheck
-		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
-			Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
-		})
+	if api != nil {
+		var err error
 
-		allNames = nil
+		allNames, _, err = api.LabelNames(ctx)
+		if err != nil {
+			// nolint: errcheck
+			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+				Type:    protocol.Error,
+				Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+			})
+
+			allNames = nil
+		}
 	}
 
 	editRange, err := getEditRange(location, "")
@@ -342,21 +346,21 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 
 // nolint: funlen
 func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *location, labelName string) error { // nolint:lll
-	if s.prometheus == nil {
-		return nil
-	}
+	var allNames model.LabelValues
 
-	api := v1.NewAPI(s.prometheus)
+	api := s.getPrometheus()
 
-	allNames, _, err := api.LabelValues(ctx, labelName)
-	if err != nil {
-		// nolint: errcheck
-		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
-			Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
-		})
+	if api != nil {
+		var err error
 
-		allNames = nil
+		allNames, _, err = api.LabelValues(ctx, labelName)
+		if err != nil {
+			// nolint: errcheck
+			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+				Type:    protocol.Error,
+				Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
+			})
+		}
 	}
 
 	editRange, err := getEditRange(location, "")

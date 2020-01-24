@@ -10,7 +10,7 @@ require (
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.3.0
-	github.com/prometheus/common v0.9.1 // indirect
+	github.com/prometheus/common v0.9.1
 	github.com/prometheus/prometheus v1.8.2-0.20200120155032-a6776221848b
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/rakyll/statik v0.1.7-0.20191104211043-6b2f3ee522b6
