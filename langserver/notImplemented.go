@@ -31,13 +31,6 @@ func (s *server) DidChangeWorkspaceFolders(_ context.Context, _ *protocol.DidCha
 	return notImplemented("DidChangeWorkspaceFolders")
 }
 
-// DidChangeConfiguration is required by the protocol.Server interface
-func (s *server) DidChangeConfiguration(_ context.Context, _ *protocol.DidChangeConfigurationParams) error {
-	//return notImplemented("DidChangeConfiguration")
-	// For ycmd
-	return nil
-}
-
 // DidSave is required by the protocol.Server interface
 func (s *server) DidSave(_ context.Context, _ *protocol.DidSaveTextDocumentParams) error {
 	return notImplemented("DidSave")

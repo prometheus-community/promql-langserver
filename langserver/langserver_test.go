@@ -32,11 +32,6 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	err = s.DidChangeConfiguration(context.Background(), &protocol.DidChangeConfigurationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
-	}
-
 	err = s.DidSave(context.Background(), &protocol.DidSaveTextDocumentParams{})
 	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")

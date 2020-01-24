@@ -14,8 +14,11 @@
 package langserver
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 
+	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 	"gopkg.in/yaml.v3"
 )
 
@@ -46,4 +49,45 @@ func ParseConfigFile(path string) (*Config, error) {
 	}
 
 	return ParseConfig(data)
+}
+
+// DidChangeConfiguration is required by the protocol.Server interface
+func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
+	langserverAddressConfigPath := []string{"prometheus", "url"}
+
+	if params != nil {
+		// nolint: errcheck
+		s.client.LogMessage(
+			s.lifetime,
+			&protocol.LogMessageParams{
+				Type:    protocol.Info,
+				Message: fmt.Sprintf("Received notification change: %v\n", params),
+			})
+
+		setting := params.Settings
+
+		for _, e := range langserverAddressConfigPath {
+			m, ok := setting.(map[string]interface{})
+			if !ok {
+				break
+			}
+
+			setting, ok = m[e]
+			if !ok {
+				break
+			}
+		}
+
+		if str, ok := setting.(string); ok {
+			if err := s.connectPrometheus(str); err != nil {
+				// nolint: errcheck
+				s.client.LogMessage(ctx, &protocol.LogMessageParams{
+					Type:    protocol.Info,
+					Message: err.Error(),
+				})
+			}
+		}
+	}
+
+	return nil
 }
