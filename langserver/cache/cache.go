@@ -85,7 +85,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 // GetDocument retrieve a Document from the cache
 // Additionally returns a context that expires as soon as the document changes
-func (c *DocumentCache) GetDocument(uri protocol.DocumentUri) (*DocumentHandle, error) {
+func (c *DocumentCache) GetDocument(uri protocol.DocumentURI) (*DocumentHandle, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	ret, ok := c.documents[uri]
