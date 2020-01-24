@@ -293,8 +293,8 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
-	if item.Typ == promql.EQL || item.Typ == promql.NEQ && lastLabel != "" {
-		loc.node = &promql.Item{Pos: item.Pos + 1}
+	if item.Typ == promql.EQL || item.Typ == promql.NEQ {
+		loc.node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
 		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
