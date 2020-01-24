@@ -37,8 +37,9 @@ type Snapshot interface {
 	// This is used to get the SuggestedFixes associated with that error.
 	FindAnalysisError(ctx context.Context, pkgID, analyzerName, msg string, rng protocol.Range) (*Error, error)
 
-	// ModFiles returns the FileHandles of the go.mod files attached to the view associated with this snapshot.
-	ModFiles(ctx context.Context) (FileHandle, FileHandle, error)
+	// ModTidyHandle returns a ModTidyHandle for the given go.mod file handle.
+	// This function can have no data or error if there is no modfile detected.
+	ModTidyHandle(ctx context.Context, fh FileHandle) ModTidyHandle
 
 	// PackageHandles returns the PackageHandles for the packages that this file
 	// belongs to.
@@ -92,8 +93,8 @@ type View interface {
 	// Folder returns the root folder for this view.
 	Folder() span.URI
 
-	// ModFile is the path to the go.mod file for the view, if any.
-	ModFile() string
+	// ModFiles returns the URIs of the go.mod files attached to the view associated with this snapshot.
+	ModFiles() (span.URI, span.URI)
 
 	// LookupBuiltin returns the go/ast.Object for the given name in the builtin package.
 	LookupBuiltin(ctx context.Context, name string) (*ast.Object, error)
@@ -126,6 +127,12 @@ type View interface {
 
 	// Snapshot returns the current snapshot for the view.
 	Snapshot() Snapshot
+
+	// Initialized returns true if the view has been initialized without errors.
+	Initialized(ctx context.Context) bool
+
+	// Rebuild rebuilds the current view, replacing the original view in its session.
+	Rebuild(ctx context.Context) (Snapshot, error)
 }
 
 // Session represents a single connection from a client.
@@ -160,7 +167,8 @@ type Session interface {
 	IsOpen(uri span.URI) bool
 
 	// DidModifyFile reports a file modification to the session.
-	DidModifyFile(ctx context.Context, c FileModification) ([]Snapshot, error)
+	// It returns the resulting snapshots, a guaranteed one per view.
+	DidModifyFiles(ctx context.Context, changes []FileModification) ([]Snapshot, error)
 
 	// Options returns a copy of the SessionOptions for this session.
 	Options() Options
@@ -211,13 +219,10 @@ type Cache interface {
 	FileSystem
 
 	// NewSession creates a new Session manager and returns it.
-	NewSession(ctx context.Context) Session
+	NewSession() Session
 
 	// FileSet returns the shared fileset used by all files in the system.
 	FileSet() *token.FileSet
-
-	// ParseGoHandle returns a go.mod ParseGoHandle for the given file handle.
-	ParseModHandle(fh FileHandle) ParseModHandle
 
 	// ParseGoHandle returns a ParseGoHandle for the given file handle.
 	ParseGoHandle(fh FileHandle, mode ParseMode) ParseGoHandle
@@ -245,14 +250,14 @@ type ParseGoHandle interface {
 	Cached() (*ast.File, *protocol.ColumnMapper, error, error)
 }
 
-// ParseModHandle represents a handle to the modfile for a go.mod.
-type ParseModHandle interface {
+// ModTidyHandle represents a handle to the modfile for a go.mod.
+type ModTidyHandle interface {
 	// File returns a file handle for which to get the modfile.
 	File() FileHandle
 
-	// Parse returns the parsed modifle for the go.mod file.
-	// If the file is not available, returns nil and an error.
-	Parse(ctx context.Context) (*modfile.File, *protocol.ColumnMapper, error)
+	// Tidy returns the parsed modfile, a mapper, and "go mod tidy" errors
+	// for the go.mod file. If the file is not available, returns nil and an error.
+	Tidy(ctx context.Context) (*modfile.File, *protocol.ColumnMapper, []Error, error)
 }
 
 // ParseMode controls the content of the AST produced when parsing a source file.

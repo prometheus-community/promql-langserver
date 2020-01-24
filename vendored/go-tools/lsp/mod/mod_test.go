@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 func TestModfileRemainsUnchanged(t *testing.T) {
 	ctx := tests.Context(t)
 	cache := cache.New(nil)
-	session := cache.NewSession(ctx)
+	session := cache.NewSession()
 	options := tests.DefaultOptions()
 	options.TempModfile = true
 	options.Env = append(os.Environ(), "GOPACKAGESDRIVER=off", "GOROOT=")
@@ -67,7 +67,7 @@ func TestModfileRemainsUnchanged(t *testing.T) {
 func TestDiagnostics(t *testing.T) {
 	ctx := tests.Context(t)
 	cache := cache.New(nil)
-	session := cache.NewSession(ctx)
+	session := cache.NewSession()
 	options := tests.DefaultOptions()
 	options.TempModfile = true
 	options.Env = append(os.Environ(), "GOPACKAGESDRIVER=off", "GOROOT=")
@@ -106,7 +106,7 @@ func TestDiagnostics(t *testing.T) {
 				{
 					Message:  "usage: require module/path v1.2.3",
 					Source:   "syntax",
-					Range:    protocol.Range{Start: getRawPos(4, 0), End: getRawPos(4, 17)},
+					Range:    protocol.Range{Start: getRawPos(4, 0), End: getRawPos(4, 16)},
 					Severity: protocol.SeverityError,
 				},
 			},
@@ -117,7 +117,7 @@ func TestDiagnostics(t *testing.T) {
 				{
 					Message:  "usage: go 1.23",
 					Source:   "syntax",
-					Range:    protocol.Range{Start: getRawPos(2, 0), End: getRawPos(2, 4)},
+					Range:    protocol.Range{Start: getRawPos(2, 0), End: getRawPos(2, 3)},
 					Severity: protocol.SeverityError,
 				},
 			},
@@ -128,7 +128,7 @@ func TestDiagnostics(t *testing.T) {
 				{
 					Message:  "unknown directive: yo",
 					Source:   "syntax",
-					Range:    protocol.Range{Start: getRawPos(6, 0), End: getRawPos(6, 2)},
+					Range:    protocol.Range{Start: getRawPos(6, 0), End: getRawPos(6, 1)},
 					Severity: protocol.SeverityError,
 				},
 			},
@@ -167,8 +167,8 @@ func TestDiagnostics(t *testing.T) {
 }
 
 func hasTempModfile(ctx context.Context, snapshot source.Snapshot) bool {
-	_, t, _ := snapshot.ModFiles(ctx)
-	return t != nil
+	_, t := snapshot.View().ModFiles()
+	return t != ""
 }
 
 func getRawPos(line, character int) protocol.Position {

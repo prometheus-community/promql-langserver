@@ -48,7 +48,7 @@ func testSource(t *testing.T, exporter packagestest.Exporter) {
 	defer data.Exported.Cleanup()
 
 	cache := cache.New(nil)
-	session := cache.NewSession(ctx)
+	session := cache.NewSession()
 	options := tests.DefaultOptions()
 	options.Env = data.Config.Env
 	view, _, err := session.NewView(ctx, "source_test", span.FileURI(data.Config.Dir), options)
@@ -60,20 +60,22 @@ func testSource(t *testing.T, exporter packagestest.Exporter) {
 		data: data,
 		ctx:  ctx,
 	}
+	var modifications []source.FileModification
 	for filename, content := range data.Config.Overlay {
 		kind := source.DetectLanguage("", filename)
 		if kind != source.Go {
 			continue
 		}
-		if _, err := session.DidModifyFile(ctx, source.FileModification{
+		modifications = append(modifications, source.FileModification{
 			URI:        span.FileURI(filename),
 			Action:     source.Open,
 			Version:    -1,
 			Text:       content,
 			LanguageID: "go",
-		}); err != nil {
-			t.Fatal(err)
-		}
+		})
+	}
+	if _, err := session.DidModifyFiles(ctx, modifications); err != nil {
+		t.Fatal(err)
 	}
 	tests.Run(t, r, data)
 }
@@ -617,33 +619,42 @@ func (r *runner) References(t *testing.T, src span.Span, itemList []span.Span) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fh, err := r.view.Snapshot().GetFile(src.URI())
+	snapshot := r.view.Snapshot()
+	fh, err := snapshot.GetFile(src.URI())
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := make(map[span.Span]bool)
-	for _, pos := range itemList {
-		want[pos] = true
-	}
-	refs, err := source.References(ctx, r.view.Snapshot(), fh, srcRng.Start, true)
-	if err != nil {
-		t.Fatalf("failed for %v: %v", src, err)
-	}
-	got := make(map[span.Span]bool)
-	for _, refInfo := range refs {
-		refSpan, err := refInfo.Span()
-		if err != nil {
-			t.Fatal(err)
-		}
-		got[refSpan] = true
-	}
-	if len(got) != len(want) {
-		t.Errorf("references failed: different lengths got %v want %v", len(got), len(want))
-	}
-	for spn := range got {
-		if !want[spn] {
-			t.Errorf("references failed: incorrect references got %v want locations %v", got, want)
-		}
+	for _, includeDeclaration := range []bool{true, false} {
+		t.Run(fmt.Sprintf("refs-declaration-%v", includeDeclaration), func(t *testing.T) {
+			want := make(map[span.Span]bool)
+			for i, pos := range itemList {
+				// We don't want the first result if we aren't including the declaration.
+				if i == 0 && !includeDeclaration {
+					continue
+				}
+				want[pos] = true
+			}
+			refs, err := source.References(ctx, snapshot, fh, srcRng.Start, includeDeclaration)
+			if err != nil {
+				t.Fatalf("failed for %s: %v", src, err)
+			}
+			got := make(map[span.Span]bool)
+			for _, refInfo := range refs {
+				refSpan, err := refInfo.Span()
+				if err != nil {
+					t.Fatal(err)
+				}
+				got[refSpan] = true
+			}
+			if len(got) != len(want) {
+				t.Errorf("references failed: different lengths got %v want %v", len(got), len(want))
+			}
+			for spn := range got {
+				if !want[spn] {
+					t.Errorf("references failed: incorrect references got %v want locations %v", got, want)
+				}
+			}
+		})
 	}
 }
 

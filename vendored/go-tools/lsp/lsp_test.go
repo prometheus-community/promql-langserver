@@ -52,27 +52,29 @@ func testLSP(t *testing.T, exporter packagestest.Exporter) {
 	defer data.Exported.Cleanup()
 
 	cache := cache.New(nil)
-	session := cache.NewSession(ctx)
+	session := cache.NewSession()
 	options := tests.DefaultOptions()
 	session.SetOptions(options)
 	options.Env = data.Config.Env
 	if _, _, err := session.NewView(ctx, viewName, span.FileURI(data.Config.Dir), options); err != nil {
 		t.Fatal(err)
 	}
+	var modifications []source.FileModification
 	for filename, content := range data.Config.Overlay {
 		kind := source.DetectLanguage("", filename)
 		if kind != source.Go {
 			continue
 		}
-		if _, err := session.DidModifyFile(ctx, source.FileModification{
+		modifications = append(modifications, source.FileModification{
 			URI:        span.FileURI(filename),
 			Action:     source.Open,
 			Version:    -1,
 			Text:       content,
 			LanguageID: "go",
-		}); err != nil {
-			t.Fatal(err)
-		}
+		})
+	}
+	if _, err := session.DidModifyFiles(ctx, modifications); err != nil {
+		t.Fatal(err)
 	}
 	r := &runner{
 		server: &Server{
@@ -545,38 +547,47 @@ func (r *runner) References(t *testing.T, src span.Span, itemList []span.Span) {
 	if err != nil {
 		t.Fatalf("failed for %v: %v", src, err)
 	}
-	want := make(map[protocol.Location]bool)
-	for _, pos := range itemList {
-		m, err := r.data.Mapper(pos.URI())
-		if err != nil {
-			t.Fatal(err)
-		}
-		loc, err := m.Location(pos)
-		if err != nil {
-			t.Fatalf("failed for %v: %v", src, err)
-		}
-		want[loc] = true
-	}
-	params := &protocol.ReferenceParams{
-		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
-			TextDocument: protocol.TextDocumentIdentifier{URI: loc.URI},
-			Position:     loc.Range.Start,
-		},
-		Context: protocol.ReferenceContext{
-			IncludeDeclaration: true,
-		},
-	}
-	got, err := r.server.References(r.ctx, params)
-	if err != nil {
-		t.Fatalf("failed for %v: %v", src, err)
-	}
-	if len(got) != len(want) {
-		t.Errorf("references failed: different lengths got %v want %v", len(got), len(want))
-	}
-	for _, loc := range got {
-		if !want[loc] {
-			t.Errorf("references failed: incorrect references got %v want %v", loc, want)
-		}
+	for _, includeDeclaration := range []bool{true, false} {
+		t.Run(fmt.Sprintf("refs-declaration-%v", includeDeclaration), func(t *testing.T) {
+			want := make(map[protocol.Location]bool)
+			for i, pos := range itemList {
+				// We don't want the first result if we aren't including the declaration.
+				if i == 0 && !includeDeclaration {
+					continue
+				}
+				m, err := r.data.Mapper(pos.URI())
+				if err != nil {
+					t.Fatal(err)
+				}
+				loc, err := m.Location(pos)
+				if err != nil {
+					t.Fatalf("failed for %v: %v", src, err)
+				}
+				want[loc] = true
+			}
+			params := &protocol.ReferenceParams{
+				TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+					TextDocument: protocol.TextDocumentIdentifier{URI: loc.URI},
+					Position:     loc.Range.Start,
+				},
+				Context: protocol.ReferenceContext{
+					IncludeDeclaration: includeDeclaration,
+				},
+			}
+			got, err := r.server.References(r.ctx, params)
+			if err != nil {
+				t.Fatalf("failed for %v: %v", src, err)
+			}
+			if len(got) != len(want) {
+				t.Errorf("references failed: different lengths got %v want %v", len(got), len(want))
+			}
+			for _, loc := range got {
+				if !want[loc] {
+					t.Errorf("references failed: incorrect references got %v want %v", loc, want)
+				}
+			}
+		})
+
 	}
 }
 
@@ -923,12 +934,12 @@ func TestBytesOffset(t *testing.T) {
 // when marker support gets added for go.mod files.
 func TestModfileSuggestedFixes(t *testing.T) {
 	if runtime.GOOS == "android" {
-		t.Skipf("this test cannot find mod/testdata files")
+		t.Skip("this test cannot find mod/testdata files")
 	}
 
 	ctx := tests.Context(t)
 	cache := cache.New(nil)
-	session := cache.NewSession(ctx)
+	session := cache.NewSession()
 	options := tests.DefaultOptions()
 	options.TempModfile = true
 	options.Env = append(os.Environ(), "GOPACKAGESDRIVER=off", "GOROOT=")
@@ -950,10 +961,17 @@ func TestModfileSuggestedFixes(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			realURI, tempURI := snapshot.View().ModFiles()
 			// TODO: Add testing for when the -modfile flag is turned off and we still get diagnostics.
-			if _, t, _ := snapshot.ModFiles(ctx); t == nil {
+			if tempURI == "" {
 				return
 			}
+			realfh, err := snapshot.GetFile(realURI)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			reports, err := mod.Diagnostics(ctx, snapshot)
 			if err != nil {
 				t.Fatal(err)
@@ -961,6 +979,12 @@ func TestModfileSuggestedFixes(t *testing.T) {
 			if len(reports) != 1 {
 				t.Errorf("expected 1 fileHandle, got %d", len(reports))
 			}
+
+			_, m, _, err := snapshot.ModTidyHandle(ctx, realfh).Tidy(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			for fh, diags := range reports {
 				actions, err := server.CodeAction(ctx, &protocol.CodeActionParams{
 					TextDocument: protocol.TextDocumentIdentifier{
@@ -980,7 +1004,6 @@ func TestModfileSuggestedFixes(t *testing.T) {
 				if len(actions) > 1 {
 					t.Fatal("expected only 1 code action")
 				}
-
 				res := map[span.URI]string{}
 				for _, docEdits := range actions[0].Edit.DocumentChanges {
 					uri := span.URI(docEdits.TextDocument.URI)
@@ -989,20 +1012,14 @@ func TestModfileSuggestedFixes(t *testing.T) {
 						t.Fatal(err)
 					}
 					res[uri] = string(content)
-
-					split := strings.Split(res[uri], "\n")
-					for i := len(docEdits.Edits) - 1; i >= 0; i-- {
-						edit := docEdits.Edits[i]
-						start := edit.Range.Start
-						end := edit.Range.End
-						tmp := split[int(start.Line)][0:int(start.Character)] + edit.NewText
-						split[int(end.Line)] = tmp + split[int(end.Line)][int(end.Character):]
+					sedits, err := source.FromProtocolEdits(m, docEdits.Edits)
+					if err != nil {
+						t.Fatal(err)
 					}
-					res[uri] = strings.Join(split, "\n")
+					res[uri] = applyEdits(res[uri], sedits)
 				}
 				got := res[fh.URI]
-				golden := filepath.Join(folder, "go.mod.golden")
-				contents, err := ioutil.ReadFile(golden)
+				contents, err := ioutil.ReadFile(filepath.Join(folder, "go.mod.golden"))
 				if err != nil {
 					t.Fatal(err)
 				}

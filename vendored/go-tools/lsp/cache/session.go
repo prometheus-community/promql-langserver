@@ -13,7 +13,6 @@ import (
 
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
 	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
@@ -107,11 +106,12 @@ func (s *session) createView(ctx context.Context, name string, folder span.URI, 
 	}
 
 	// Make sure to get the `go env` before continuing with initialization.
-	if err := v.setGoEnv(ctx, folder.Filename(), options.Env); err != nil {
+	gomod, err := v.setGoEnv(ctx, folder.Filename(), options.Env)
+	if err != nil {
 		return nil, nil, err
 	}
 	// Set the module-specific information.
-	if err := v.setModuleInformation(ctx, v.options.TempModfile); err != nil {
+	if err := v.setModuleInformation(ctx, gomod, v.options.TempModfile); err != nil {
 		return nil, nil, err
 	}
 
@@ -253,48 +253,40 @@ func (s *session) dropView(ctx context.Context, v *view) (int, error) {
 	return -1, errors.Errorf("view %s for %v not found", v.Name(), v.Folder())
 }
 
-func (s *session) DidModifyFile(ctx context.Context, c source.FileModification) (snapshots []source.Snapshot, err error) {
-	ctx = telemetry.URI.With(ctx, c.URI)
+func (s *session) DidModifyFiles(ctx context.Context, changes []source.FileModification) ([]source.Snapshot, error) {
+	views := make(map[*view][]span.URI)
 
-	// Update overlays only if the file was changed in the editor.
-	var kind source.FileKind
-	if !c.OnDisk {
-		kind, err = s.updateOverlay(ctx, c)
-		if err != nil {
-			return nil, err
+	for _, c := range changes {
+		// Only update overlays for in-editor changes.
+		if !c.OnDisk {
+			if err := s.updateOverlay(ctx, c); err != nil {
+				return nil, err
+			}
 		}
-	}
-	for _, view := range s.viewsOf(c.URI) {
-		if view.Ignore(c.URI) {
-			return nil, errors.Errorf("ignored file %v", c.URI)
-		}
-		// If the file was changed or deleted on disk,
-		// do nothing if the view isn't already aware of the file.
-		if c.OnDisk {
-			switch c.Action {
-			case source.Change, source.Delete:
-				if !view.knownFile(c.URI) {
-					continue
+		for _, view := range s.viewsOf(c.URI) {
+			if view.Ignore(c.URI) {
+				return nil, errors.Errorf("ignored file %v", c.URI)
+			}
+			// If the file change is on-disk and not a create,
+			// make sure the file is known to the view already.
+			if c.OnDisk {
+				switch c.Action {
+				case source.Change, source.Delete:
+					if !view.knownFile(c.URI) {
+						continue
+					}
 				}
 			}
-		}
-		// Make sure that the file is added to the view.
-		f, err := view.getFileLocked(c.URI)
-		if err != nil {
-			return nil, err
-		}
-		// If the file change was on disk, the file kind is not known.
-		if c.OnDisk {
-			// If the file was already known in the snapshot,
-			// then use the already known file kind. Otherwise,
-			// detect the file kind. This should only be needed for file creates.
-			if fh := view.getSnapshot().findFileHandle(f); fh != nil {
-				kind = fh.Identity().Kind
-			} else {
-				kind = source.DetectLanguage("", c.URI.Filename())
+			// Make sure that the file is added to the view.
+			if _, err := view.getFile(c.URI); err != nil {
+				return nil, err
 			}
+			views[view] = append(views[view], c.URI)
 		}
-		snapshots = append(snapshots, view.invalidateContent(ctx, c.URI, kind, c.Action))
+	}
+	var snapshots []source.Snapshot
+	for view, uris := range views {
+		snapshots = append(snapshots, view.invalidateContent(ctx, uris))
 	}
 	return snapshots, nil
 }

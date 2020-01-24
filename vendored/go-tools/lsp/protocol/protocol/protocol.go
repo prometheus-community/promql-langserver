@@ -20,8 +20,6 @@ const (
 	RequestCancelledError = -32800
 )
 
-type DocumentUri = string
-
 type canceller struct{ jsonrpc2.EmptyHandler }
 
 type clientHandler struct {
@@ -64,6 +62,11 @@ func (canceller) Cancel(ctx context.Context, conn *jsonrpc2.Conn, id jsonrpc2.ID
 	defer done()
 	conn.Notify(ctx, "$/cancelRequest", &CancelParams{ID: id})
 	return true
+}
+
+func (canceller) Deliver(ctx context.Context, r *jsonrpc2.Request, delivered bool) bool {
+	// Hide cancellations from downstream handlers.
+	return r.Method == "$/cancelRequest"
 }
 
 func NewClient(ctx context.Context, stream jsonrpc2.Stream, client Client) (context.Context, *jsonrpc2.Conn, Server) {
