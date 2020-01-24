@@ -226,6 +226,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 	l := promql.Lex(location.query.Content[offset:])
 
 	var (
+		lastItem     promql.Item
 		item         promql.Item
 		lastLabel    string
 		insideParen  bool
@@ -239,7 +240,13 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 		isLabel = false
 		isValue = false
 
+		lastItem = item
 		l.NextItem(&item)
+
+		if overscan := item.Pos + offset + promql.Pos(location.query.Pos) - promql.Pos(location.pos); overscan >= 0 {
+			item = lastItem
+			break
+		}
 
 		switch item.Typ {
 		case promql.AVG, promql.BOOL, promql.BOTTOMK, promql.BY, promql.COUNT, promql.COUNT_VALUES, promql.GROUP_LEFT, promql.GROUP_RIGHT, promql.IDENTIFIER, promql.IGNORING, promql.LAND, promql.LOR, promql.LUNLESS, promql.MAX, promql.METRIC_IDENTIFIER, promql.MIN, promql.OFFSET, promql.QUANTILE, promql.STDDEV, promql.STDVAR, promql.SUM, promql.TOPK:
