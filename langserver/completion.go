@@ -18,8 +18,10 @@ import (
 	"context"
 	"fmt"
 	"go/token"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -317,24 +319,60 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	if api != nil {
 		var err error
 
-		allNames, _, err = api.LabelNames(ctx)
-		if err != nil {
-			// nolint: errcheck
-			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-				Type:    protocol.Error,
-				Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
-			})
+		if metricName == "" {
+			allNames, _, err = api.LabelNames(ctx)
+			if err != nil {
+				// nolint: errcheck
+				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+					Type:    protocol.Error,
+					Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+				})
 
-			allNames = nil
+				allNames = nil
+			}
+		} else {
+			duration, err := time.ParseDuration("100h")
+			if err != nil {
+				// nolint: errcheck
+				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+					Type:    protocol.Error,
+					Message: errors.Wrapf(err, "could not parse time").Error(),
+				})
+
+				allNames = nil
+			}
+			results, _, err := api.Series(ctx, []string{metricName}, time.Now().Add(-duration), time.Now())
+			if err != nil {
+				// nolint: errcheck
+				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+					Type:    protocol.Error,
+					Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+				})
+
+				allNames = nil
+			}
+
+			for _, ls := range results {
+				for l := range ls {
+					allNames = append(allNames, string(l))
+				}
+			}
 		}
 	}
+
+	sort.Strings(allNames)
 
 	editRange, err := getEditRange(location, "")
 	if err != nil {
 		return err
 	}
 
-	for _, name := range allNames {
+	for i, name := range allNames {
+		// Skip duplicates
+		if i > 0 && allNames[i-1] == name {
+			continue
+		}
+
 		if strings.HasPrefix(name, location.node.(*promql.Item).Val) {
 			item := protocol.CompletionItem{
 				Label: name,
@@ -344,6 +382,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 					NewText: name,
 				},
 			}
+
 			*completions = append(*completions, item)
 		}
 	}
