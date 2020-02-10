@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"sync"
 
@@ -107,6 +108,23 @@ func (s *server) connectPrometheus(url string) error {
 			Message: fmt.Sprint("Prometheus: ", url),
 		})
 	}
+
+	testurl := fmt.Sprint(url, "/api/v1/status/buildinfo")
+
+	resp, err := http.Get(testurl) // nolint: gosec
+	if err != nil {
+		// nolint: errcheck
+		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
+		})
+
+		s.prometheus = nil
+
+		return err
+	}
+
+	resp.Body.Close()
 
 	return err
 }
