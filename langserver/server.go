@@ -52,8 +52,9 @@ type server struct {
 
 	config *Config
 
-	prometheus   api.Client
-	prometheusMu sync.Mutex
+	prometheus    api.Client
+	PrometheusURL string
+	prometheusMu  sync.Mutex
 
 	lifetime context.Context
 	exit     func()
@@ -96,6 +97,8 @@ func (s *server) connectPrometheus(url string) error {
 	s.prometheusMu.Lock()
 	defer s.prometheusMu.Unlock()
 
+	s.PrometheusURL = ""
+
 	var err error
 
 	s.prometheus, err = api.NewClient(api.Config{Address: url})
@@ -126,6 +129,10 @@ func (s *server) connectPrometheus(url string) error {
 
 	resp.Body.Close()
 
+	if err == nil {
+		s.PrometheusURL = url
+	}
+
 	return err
 }
 
@@ -138,6 +145,13 @@ func (s *server) getPrometheus() v1.API {
 	}
 
 	return nil
+}
+
+func (s *server) getPrometheusURL() string {
+	s.prometheusMu.Lock()
+	defer s.prometheusMu.Unlock()
+
+	return s.PrometheusURL
 }
 
 // TCPServer generates a Server listening on the provided TCP Address, creating a new language Server

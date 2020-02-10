@@ -17,8 +17,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go/token"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -135,6 +137,30 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 
 	if expr, ok := location.node.(promql.Expr); ok {
 		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %v\n\n", expr.Type()))
+		if err != nil {
+			return ""
+		}
+	}
+
+	promURL := s.getPrometheusURL()
+
+	if promURL != "" {
+		loc := *location
+
+		loc.node = loc.query.Ast
+
+		qText, err := location.doc.GetSubstring(loc.query.Pos+token.Pos(loc.node.PositionRange().Start), loc.query.Pos+token.Pos(loc.node.PositionRange().End)) //nolint: lll
+		if err != nil {
+			return ""
+		}
+
+		qTextEncoded := url.QueryEscape(qText)
+
+		target := fmt.Sprint(promURL, "/graph?g0.expr=", qTextEncoded)
+
+		linkText := fmt.Sprintf("---\n[evaluate query](%s)\n\n", target)
+
+		_, err = ret.WriteString(linkText)
 		if err != nil {
 			return ""
 		}
