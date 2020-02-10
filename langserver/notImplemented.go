@@ -106,11 +106,6 @@ func (s *server) Resolve(_ context.Context, _ *protocol.CompletionItem) (*protoc
 	return nil, notImplemented("Resolve")
 }
 
-// Definition is required by the protocol.Server interface
-func (s *server) Definition(_ context.Context, _ *protocol.DefinitionParams) ([]protocol.Location, error) {
-	return nil, notImplemented("Definition")
-}
-
 // References is required by the protocol.Server interface
 func (s *server) References(_ context.Context, _ *protocol.ReferenceParams) ([]protocol.Location, error) {
 	return nil, notImplemented("References")
