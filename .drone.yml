@@ -31,5 +31,5 @@ steps:
     image: golang:1.13
     commands:
       - apt update
-      - apt install zip
+      - apt install -y zip
       - make crossbuild
