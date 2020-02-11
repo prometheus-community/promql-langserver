@@ -27,3 +27,9 @@ steps:
     image: golangci/golangci-lint:v1.21.0
     commands:
       - make golangci-lint
+  - name: crossbuild
+    image: golang:1.13
+    commands:
+      - apt update
+      - apt install zip
+      - make crossbuild
