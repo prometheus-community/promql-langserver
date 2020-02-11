@@ -7,18 +7,18 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
 
-all: install test golangci-lint
+all: build test golangci-lint
 
 generated: $(STATIK_FILES)
 
 
 .PHONY: install
 install: $(STATIK_FILES)
-	$(GO) get -v ./cmd/...
+	$(GO) get ./cmd/...
 
 .PHONY: build
 build: $(STATIK_FILES)
-	$(GO) build -v ./cmd/...
+	$(GO) build ./cmd/...
 
 .PHONY: clean
 clean: 
@@ -87,3 +87,7 @@ update_internal_packages:
 htmlcover:
 	go test -coverprofile=coverage.out ./langserver/...
 	go tool cover -html=coverage.out
+
+.PHONY: crossbuild
+crossbuild:
+	go run crossbuild/crossbuild.go
