@@ -33,3 +33,15 @@ steps:
       - apt update
       - apt install -y zip
       - make crossbuild
+  - name: publish_github
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_secret
+      files:
+        - '*.tar.gz'
+	- '*.zip'
+      checksum:
+        - sha512
+    when:
+      event: tag
