@@ -40,7 +40,7 @@ steps:
         from_secret: github_secret
       files:
         - '*.tar.gz'
-	- '*.zip'
+        - '*.zip'
       checksum:
         - sha512
     when:
