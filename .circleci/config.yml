@@ -30,8 +30,6 @@ jobs:
 
     steps:
       - checkout
-      - run: apt update
-      - run: apt install zip
       - run: make crossbuild
 
   check_repo_consistency:
