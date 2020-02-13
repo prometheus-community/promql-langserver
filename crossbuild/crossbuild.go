@@ -77,7 +77,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		if err := exec.Command("tar", "-zcvf", tarName, outputDir).Run(); err != nil {
+		if err := exec.Command("tar", "-zcvf", tarName, "-C", outputDir, ".").Run(); err != nil {
 			log.Fatal(err)
 		}
 
