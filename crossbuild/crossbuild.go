@@ -52,14 +52,14 @@ func main() {
 		fmt.Printf("Building %s/%s:\n", target.os, target.arch)
 
 		outputDir := fmt.Sprint(".build/promql-langserver-", version, ".", target.os, "-", target.arch)
-		tarName := fmt.Sprint("promql-langserver-", version, ".", target.os, "-", target.arch, ".tar.gz")
+		tarName := fmt.Sprint("out/promql-langserver-", version, ".", target.os, "-", target.arch, ".tar.gz")
 		//zipName := fmt.Sprint("promql-langserver-", version, ".", target.os, "-", target.arch, ".zip")
 
 		if err := exec.Command("rm", "-rf", outputDir).Run(); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := exec.Command("mkdir", "-p", outputDir).Run(); err != nil {
+		if err := exec.Command("mkdir", "-p", outputDir, "out").Run(); err != nil {
 			log.Fatal(err)
 		}
 

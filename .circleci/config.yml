@@ -31,6 +31,8 @@ jobs:
     steps:
       - checkout
       - run: make crossbuild
+      - store_artifacts:
+          path: ./out
 
   check_repo_consistency:
     executor: golang
