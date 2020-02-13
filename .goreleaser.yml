@@ -7,6 +7,19 @@ builds:
     env:
       - GO111MODULE=on
     main: ./cmd/promql-langserver
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
 
 archives:
 checksum:
