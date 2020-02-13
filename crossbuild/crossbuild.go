@@ -52,14 +52,14 @@ func main() {
 		fmt.Printf("Building %s/%s:\n", target.os, target.arch)
 
 		outputDir := fmt.Sprint(".build/promql-langserver-", version, ".", target.os, "-", target.arch)
-		tarName := fmt.Sprint("promql-langserver-", version, ".", target.os, "-", target.arch, ".tar.gz")
-		zipName := fmt.Sprint("promql-langserver-", version, ".", target.os, "-", target.arch, ".zip")
+		tarName := fmt.Sprint("out/promql-langserver-", version, ".", target.os, "-", target.arch, ".tar.gz")
+		//zipName := fmt.Sprint("promql-langserver-", version, ".", target.os, "-", target.arch, ".zip")
 
 		if err := exec.Command("rm", "-rf", outputDir).Run(); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := exec.Command("mkdir", "-p", outputDir).Run(); err != nil {
+		if err := exec.Command("mkdir", "-p", outputDir, "out").Run(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -77,12 +77,15 @@ func main() {
 			log.Fatal(err)
 		}
 
-		if err := exec.Command("tar", "-zcvf", tarName, outputDir).Run(); err != nil {
+		if err := exec.Command("tar", "-zcvf", tarName, "-C", outputDir, ".").Run(); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := exec.Command("zip", "-r", zipName, outputDir).Run(); err != nil {
-			log.Fatal(err)
-		}
+		// We don't need zip files at the moment.
+		/*
+			if err := exec.Command("zip", "-r", zipName, outputDir).Run(); err != nil {
+				log.Fatal(err)
+			}
+		*/
 	}
 }

@@ -1,0 +1,65 @@
+---
+version: 2.1
+
+executors:
+  golang:
+    docker:
+      - image: circleci/golang:1.13-node
+
+  golangci:
+    docker:
+      - image: golangci/golangci-lint:v1.21.0
+
+jobs:
+  build:
+    executor: golang
+
+    steps:
+      - checkout
+      - run: make build
+
+  test:
+    executor: golang
+
+    steps:
+      - checkout
+      - run: make test
+
+  crossbuild:
+    executor: golang
+
+    steps:
+      - checkout
+      - run: make crossbuild
+      - store_artifacts:
+          path: ./out
+
+  check_repo_consistency:
+    executor: golang
+    
+    steps:
+      - checkout
+      - run: go get github.com/rakyll/statik
+      - run: make clean
+      - run: make generated
+      - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"
+      - run: make fmt
+      - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make fmt' and commit again ; exit 1 )"
+      - run: make update_internal_packages
+      - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make update_internal_packages' and commit again ; exit 1 )"
+
+  golangci-lint:
+    executor: golangci
+       
+    steps:
+     - checkout
+     - run: make golangci-lint
+
+workflows:
+    version: 2
+    default:
+      jobs:
+        - build
+        - test
+        - check_repo_consistency
+        - crossbuild
