@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 	"golang.org/x/tools/go/analysis"
 	errors "golang.org/x/xerrors"
 )

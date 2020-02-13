@@ -11,11 +11,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/debug"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/xcontext"
 	errors "golang.org/x/xerrors"
 )
 

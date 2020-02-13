@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cache"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/cache"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 	errors "golang.org/x/xerrors"
 )
 

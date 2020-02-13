@@ -1,7 +1,7 @@
 package errors
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/types"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/types"
 )
 
 func _() {

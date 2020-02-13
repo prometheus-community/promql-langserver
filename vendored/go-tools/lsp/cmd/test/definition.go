@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/tests"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 const (

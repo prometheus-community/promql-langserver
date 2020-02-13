@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
 )
 
 type loggingStream struct {

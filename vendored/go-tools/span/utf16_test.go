@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 // The funny character below is 4 bytes long in UTF-8; two UTF-16 code points

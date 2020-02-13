@@ -13,11 +13,11 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/tool"
 	errors "golang.org/x/xerrors"
 )
 

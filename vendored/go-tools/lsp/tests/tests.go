@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 	"golang.org/x/tools/go/expect"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/packages/packagestest"
@@ -36,7 +36,7 @@ const (
 	overlayFileSuffix = ".overlay"
 	goldenFileSuffix  = ".golden"
 	inFileSuffix      = ".in"
-	testModule        = "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp"
+	testModule        = "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp"
 )
 
 var UpdateGolden = flag.Bool("golden", false, "Update golden files")

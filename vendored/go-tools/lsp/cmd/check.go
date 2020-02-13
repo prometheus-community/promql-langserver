@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 	errors "golang.org/x/xerrors"
 )
 

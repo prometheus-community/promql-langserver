@@ -13,8 +13,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/browser"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/browser"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/debug"
 )
 
 // version implements the version command.

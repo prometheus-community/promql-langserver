@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	tellog "github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	tellog "github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 )
 
 func init() {

@@ -21,8 +21,8 @@ package langserver
 import (
 	"context"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
 // DidOpen receives a call from the Client, telling that a files has been opened

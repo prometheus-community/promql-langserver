@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/tool"
 )
 
 // highlight implements the highlight verb for gopls

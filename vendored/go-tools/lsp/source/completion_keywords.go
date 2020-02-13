@@ -3,7 +3,7 @@ package source
 import (
 	"go/ast"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 
 	errors "golang.org/x/xerrors"
 )

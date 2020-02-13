@@ -13,13 +13,13 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/imports"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/snippet"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/imports"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/snippet"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 	errors "golang.org/x/xerrors"
 )
 

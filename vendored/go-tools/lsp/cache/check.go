@@ -15,12 +15,12 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/memoize"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/memoize"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
 	"golang.org/x/tools/go/packages"
 	errors "golang.org/x/xerrors"
 )

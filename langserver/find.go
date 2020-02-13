@@ -16,9 +16,9 @@ package langserver
 import (
 	"go/token"
 
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 type location struct {

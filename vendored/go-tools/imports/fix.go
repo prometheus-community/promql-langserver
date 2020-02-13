@@ -26,7 +26,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/gopathwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/gopathwalk"
 	"golang.org/x/tools/go/ast/astutil"
 )
 

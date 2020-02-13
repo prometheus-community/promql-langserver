@@ -11,10 +11,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/snippet"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/snippet"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
 )
 
 // literal generates composite literal, function literal, and make()

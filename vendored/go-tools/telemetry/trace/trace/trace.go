@@ -9,9 +9,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 )
 
 func StartSpan(ctx context.Context, name string, tags ...telemetry.Tag) (context.Context, func()) {

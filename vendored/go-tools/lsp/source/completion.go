@@ -18,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/imports"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/fuzzy"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/snippet"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/imports"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/fuzzy"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/snippet"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
 	"golang.org/x/tools/go/ast/astutil"
 	errors "golang.org/x/xerrors"
 )

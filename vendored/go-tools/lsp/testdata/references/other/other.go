@@ -1,7 +1,7 @@
 package other
 
 import (
-	references "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/references"
+	references "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/references"
 )
 
 func _() {

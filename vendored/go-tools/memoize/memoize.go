@@ -20,7 +20,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/xcontext"
 )
 
 // Store binds keys to functions, returning handles that can be used to access

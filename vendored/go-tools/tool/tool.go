@@ -19,7 +19,7 @@ import (
 )
 
 // This file is a very opinionated harness for writing your main function.
-// The original version of the file is in github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool.
+// The original version of the file is in github.com/prometheus-community/promql-langserver/vendored/go-tools/tool.
 //
 // It adds a method to the Application type
 //     Main(name, usage string, args []string)

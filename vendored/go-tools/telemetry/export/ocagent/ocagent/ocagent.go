@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export/ocagent/wire"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export/ocagent/wire"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 )
 
 type Config struct {

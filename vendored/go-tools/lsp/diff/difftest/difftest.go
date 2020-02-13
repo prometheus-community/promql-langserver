@@ -4,15 +4,15 @@
 
 // Package difftest supplies a set of tests that will operate on any
 // implementation of a diff algorithm as exposed by
-// "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
+// "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
 package difftest
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 const (

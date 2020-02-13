@@ -11,8 +11,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
 )
 
 //TODO: Do we need to do something more efficient than just store tags

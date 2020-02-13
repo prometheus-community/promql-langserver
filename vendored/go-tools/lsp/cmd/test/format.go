@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/testenv"
 )
 
 func (r *runner) Format(t *testing.T, spn span.Span) {

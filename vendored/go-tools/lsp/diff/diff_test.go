@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/difftest"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff/difftest"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 func TestApplyEdits(t *testing.T) {

@@ -7,8 +7,8 @@ package cache
 import (
 	"sort"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/debug"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 type debugView struct{ *view }

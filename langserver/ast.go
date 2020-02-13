@@ -16,8 +16,8 @@ package langserver
 import (
 	"go/token"
 
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 )
 
 func getSmallestSurroundingNode(query *cache.CompiledQuery, tokenPos token.Pos) promql.Node {

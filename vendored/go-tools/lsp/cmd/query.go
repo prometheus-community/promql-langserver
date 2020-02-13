@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/tool"
 )
 
 const (

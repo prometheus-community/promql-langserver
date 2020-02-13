@@ -5,8 +5,8 @@
 package debug
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/metric"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/metric"
 )
 
 var (

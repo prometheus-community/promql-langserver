@@ -17,4 +17,4 @@ func _() {
 
 /* ring.Ring */ //@item(ringring, "Ring", "(from \"container/ring\")", "var")
 
-/* signature.Foo */ //@item(signaturefoo, "Foo", "func(a string, b int) (c bool) (from \"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/signature\")", "func")
+/* signature.Foo */ //@item(signaturefoo, "Foo", "func(a string, b int) (c bool) (from \"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/signature\")", "func")

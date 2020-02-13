@@ -21,11 +21,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export/prometheus"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export/prometheus"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 )
 
 type Instance interface {

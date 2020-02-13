@@ -1,5 +1,5 @@
 package b
 
 import (
-	_ "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/circular/triple/c"
+	_ "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/circular/triple/c"
 )

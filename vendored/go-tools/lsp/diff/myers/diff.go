@@ -8,8 +8,8 @@ package myers
 import (
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 // Sources:

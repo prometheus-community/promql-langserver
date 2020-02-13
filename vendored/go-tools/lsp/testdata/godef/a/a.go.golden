@@ -15,7 +15,7 @@ Name returns the object\'s \(package\-local, unqualified\) name\.
 func (*types.object).Name() string
 ```
 -- Random-definition --
-godef/a/random.go:3:6-12: defined here as [`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random)
+godef/a/random.go:3:6-12: defined here as [`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random)
 
 ```go
 func Random() int
@@ -35,17 +35,17 @@ func Random() int
 			"offset": 22
 		}
 	},
-	"description": "[`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random)\n\n```go\nfunc Random() int\n```"
+	"description": "[`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random)\n\n```go\nfunc Random() int\n```"
 }
 
 -- Random-hover --
-[`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random)
+[`a.Random` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random)
 
 ```go
 func Random() int
 ```
 -- Random2-definition --
-godef/a/random.go:8:6-13: defined here as [`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random2)
+godef/a/random.go:8:6-13: defined here as [`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random2)
 
 ```go
 func Random2(y int) int
@@ -65,11 +65,11 @@ func Random2(y int) int
 			"offset": 78
 		}
 	},
-	"description": "[`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random2)\n\n```go\nfunc Random2(y int) int\n```"
+	"description": "[`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random2)\n\n```go\nfunc Random2(y int) int\n```"
 }
 
 -- Random2-hover --
-[`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Random2)
+[`a.Random2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Random2)
 
 ```go
 func Random2(y int) int

@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
 )
 
 type Exporter interface {

@@ -1,7 +1,7 @@
 package importedcomplit
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo"
 )
 
 func _() {

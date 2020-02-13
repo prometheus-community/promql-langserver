@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export/ocagent/wire"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/metric"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export/ocagent/wire"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/metric"
 )
 
 // dataToMetricDescriptor return a *wire.MetricDescriptor based on data.

@@ -8,13 +8,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/mod"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/mod"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/xcontext"
 )
 
 func (s *Server) diagnoseDetached(snapshot source.Snapshot) {

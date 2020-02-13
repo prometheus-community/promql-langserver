@@ -3,7 +3,7 @@
 package bar
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo" //@item(foo, "foo", "\"golang.org/x/tools/internal/lsp/foo\"", "package")
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo" //@item(foo, "foo", "\"golang.org/x/tools/internal/lsp/foo\"", "package")
 )
 
 func helper(i foo.IntFoo) {} //@item(helper, "helper", "func(i foo.IntFoo)", "func")

@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"sort"
 
-	tlm "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/metric"
+	tlm "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/metric"
 )
 
 var rpcTmpl = template.Must(template.Must(BaseTemplate.Clone()).Parse(`

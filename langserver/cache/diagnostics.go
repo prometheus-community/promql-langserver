@@ -17,8 +17,8 @@ package cache
 import (
 	"go/token"
 
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) {

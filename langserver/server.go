@@ -28,11 +28,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 )
 
 // Server wraps language server instance that can connect to exactly one client

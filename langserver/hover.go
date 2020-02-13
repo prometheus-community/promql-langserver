@@ -24,13 +24,13 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/rakyll/statik/fs"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
 
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	// Do not remove! Side effects of init() needed
-	_ "github.com/slrtbtfs/promql-lsp/langserver/documentation/functions_statik"
+	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )

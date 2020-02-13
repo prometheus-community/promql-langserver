@@ -3,9 +3,9 @@
 package baz
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/bar"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/bar"
 
-	f "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo"
+	f "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo"
 )
 
 var FooStruct f.StructFoo

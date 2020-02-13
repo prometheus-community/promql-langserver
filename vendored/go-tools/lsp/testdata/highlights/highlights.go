@@ -5,7 +5,7 @@ import (
 	h2 "net/http" //@mark(hImp, "h2"),highlight(hImp, hImp, hUse)
 	"sort"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
 type F struct{ bar int } //@mark(barDeclaration, "bar"),highlight(barDeclaration, barDeclaration, bar1, bar2, bar3)
