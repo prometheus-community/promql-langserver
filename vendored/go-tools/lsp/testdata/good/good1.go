@@ -2,7 +2,7 @@ package good //@diag("package", "no_diagnostics", "")
 
 import (
 	_ "go/ast"                              //@prepare("go/ast", "_", "_")
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/types" //@item(types_import, "types", "\"golang.org/x/tools/internal/lsp/types\"", "package"),prepare("types","\"", "types")
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/types" //@item(types_import, "types", "\"golang.org/x/tools/internal/lsp/types\"", "package"),prepare("types","\"", "types")
 )
 
 func random() int { //@item(good_random, "random", "func() int", "func")

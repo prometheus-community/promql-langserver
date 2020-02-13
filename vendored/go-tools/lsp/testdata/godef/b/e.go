@@ -3,7 +3,7 @@ package b
 import (
 	"fmt"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a"
 )
 
 func useThings() {

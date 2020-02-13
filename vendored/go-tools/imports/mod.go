@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/gopathwalk"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/module"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/semver"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/gopathwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/module"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/semver"
 )
 
 // ModuleResolver implements resolver for modules using the go command as little

@@ -10,10 +10,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/stats"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/stats"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
 )
 
 // Scalar represents the construction information for a scalar metric.

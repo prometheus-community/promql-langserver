@@ -24,7 +24,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/semver"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/semver"
 )
 
 // A Version is defined by a module path and version pair.

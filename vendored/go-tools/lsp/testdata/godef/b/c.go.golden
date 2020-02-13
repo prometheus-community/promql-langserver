@@ -1,5 +1,5 @@
 -- S1-definition --
-godef/b/b.go:8:6-8: defined here as [`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)
+godef/b/b.go:8:6-8: defined here as [`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)
 
 ```go
 S1 struct {
@@ -23,11 +23,11 @@ S1 struct {
 			"offset": 195
 		}
 	},
-	"description": "[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)\n\n```go\nS1 struct {\n\tF1  int //@mark(S1F1, \"F1\")\n\tS2      //@godef(\"S2\", S2), mark(S1S2, \"S2\")\n\ta.A     //@godef(\"A\", A)\n}\n```"
+	"description": "[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)\n\n```go\nS1 struct {\n\tF1  int //@mark(S1F1, \"F1\")\n\tS2      //@godef(\"S2\", S2), mark(S1S2, \"S2\")\n\ta.A     //@godef(\"A\", A)\n}\n```"
 }
 
 -- S1-hover --
-[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)
+[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)
 
 ```go
 S1 struct {
@@ -39,7 +39,7 @@ S1 struct {
 -- S1F1-definition --
 godef/b/b.go:9:2-4: defined here as \@mark\(S1F1, \"F1\"\)
 
-[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)
+[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)
 
 ```go
 field F1 int
@@ -59,13 +59,13 @@ field F1 int
 			"offset": 214
 		}
 	},
-	"description": "\\@mark\\(S1F1, \\\"F1\\\"\\)\n\n[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)\n\n```go\nfield F1 int\n```"
+	"description": "\\@mark\\(S1F1, \\\"F1\\\"\\)\n\n[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)\n\n```go\nfield F1 int\n```"
 }
 
 -- S1F1-hover --
 \@mark\(S1F1, \"F1\"\)
 
-[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)
+[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)
 
 ```go
 field F1 int

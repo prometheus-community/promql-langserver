@@ -64,10 +64,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/export/ocagent"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/metric"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/stats"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/export/ocagent"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/metric"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/stats"
 )
 
 func main() {

@@ -4,7 +4,7 @@
 
 // Package difftest supplies a set of tests that will operate on any
 // implementation of a diff algorithm as exposed by
-// "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff"
+// "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff"
 package difftest_test
 
 import (
@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/difftest"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff/difftest"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/testenv"
 )
 
 func VerifyUnifiedTest(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/fuzzy"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/fuzzy"
 )
 
 var rolesTests = []struct {

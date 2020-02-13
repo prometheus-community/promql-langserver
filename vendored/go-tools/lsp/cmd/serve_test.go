@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
 )
 
 type fakeServer struct {

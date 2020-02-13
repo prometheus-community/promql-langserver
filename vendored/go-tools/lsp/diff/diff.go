@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 // TextEdit represents a change to a section of a document.

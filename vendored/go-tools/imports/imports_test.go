@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/testenv"
 )
 
 func TestMain(m *testing.M) {

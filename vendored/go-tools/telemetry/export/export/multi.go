@@ -7,7 +7,7 @@ package export
 import (
 	"context"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
 )
 
 // Multi returns an exporter that invokes all the exporters given to it in order.

@@ -7,8 +7,8 @@ package myers_test
 import (
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/difftest"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/diff/myers"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff/difftest"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/diff/myers"
 )
 
 func TestDiff(t *testing.T) {

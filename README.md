@@ -1,6 +1,6 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/slrtbtfs/promql-lsp)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
-[![Build Status](https://cloud.drone.io/api/badges/slrtbtfs/promql-lsp/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp/langserver)
-[![GoDoc](https://godoc.org/github.com/slrtbtfs/promql-lsp?status.png)](https://godoc.org/github.com/slrtbtfs/promql-lsp/langserver)
+[![Go Report Card](https://goreportcard.com/badge/github.com/prometheus-community/promql-langserver)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
+[![Build Status](https://cloud.drone.io/api/badges/prometheus-community/promql-langserver/status.svg)](https://cloud.drone.io/slrtbtfs/promql-lsp/langserver)
+[![GoDoc](https://godoc.org/github.com/prometheus-community/promql-langserver?status.png)](https://godoc.org/github.com/slrtbtfs/promql-lsp/langserver)
 
 **Warning:** This software is not in a particulary useful or stable state yet.
 
@@ -41,19 +41,19 @@ Implementation of the Language Server Protocol for PromQL.
 
 ### Completion in VS Code
 
-![Completion in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_completion.png)
+![Completion in VS Code](https://github.com/prometheus-community/promql-langserver/raw/master/screenshots/vscode_completion.png)
 
 ### Metric metadata from a Prometheus Server
 
-![Metric Metadata in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_hover2.png)
+![Metric Metadata in VS Code](https://github.com/prometheus-community/promql-langserver/raw/master/screenshots/vscode_hover2.png)
 
 ### Viewing documentation right from your editor
 
-![Docs in VS Code](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vscode_yaml.png)
+![Docs in VS Code](https://github.com/prometheus-community/promql-langserver/raw/master/screenshots/vscode_yaml.png)
 
 ### Vim and other editors are supported, too
 
-![Vim](https://github.com/slrtbtfs/promql-lsp/raw/master/screenshots/vim.png)
+![Vim](https://github.com/prometheus-community/promql-langserver/raw/master/screenshots/vim.png)
 
 ## Using the Language Server
 

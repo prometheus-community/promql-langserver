@@ -19,8 +19,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/prometheus/promql"
-	"github.com/slrtbtfs/promql-lsp/langserver/cache"
 )
 
 func TestSmallestSurroundingNode(t *testing.T) {

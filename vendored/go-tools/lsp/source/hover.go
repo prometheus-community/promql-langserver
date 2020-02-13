@@ -14,8 +14,8 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
 	errors "golang.org/x/xerrors"
 )
 

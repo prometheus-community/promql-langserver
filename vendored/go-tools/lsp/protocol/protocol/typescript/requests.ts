@@ -222,9 +222,9 @@ function output(side: side) {
     "context"
     "encoding/json"
 
-    "github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-    "github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
-    "github.com/slrtbtfs/promql-lsp/vendored/go-tools/xcontext"
+    "github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+    "github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
+    "github.com/prometheus-community/promql-langserver/vendored/go-tools/xcontext"
     )
   `);
   const a = side.name[0].toUpperCase() + side.name.substring(1)

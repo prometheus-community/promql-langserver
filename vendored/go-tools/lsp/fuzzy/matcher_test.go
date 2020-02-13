@@ -14,7 +14,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/fuzzy"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/fuzzy"
 )
 
 type comparator struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/gopathwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/gopathwalk"
 )
 
 // To find packages to import, the resolver needs to know about all of the

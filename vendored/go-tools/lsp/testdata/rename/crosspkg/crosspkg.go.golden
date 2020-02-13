@@ -11,7 +11,7 @@ var Bar int //@rename("Bar", "Tomato")
 other.go:
 package other
 
-import "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/rename/crosspkg"
+import "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/rename/crosspkg"
 
 func Other() {
 	crosspkg.Bar
@@ -31,7 +31,7 @@ var Tomato int //@rename("Bar", "Tomato")
 other.go:
 package other
 
-import "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/rename/crosspkg"
+import "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/rename/crosspkg"
 
 func Other() {
 	crosspkg.Tomato

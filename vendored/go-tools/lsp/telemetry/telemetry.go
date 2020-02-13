@@ -7,9 +7,9 @@
 package telemetry
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/stats"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/tag"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/unit"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/stats"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/tag"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/unit"
 )
 
 const (

@@ -17,8 +17,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
 // Initialize handles a call from the client to initialize the server

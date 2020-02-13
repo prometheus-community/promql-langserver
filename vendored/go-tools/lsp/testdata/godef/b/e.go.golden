@@ -1,7 +1,7 @@
 -- Member-definition --
 godef/a/d.go:6:2-8: defined here as \@Member
 
-[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing.Member)
+[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing.Member)
 
 ```go
 field Member string
@@ -21,19 +21,19 @@ field Member string
 			"offset": 61
 		}
 	},
-	"description": "\\@Member\n\n[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing.Member)\n\n```go\nfield Member string\n```"
+	"description": "\\@Member\n\n[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing.Member)\n\n```go\nfield Member string\n```"
 }
 
 -- Member-hover --
 \@Member
 
-[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing.Member)
+[`(a.Thing).Member` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing.Member)
 
 ```go
 field Member string
 ```
 -- Other-definition --
-godef/a/d.go:9:5-10: defined here as [`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Other)
+godef/a/d.go:9:5-10: defined here as [`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Other)
 
 ```go
 var a.Other a.Thing
@@ -53,17 +53,17 @@ var a.Other a.Thing
 			"offset": 91
 		}
 	},
-	"description": "[`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Other)\n\n```go\nvar a.Other a.Thing\n```"
+	"description": "[`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Other)\n\n```go\nvar a.Other a.Thing\n```"
 }
 
 -- Other-hover --
-[`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Other)
+[`a.Other` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Other)
 
 ```go
 var a.Other a.Thing
 ```
 -- Thing-definition --
-godef/a/d.go:5:6-11: defined here as [`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing)
+godef/a/d.go:5:6-11: defined here as [`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing)
 
 ```go
 Thing struct {
@@ -85,11 +85,11 @@ Thing struct {
 			"offset": 35
 		}
 	},
-	"description": "[`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing)\n\n```go\nThing struct {\n\tMember string //@Member\n}\n```"
+	"description": "[`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing)\n\n```go\nThing struct {\n\tMember string //@Member\n}\n```"
 }
 
 -- Thing-hover --
-[`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Thing)
+[`a.Thing` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Thing)
 
 ```go
 Thing struct {
@@ -97,7 +97,7 @@ Thing struct {
 }
 ```
 -- Things-definition --
-godef/a/d.go:11:6-12: defined here as [`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Things)
+godef/a/d.go:11:6-12: defined here as [`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Things)
 
 ```go
 func a.Things(val []string) []a.Thing
@@ -117,11 +117,11 @@ func a.Things(val []string) []a.Thing
 			"offset": 119
 		}
 	},
-	"description": "[`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Things)\n\n```go\nfunc a.Things(val []string) []a.Thing\n```"
+	"description": "[`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Things)\n\n```go\nfunc a.Things(val []string) []a.Thing\n```"
 }
 
 -- Things-hover --
-[`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#Things)
+[`a.Things` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#Things)
 
 ```go
 func a.Things(val []string) []a.Thing

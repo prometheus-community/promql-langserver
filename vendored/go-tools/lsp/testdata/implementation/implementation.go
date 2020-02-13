@@ -1,6 +1,6 @@
 package implementation
 
-import "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/implementation/other"
+import "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/implementation/other"
 
 type ImpP struct{} //@ImpP
 

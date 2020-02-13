@@ -1,4 +1,4 @@
-module github.com/slrtbtfs/promql-lsp
+module github.com/prometheus-community/promql-langserver
 
 go 1.13
 

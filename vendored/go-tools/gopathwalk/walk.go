@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/fastwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/fastwalk"
 )
 
 // Options controls the behavior of a Walk call.

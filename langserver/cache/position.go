@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"go/token"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 // PositionToProtocolPosition converts a token.Position to a protocol.Position

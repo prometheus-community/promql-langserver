@@ -1,5 +1,5 @@
 -- A-definition --
-godef/a/a.go:16:6-7: defined here as [`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#A)
+godef/a/a.go:16:6-7: defined here as [`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#A)
 
 ```go
 A string //@A
@@ -20,21 +20,21 @@ A string //@A
 			"offset": 160
 		}
 	},
-	"description": "[`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#A)\n\n```go\nA string //@A\n\n```"
+	"description": "[`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#A)\n\n```go\nA string //@A\n\n```"
 }
 
 -- A-hover --
-[`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#A)
+[`a.A` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#A)
 
 ```go
 A string //@A
 
 ```
 -- AImport-definition --
-godef/b/b.go:5:2-43: defined here as [`a` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a)
+godef/b/b.go:5:2-43: defined here as [`a` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a)
 
 ```go
-package a ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a")
+package a ("github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a")
 ```
 -- AImport-definition-json --
 {
@@ -51,17 +51,17 @@ package a ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a")
 			"offset": 153
 		}
 	},
-	"description": "[`a` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a)\n\n```go\npackage a (\"golang.org/x/tools/internal/lsp/godef/a\")\n```"
+	"description": "[`a` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a)\n\n```go\npackage a (\"golang.org/x/tools/internal/lsp/godef/a\")\n```"
 }
 
 -- AImport-hover --
-[`a` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a)
+[`a` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a)
 
 ```go
-package a ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a")
+package a ("github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a")
 ```
 -- AStuff-definition --
-godef/a/a.go:18:6-12: defined here as [`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#AStuff)
+godef/a/a.go:18:6-12: defined here as [`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#AStuff)
 
 ```go
 func a.AStuff()
@@ -81,17 +81,17 @@ func a.AStuff()
 			"offset": 185
 		}
 	},
-	"description": "[`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#AStuff)\n\n```go\nfunc a.AStuff()\n```"
+	"description": "[`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#AStuff)\n\n```go\nfunc a.AStuff()\n```"
 }
 
 -- AStuff-hover --
-[`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a#AStuff)
+[`a.AStuff` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a#AStuff)
 
 ```go
 func a.AStuff()
 ```
 -- PackageFoo-definition --
-foo/foo.go:1:1-30:16: defined here as myFoo "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("foo", PackageFoo),godef("myFoo", myFoo)
+foo/foo.go:1:1-30:16: defined here as myFoo "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("foo", PackageFoo),godef("myFoo", myFoo)
 -- PackageFoo-definition-json --
 {
 	"span": {
@@ -107,14 +107,14 @@ foo/foo.go:1:1-30:16: defined here as myFoo "github.com/slrtbtfs/promql-lsp/vend
 			"offset": 922
 		}
 	},
-	"description": "myFoo \"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo\" //@mark(myFoo, \"myFoo\"),godef(\"foo\", PackageFoo),godef(\"myFoo\", myFoo)"
+	"description": "myFoo \"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo\" //@mark(myFoo, \"myFoo\"),godef(\"foo\", PackageFoo),godef(\"myFoo\", myFoo)"
 }
 
 -- PackageFoo-hover --
-myFoo "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("foo", PackageFoo),godef("myFoo", myFoo)
+myFoo "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("foo", PackageFoo),godef("myFoo", myFoo)
 
 -- S1-definition --
-godef/b/b.go:8:6-8: defined here as [`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)
+godef/b/b.go:8:6-8: defined here as [`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)
 
 ```go
 S1 struct {
@@ -138,11 +138,11 @@ S1 struct {
 			"offset": 195
 		}
 	},
-	"description": "[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)\n\n```go\nS1 struct {\n\tF1  int //@mark(S1F1, \"F1\")\n\tS2      //@godef(\"S2\", S2), mark(S1S2, \"S2\")\n\ta.A     //@godef(\"A\", A)\n}\n```"
+	"description": "[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)\n\n```go\nS1 struct {\n\tF1  int //@mark(S1F1, \"F1\")\n\tS2      //@godef(\"S2\", S2), mark(S1S2, \"S2\")\n\ta.A     //@godef(\"A\", A)\n}\n```"
 }
 
 -- S1-hover --
-[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1)
+[`b.S1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1)
 
 ```go
 S1 struct {
@@ -154,7 +154,7 @@ S1 struct {
 -- S1F1-definition --
 godef/b/b.go:9:2-4: defined here as \@mark\(S1F1, \"F1\"\)
 
-[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)
+[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)
 
 ```go
 field F1 int
@@ -174,13 +174,13 @@ field F1 int
 			"offset": 214
 		}
 	},
-	"description": "\\@mark\\(S1F1, \\\"F1\\\"\\)\n\n[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)\n\n```go\nfield F1 int\n```"
+	"description": "\\@mark\\(S1F1, \\\"F1\\\"\\)\n\n[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)\n\n```go\nfield F1 int\n```"
 }
 
 -- S1F1-hover --
 \@mark\(S1F1, \"F1\"\)
 
-[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F1)
+[`(b.S1).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F1)
 
 ```go
 field F1 int
@@ -188,7 +188,7 @@ field F1 int
 -- S1S2-definition --
 godef/b/b.go:10:2-4: defined here as \@godef\(\"S2\", S2\), mark\(S1S2, \"S2\"\)
 
-[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.S2)
+[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.S2)
 
 ```go
 field S2 S2
@@ -208,19 +208,19 @@ field S2 S2
 			"offset": 243
 		}
 	},
-	"description": "\\@godef\\(\\\"S2\\\", S2\\), mark\\(S1S2, \\\"S2\\\"\\)\n\n[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.S2)\n\n```go\nfield S2 S2\n```"
+	"description": "\\@godef\\(\\\"S2\\\", S2\\), mark\\(S1S2, \\\"S2\\\"\\)\n\n[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.S2)\n\n```go\nfield S2 S2\n```"
 }
 
 -- S1S2-hover --
 \@godef\(\"S2\", S2\), mark\(S1S2, \"S2\"\)
 
-[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.S2)
+[`(b.S1).S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.S2)
 
 ```go
 field S2 S2
 ```
 -- S2-definition --
-godef/b/b.go:14:6-8: defined here as [`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2)
+godef/b/b.go:14:6-8: defined here as [`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2)
 
 ```go
 S2 struct {
@@ -244,11 +244,11 @@ S2 struct {
 			"offset": 322
 		}
 	},
-	"description": "[`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2)\n\n```go\nS2 struct {\n\tF1   string //@mark(S2F1, \"F1\")\n\tF2   int    //@mark(S2F2, \"F2\")\n\t*a.A        //@godef(\"A\", A),godef(\"a\",AImport)\n}\n```"
+	"description": "[`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2)\n\n```go\nS2 struct {\n\tF1   string //@mark(S2F1, \"F1\")\n\tF2   int    //@mark(S2F2, \"F2\")\n\t*a.A        //@godef(\"A\", A),godef(\"a\",AImport)\n}\n```"
 }
 
 -- S2-hover --
-[`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2)
+[`b.S2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2)
 
 ```go
 S2 struct {
@@ -260,7 +260,7 @@ S2 struct {
 -- S2F1-definition --
 godef/b/b.go:15:2-4: defined here as \@mark\(S2F1, \"F1\"\)
 
-[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2.F1)
+[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2.F1)
 
 ```go
 field F1 string
@@ -280,13 +280,13 @@ field F1 string
 			"offset": 341
 		}
 	},
-	"description": "\\@mark\\(S2F1, \\\"F1\\\"\\)\n\n[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2.F1)\n\n```go\nfield F1 string\n```"
+	"description": "\\@mark\\(S2F1, \\\"F1\\\"\\)\n\n[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2.F1)\n\n```go\nfield F1 string\n```"
 }
 
 -- S2F1-hover --
 \@mark\(S2F1, \"F1\"\)
 
-[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S2.F1)
+[`(b.S2).F1` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S2.F1)
 
 ```go
 field F1 string
@@ -294,7 +294,7 @@ field F1 string
 -- S2F2-definition --
 godef/b/b.go:16:2-4: defined here as \@mark\(S2F2, \"F2\"\)
 
-[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F2)
+[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F2)
 
 ```go
 field F2 int
@@ -314,13 +314,13 @@ field F2 int
 			"offset": 374
 		}
 	},
-	"description": "\\@mark\\(S2F2, \\\"F2\\\"\\)\n\n[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F2)\n\n```go\nfield F2 int\n```"
+	"description": "\\@mark\\(S2F2, \\\"F2\\\"\\)\n\n[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F2)\n\n```go\nfield F2 int\n```"
 }
 
 -- S2F2-hover --
 \@mark\(S2F2, \"F2\"\)
 
-[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#S1.F2)
+[`(b.S1).F2` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#S1.F2)
 
 ```go
 field F2 int
@@ -348,7 +348,7 @@ godef/a/a.go:9:6-11: defined here as func a.Stuff()
 -- Stuff-hover --
 func a.Stuff()
 -- X-definition --
-godef/b/b.go:37:7-8: defined here as [`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#X)
+godef/b/b.go:37:7-8: defined here as [`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#X)
 
 ```go
 const X untyped int = 0
@@ -368,20 +368,20 @@ const X untyped int = 0
 			"offset": 796
 		}
 	},
-	"description": "[`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#X)\n\n```go\nconst X untyped int = 0\n```"
+	"description": "[`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#X)\n\n```go\nconst X untyped int = 0\n```"
 }
 
 -- X-hover --
-[`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/b#X)
+[`b.X` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/b#X)
 
 ```go
 const X untyped int = 0
 ```
 -- myFoo-definition --
-godef/b/b.go:4:2-7: defined here as [`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo)
+godef/b/b.go:4:2-7: defined here as [`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo)
 
 ```go
-package myFoo ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo")
+package myFoo ("github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo")
 ```
 -- myFoo-definition-json --
 {
@@ -398,12 +398,12 @@ package myFoo ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo")
 			"offset": 26
 		}
 	},
-	"description": "[`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo)\n\n```go\npackage myFoo (\"golang.org/x/tools/internal/lsp/foo\")\n```"
+	"description": "[`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo)\n\n```go\npackage myFoo (\"golang.org/x/tools/internal/lsp/foo\")\n```"
 }
 
 -- myFoo-hover --
-[`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo)
+[`myFoo` on pkg.go.dev](https://pkg.go.dev/github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo)
 
 ```go
-package myFoo ("github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo")
+package myFoo ("github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo")
 ```

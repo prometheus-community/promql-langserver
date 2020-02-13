@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
 )
 
 func ToProtocolCompletionItems(items []source.CompletionItem) []protocol.CompletionItem {

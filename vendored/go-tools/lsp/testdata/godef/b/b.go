@@ -1,8 +1,8 @@
 package b
 
 import (
-	myFoo "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("myFoo", myFoo)
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/godef/a"   //@mark(AImport, re"\".*\"")
+	myFoo "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/foo" //@mark(myFoo, "myFoo"),godef("myFoo", myFoo)
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/godef/a"   //@mark(AImport, re"\".*\"")
 )
 
 type S1 struct { //@S1

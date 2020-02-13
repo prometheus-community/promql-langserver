@@ -9,7 +9,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
 )
 
 func (r *runner) References(t *testing.T, spn span.Span, itemList []span.Span) {

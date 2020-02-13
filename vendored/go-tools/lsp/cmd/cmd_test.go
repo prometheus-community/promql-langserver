@@ -12,10 +12,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd"
-	cmdtest "github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cmd/test"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/tests"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/cmd"
+	cmdtest "github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/cmd/test"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/tests"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/testenv"
 	"golang.org/x/tools/go/packages/packagestest"
 )
 

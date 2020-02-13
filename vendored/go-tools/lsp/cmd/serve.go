@@ -16,14 +16,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/jsonrpc2"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/cache"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/debug"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/trace"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/tool"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/cache"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/debug"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/trace"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/tool"
 	errors "golang.org/x/xerrors"
 )
 

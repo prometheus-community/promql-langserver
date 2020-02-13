@@ -3,7 +3,7 @@
 package selector
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/bar"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/bar"
 )
 
 type S struct {

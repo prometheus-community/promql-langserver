@@ -18,7 +18,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/fastwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/fastwalk"
 )
 
 func formatFileModes(m map[string]os.FileMode) string {

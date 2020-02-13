@@ -1,8 +1,8 @@
 package unimported
 
 import (
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/baz"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/signature" // provide type information for unimported completions in the other file
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/baz"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/signature" // provide type information for unimported completions in the other file
 )
 
 func _() {

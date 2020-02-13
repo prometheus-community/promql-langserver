@@ -18,9 +18,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/gopathwalk"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/module"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/testenv"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/gopathwalk"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/module"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/testenv"
 	"golang.org/x/tools/txtar"
 )
 

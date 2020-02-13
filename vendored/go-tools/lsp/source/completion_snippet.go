@@ -7,7 +7,7 @@ package source
 import (
 	"go/ast"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/snippet"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/snippet"
 )
 
 // structFieldSnippets calculates the snippet for struct literal field names.

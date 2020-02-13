@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/slrtbtfs/promql-lsp/langserver"
+	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
 func main() {

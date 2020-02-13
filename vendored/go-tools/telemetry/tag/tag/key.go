@@ -8,7 +8,7 @@ package tag
 import (
 	"context"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry"
 )
 
 // Key represents the key for a context tag.

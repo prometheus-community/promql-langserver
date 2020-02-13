@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/unit"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/unit"
 )
 
 // Int64Measure is used to record integer values.

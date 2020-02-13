@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/memoize"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/memoize"
 )
 
 func TestStore(t *testing.T) {

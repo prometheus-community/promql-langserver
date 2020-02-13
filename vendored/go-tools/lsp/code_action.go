@@ -10,13 +10,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/imports"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/mod"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/protocol"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/source"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/lsp/telemetry"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/span"
-	"github.com/slrtbtfs/promql-lsp/vendored/go-tools/telemetry/log"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/imports"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/mod"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/source"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/telemetry"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/telemetry/log"
 	errors "golang.org/x/xerrors"
 )
 
