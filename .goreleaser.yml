@@ -1,0 +1,32 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+builds:
+  - 
+    env:
+      - GO111MODULE=on
+    main: ./cmd/promql-langserver
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+
+    goarm:
+      - 6
+      - 7
+
+changelog:
+    skip: true
+
+archives:
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"

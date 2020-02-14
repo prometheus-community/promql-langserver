@@ -90,4 +90,8 @@ htmlcover:
 
 .PHONY: crossbuild
 crossbuild:
-	go run crossbuild/crossbuild.go
+	goreleaser --skip-publish --rm-dist --snapshot
+
+.PHONY: release
+release:
+	goreleaser
