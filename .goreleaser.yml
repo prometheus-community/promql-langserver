@@ -22,6 +22,9 @@ builds:
       - 6
       - 7
 
+changelog:
+    skip: true
+
 archives:
 checksum:
   name_template: 'checksums.txt'
