@@ -37,6 +37,14 @@ jobs:
       - store_artifacts:
           path: ./artifacts
 
+  publish_release:
+    executor: golang
+
+    steps:
+      - checkout
+      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+      - run: make release 
+
   check_repo_consistency:
     executor: golang
     
@@ -66,3 +74,26 @@ workflows:
         - test
         - check_repo_consistency
         - crossbuild
+        - hold:
+            type:
+              approval
+            requires:
+              - build
+              - test
+              - check_repo_consistency
+              - crossbuild
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      
+        - publish_release:
+            requires:
+              - hold
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      
