@@ -12,5 +12,4 @@
 *.out
 /promql-langserver
 /coverage.out
-.build
-out
+dist

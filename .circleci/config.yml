@@ -30,9 +30,12 @@ jobs:
 
     steps:
       - checkout
+      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
       - run: make crossbuild
+      - run: mkdir artifacts
+      - run: mv dist/*.tar.gz dist/checksums.txt artifacts
       - store_artifacts:
-          path: ./out
+          path: ./artifacts
 
   check_repo_consistency:
     executor: golang
