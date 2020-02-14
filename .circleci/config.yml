@@ -1,6 +1,7 @@
 ---
 version: 2.1
 
+# Whenever the versions here are increased, also increment the versions of the build caches
 executors:
   golang:
     docker:
@@ -10,42 +11,65 @@ executors:
     docker:
       - image: golangci/golangci-lint:v1.21.0
 
+  goreleaser:
+    docker:
+      - image: goreleaser/goreleaser:v0.126.0
+
 jobs:
   build:
     executor: golang
 
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-build-cache
       - run: make build
+      - save_cache:
+          key: v1-build-cache
+          paths:
+            - go/pkg
+            - ~/.cache/go-build
 
   test:
     executor: golang
 
     steps:
       - checkout
+      # Reuse build cache if available
+      - restore_cache:
+          keys:
+            - v1-build-cache
       - run: make test
 
   crossbuild:
-    executor: golang
+    executor: goreleaser
 
     steps:
       - checkout
-      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
-      - run: git reset --hard
-      - run: make crossbuild
+      - restore_cache:
+          keys:
+            - v1-crossbuild-cache
+      - run: goreleaser --skip-publish --rm-dist --snapshot
       - run: mkdir artifacts
       - run: mv dist/*.tar.gz dist/checksums.txt artifacts
       - store_artifacts:
           path: ./artifacts
+      - save_cache:
+          key: v1-crossbuild-cache
+          paths:
+            - go/pkg
+            - ~/.cache/go-build
 
   publish_release:
-    executor: golang
+    executor: goreleaser
 
     steps:
       - checkout
-      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
-      - run: git reset --hard
-      - run: make release 
+      - restore_cache:
+          keys:
+            - v1-crossbuild-cache
+      - run: goreleaser
 
   check_repo_consistency:
     executor: golang
@@ -78,6 +102,7 @@ workflows:
         - test
         - check_repo_consistency
         - crossbuild
+        - golangci-lint
       
     release:
       jobs:
@@ -105,6 +130,12 @@ workflows:
                 ignore: /.*/
               tags:
                 only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+        - golangci-lint:
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
         - hold:
             type:
               approval
@@ -113,6 +144,7 @@ workflows:
               - test
               - check_repo_consistency
               - crossbuild
+              - golangci-lint
             filters:
               branches:
                 ignore: /.*/
