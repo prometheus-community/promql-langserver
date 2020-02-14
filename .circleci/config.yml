@@ -1,6 +1,7 @@
 ---
 version: 2.1
 
+# Whenever the versions here are increased, also increment the versions of the build caches
 executors:
   golang:
     docker:
@@ -22,10 +23,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - build-cache
+            - v1-build-cache
       - run: make build
       - save_cache:
-          key: build-cache
+          key: v1-build-cache
           paths:
             - go/pkg
             - ~/.cache/go-build
@@ -35,6 +36,10 @@ jobs:
 
     steps:
       - checkout
+      # Reuse build cache if available
+      - restore_cache:
+          keys:
+            - v1-build-cache
       - run: make test
 
   crossbuild:
@@ -44,14 +49,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - crossbuild-cache
+            - v1-crossbuild-cache
       - run: goreleaser --skip-publish --rm-dist --snapshot
       - run: mkdir artifacts
       - run: mv dist/*.tar.gz dist/checksums.txt artifacts
       - store_artifacts:
           path: ./artifacts
       - save_cache:
-          key: crossbuild-cache
+          key: v1-crossbuild-cache
           paths:
             - go/pkg
             - ~/.cache/go-build
