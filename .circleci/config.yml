@@ -16,7 +16,15 @@ jobs:
 
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - build-cache
       - run: make build
+      - save_cache:
+          key: build-cache
+          paths:
+            - go/pkg
+            - ~/.cache/go-build
 
   test:
     executor: golang
@@ -30,6 +38,9 @@ jobs:
 
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - crossbuild-cache
       - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
       - run: git reset --hard
       - run: make crossbuild
@@ -37,6 +48,11 @@ jobs:
       - run: mv dist/*.tar.gz dist/checksums.txt artifacts
       - store_artifacts:
           path: ./artifacts
+      - save_cache:
+          key: crossbuild-cache
+          paths:
+            - go/pkg
+            - ~/.cache/go-build
 
   publish_release:
     executor: golang
