@@ -60,6 +60,8 @@ jobs:
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make fmt' and commit again ; exit 1 )"
       - run: make update_internal_packages
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make update_internal_packages' and commit again ; exit 1 )"
+      - run: go mod tidy
+      - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'go mod tidy' and commit again ; exit 1 )"
 
   golangci-lint:
     executor: golangci
