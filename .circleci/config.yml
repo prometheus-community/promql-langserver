@@ -66,7 +66,10 @@ jobs:
 
     steps:
       - checkout
-      - run: make release 
+      - restore_cache:
+          keys:
+            - v1-crossbuild-cache
+      - run: goreleaser
 
   check_repo_consistency:
     executor: golang
