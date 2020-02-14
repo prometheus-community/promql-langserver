@@ -102,6 +102,7 @@ workflows:
         - test
         - check_repo_consistency
         - crossbuild
+        - golangci-lint
       
     release:
       jobs:
@@ -129,6 +130,12 @@ workflows:
                 ignore: /.*/
               tags:
                 only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+        - golangci-lint:
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
         - hold:
             type:
               approval
@@ -137,6 +144,7 @@ workflows:
               - test
               - check_repo_consistency
               - crossbuild
+              - golangci-lint
             filters:
               branches:
                 ignore: /.*/
