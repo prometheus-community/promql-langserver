@@ -24,6 +24,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -98,6 +99,11 @@ func (s *server) connectPrometheus(url string) error {
 	defer s.prometheusMu.Unlock()
 
 	s.PrometheusURL = ""
+	s.prometheus = nil
+
+	if strings.TrimSpace(url) == "" {
+		return nil
+	}
 
 	var err error
 
