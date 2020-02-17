@@ -53,7 +53,7 @@ func ParseConfigFile(path string) (*Config, error) {
 
 // DidChangeConfiguration is required by the protocol.Server interface
 func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
-	langserverAddressConfigPath := []string{"prometheus", "url"}
+	langserverAddressConfigPath := []string{"promql", "url"}
 
 	if params != nil {
 		// nolint: errcheck
