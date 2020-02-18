@@ -15,6 +15,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
@@ -118,8 +119,12 @@ groups:
     rules:
     - record: job:http_inprogress_requests:sum
       expr: sum(http_inprogress_requests) by (job)
-    - record: job:http_inprogress_requests:sum
-      expr: sum(http_inprogress_requests) by (job
+    - record: job:http_inprogress_requests:sum:wrong
+      expr: |
+          sum(http_inprogress_requests) by (job))
+
+    - record: job:http_inprogress_requests:sum:quoted
+      expr: "sum(http_inprogress_requests) by (job)"
 `
 
 	_, err = c.AddDocument(
@@ -145,7 +150,8 @@ groups:
 		panic("failed to get diagnostics for rules file")
 	}
 
-	if len(diagnostics) != 1 {
-		panic("expected exactly one error message for rules file")
+	if len(diagnostics) < 2 {
+		fmt.Println(diagnostics)
+		panic("expected at least 2 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
 	}
 }
