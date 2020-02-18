@@ -164,6 +164,16 @@ groups:
 		panic("expected exactly 2 queries for rules file got " + fmt.Sprint(len(queries)))
 	}
 
+	_, err = doc.GetQuery(queries[0].Pos - 1)
+	if err == nil {
+		panic("should have failed to get query")
+	}
+
+	_, err = doc.GetQuery(queries[0].Pos)
+	if err != nil {
+		panic("failed to get query: " + err.Error())
+	}
+
 	expectedNewContent := `
 groups:
   - name: example
