@@ -25,7 +25,7 @@ func getSmallestSurroundingNode(query *cache.CompiledQuery, tokenPos token.Pos) 
 
 	pos := promql.Pos(tokenPos - query.Pos)
 
-	if pos < ast.PositionRange().Start || pos > ast.PositionRange().End {
+	if ast == nil || pos < ast.PositionRange().Start || pos > ast.PositionRange().End {
 		return nil
 	}
 

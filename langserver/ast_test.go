@@ -262,23 +262,22 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 	}
 
 	for _, test := range testExpressions {
-		parseResult, err := promql.ParseExpr(test)
-		if err != nil {
-			// We're currently only interested in correct expressions
-			continue
-		}
+		parseResult, _ := promql.ParseExpr(test)
 
-		for pos := 1; pos <= len(test); pos++ {
+		for pos := 1; pos <= len(test)+1; pos++ {
 			node := getSmallestSurroundingNode(&cache.CompiledQuery{Ast: parseResult}, token.Pos(pos))
+
 			// If we are outside the outermost Expression, nothing should be matched
-			if node == nil && (int(parseResult.PositionRange().Start) > pos || int(parseResult.PositionRange().End) >= pos) {
+			if parseResult == nil || int(parseResult.PositionRange().Start) > pos || int(parseResult.PositionRange().End) < pos {
+				if node != nil {
+					panic("nothing should have been matched")
+				}
+
 				continue
 			}
 
-			if int(node.PositionRange().Start) > pos || int(node.PositionRange().End) < pos {
-				panic("The smallestSurroundingNode is not actually surrounding for input " + test +
-					" and pos " + fmt.Sprintln(pos) + "Got: " + fmt.Sprintln(node) +
-					"Pos: " + fmt.Sprintln(node.PositionRange().Start) + "EndPos: " + fmt.Sprintln(node.PositionRange().End))
+			if node == nil || int(node.PositionRange().Start) > pos || int(node.PositionRange().End) < pos {
+				panic("The smallestSurroundingNode is not actually surrounding for input " + test + " and pos " + fmt.Sprintln(pos))
 			}
 		}
 	}
