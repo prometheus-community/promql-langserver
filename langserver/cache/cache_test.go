@@ -188,4 +188,9 @@ groups:
 	if newContent != expectedNewContent {
 		panic("incremental update did not result in expected content")
 	}
+
+	_, err = doc.ApplyIncrementalChanges(nil, -1)
+	if err == nil {
+		panic("File update without version update should have failed")
+	}
 }
