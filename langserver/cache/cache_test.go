@@ -193,4 +193,14 @@ groups:
 	if err == nil {
 		panic("File update without version update should have failed")
 	}
+
+	err = doc.SetContent(context.Background(), "foo", 2, false)
+	if err != nil {
+		panic("file update failed")
+	}
+
+	err = doc.SetContent(context.Background(), "foo", 2, false)
+	if err == nil {
+		panic("File update without version update should have failed")
+	}
 }
