@@ -52,7 +52,7 @@ func (s *server) Progress(_ context.Context, _ *protocol.ProgressParams) error {
 }
 
 // SelectionRange is required by the protocol.Server interface
-func (s *server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) { // nolint:lll
+func (s *server) SelectionRange(_ context.Context, _ *protocol.SelectionRangeParams) ([]protocol.SelectionRange, error) {
 	return nil, notImplemented("SelectionRange")
 }
 
