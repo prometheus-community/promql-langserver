@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint: lll
 package langserver
 
 import (
@@ -96,7 +95,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
+func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
 	api := s.getPrometheus()
 
 	var allNames model.LabelValues
@@ -160,7 +159,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	return nil
 }
 
-func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
+func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
 	var err error
 
 	editRange, err := getEditRange(location, metricName)
@@ -223,7 +222,7 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
+func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
 	offset := location.node.PositionRange().Start
 	l := promql.Lex(location.query.Content[offset:])
 
@@ -311,7 +310,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error { // nolint:lll
+func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
 	api := s.getPrometheus()
 
 	var allNames []string
@@ -391,7 +390,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *location, labelName string) error { // nolint:lll
+func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *location, labelName string) error {
 	var allNames model.LabelValues
 
 	api := s.getPrometheus()

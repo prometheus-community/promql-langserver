@@ -150,7 +150,7 @@ func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lin
 }
 
 //nolint:gocognit
-func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { //nolint: lll
+func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Pos, lineOffset int) error {
 	if node.Kind != yaml.MappingNode {
 		return nil
 	}
@@ -234,7 +234,7 @@ OUTER:
 	return false
 }
 
-func (d *DocumentHandle) foundQuery(node *yaml.Node, endPos token.Pos, record *yaml.Node, lineOffset int) error { //nolint: lll
+func (d *DocumentHandle) foundQuery(node *yaml.Node, endPos token.Pos, record *yaml.Node, lineOffset int) error {
 	line := node.Line
 	col := node.Column
 

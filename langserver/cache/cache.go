@@ -47,7 +47,7 @@ func (c *DocumentCache) Init() {
 }
 
 // AddDocument adds a Document to the cache
-func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) { //nolint:lll
+func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) {
 	if _, ok := c.documents[doc.URI]; ok {
 		return nil, errors.New("document already exists")
 	}

@@ -74,7 +74,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 }
 
 // nolint:funlen
-func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) string { //nolint: lll, golint
+func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) string { //nolint: golint
 	var ret bytes.Buffer
 
 	switch n := location.node.(type) {
@@ -149,7 +149,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 
 		loc.node = loc.query.Ast
 
-		qText, err := location.doc.GetSubstring(loc.query.Pos+token.Pos(loc.node.PositionRange().Start), loc.query.Pos+token.Pos(loc.node.PositionRange().End)) //nolint: lll
+		qText, err := location.doc.GetSubstring(loc.query.Pos+token.Pos(loc.node.PositionRange().Start), loc.query.Pos+token.Pos(loc.node.PositionRange().End))
 		if err != nil {
 			return ""
 		}
