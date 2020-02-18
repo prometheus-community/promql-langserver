@@ -146,11 +146,46 @@ groups:
 
 	diagnostics, err := doc.GetDiagnostics()
 	if err != nil {
-		panic("failed to get diagnostics for rules file")
+		panic("failed to get diagrunostics for rules file")
 	}
 
 	if len(diagnostics) != 3 {
 		fmt.Println(diagnostics)
 		panic("expected exactly 3 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
+	}
+
+	expectedNewContent := `
+groups:
+  - name: example
+    rules:
+    - record: job:http_inprogress_requests:sum
+      expr: sum(http_inprogress_requests) by (job)
+    - record: job:http_inprogress_requests:sum:wrong
+      expr: 
+          sum(http_inprogress_requests) by (job
+`
+
+	newContent, err := doc.ApplyIncrementalChanges([]protocol.TextDocumentContentChangeEvent{
+		{
+			Range: &protocol.Range{
+				Start: protocol.Position{
+					Line:      9.0,
+					Character: 0.0,
+				},
+				End: protocol.Position{
+					Line:      11.0,
+					Character: 0.0,
+				},
+			},
+			Text: "",
+		},
+	}, 2)
+
+	if err != nil {
+		panic("Failed to apply incremental changes: " + err.Error())
+	}
+
+	if newContent != expectedNewContent {
+		panic("incremental update did not result in expected content")
 	}
 }
