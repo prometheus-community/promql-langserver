@@ -22,7 +22,7 @@ import (
 )
 
 // SignatureHelp is required by the protocol.Server interface
-func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) { //nolint:lll
+func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	location, err := s.find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
@@ -45,7 +45,7 @@ func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 	return response, nil
 }
 
-// nolint: funlen, lll
+// nolint: funlen
 func getSignature(name string) (protocol.SignatureInformation, error) {
 	var signatures = map[string]protocol.SignatureInformation{
 		"abs": {

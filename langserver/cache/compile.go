@@ -56,7 +56,7 @@ func (d *DocumentHandle) compile() error {
 // compileQuery compiles the query at the position given by the last two arguments
 // if fullFile is set, the last two arguments are ignored and the full file is assumed
 // to be one query
-func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token.Pos, record string) error { //nolint:lll
+func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token.Pos, record string) error {
 	defer d.doc.compilers.Done()
 
 	var content string
@@ -105,7 +105,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 }
 
 // AddCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
-func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error { //nolint: lll
+func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 
