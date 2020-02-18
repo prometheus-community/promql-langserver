@@ -11,16 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package langserver
+package cache
 
 import (
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/prometheus/promql"
 )
 
-func getSmallestSurroundingNode(query *cache.CompiledQuery, tokenPos token.Pos) promql.Node {
+func getSmallestSurroundingNode(query *CompiledQuery, tokenPos token.Pos) promql.Node {
 	ast := query.Ast
 
 	pos := promql.Pos(tokenPos - query.Pos)

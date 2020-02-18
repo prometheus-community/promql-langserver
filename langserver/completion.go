@@ -24,6 +24,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/promql"
@@ -33,7 +34,7 @@ import (
 // Completion is required by the protocol.Server interface
 // nolint: wsl
 func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
-	location, err := s.find(&params.TextDocumentPositionParams)
+	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
@@ -42,13 +43,13 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 	completions := &ret.Items
 
-	switch n := location.node.(type) {
+	switch n := location.Node.(type) {
 	case *promql.Call:
 		var name string
 
-		name, err = location.doc.GetSubstring(
-			location.query.Pos+token.Pos(location.node.PositionRange().Start),
-			location.query.Pos+token.Pos(location.node.PositionRange().End),
+		name, err = location.Doc.GetSubstring(
+			location.Query.Pos+token.Pos(location.Node.PositionRange().Start),
+			location.Query.Pos+token.Pos(location.Node.PositionRange().End),
 		)
 
 		i := 0
@@ -76,7 +77,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 				return
 			}
 		}
-		if location.query.Pos+token.Pos(location.node.PositionRange().Start)+token.Pos(len(metricName)) >= location.pos {
+		if location.Query.Pos+token.Pos(location.Node.PositionRange().Start)+token.Pos(len(metricName)) >= location.Pos {
 			if err = s.completeMetricName(ctx, completions, location, metricName); err != nil {
 				return
 			}
@@ -95,7 +96,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
+func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	api := s.getPrometheus()
 
 	var allNames model.LabelValues
@@ -135,7 +136,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		}
 	}
 
-	queries, err := location.doc.GetQueries()
+	queries, err := location.Doc.GetQueries()
 	if err != nil {
 		return err
 	}
@@ -159,7 +160,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	return nil
 }
 
-func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
+func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	var err error
 
 	editRange, err := getEditRange(location, metricName)
@@ -222,9 +223,9 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
-	offset := location.node.PositionRange().Start
-	l := promql.Lex(location.query.Content[offset:])
+func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+	offset := location.Node.PositionRange().Start
+	l := promql.Lex(location.Query.Content[offset:])
 
 	var (
 		lastItem     promql.Item
@@ -237,14 +238,14 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 		wantValue    bool
 	)
 
-	for token.Pos(item.Pos)+token.Pos(len(item.Val))+token.Pos(offset)+location.query.Pos < location.pos {
+	for token.Pos(item.Pos)+token.Pos(len(item.Val))+token.Pos(offset)+location.Query.Pos < location.Pos {
 		isLabel = false
 		isValue = false
 
 		lastItem = item
 		l.NextItem(&item)
 
-		if overscan := item.Pos + offset + promql.Pos(location.query.Pos) - promql.Pos(location.pos); overscan >= 0 {
+		if overscan := item.Pos + offset + promql.Pos(location.Query.Pos) - promql.Pos(location.Pos); overscan >= 0 {
 			item = lastItem
 			break
 		}
@@ -287,22 +288,22 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 	loc := *location
 
 	if isLabel {
-		loc.node = &item
+		loc.Node = &item
 		return s.completeLabel(ctx, completions, &loc, metricName)
 	}
 
 	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
-		loc.node = &promql.Item{Pos: item.Pos + 1}
+		loc.Node = &promql.Item{Pos: item.Pos + 1}
 		return s.completeLabel(ctx, completions, &loc, metricName)
 	}
 
 	if isValue && lastLabel != "" {
-		loc.node = &item
+		loc.Node = &item
 		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
 	if item.Typ == promql.EQL || item.Typ == promql.NEQ {
-		loc.node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
+		loc.Node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
 		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
@@ -310,7 +311,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *location, metricName string) error {
+func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	api := s.getPrometheus()
 
 	var allNames []string
@@ -372,7 +373,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 			continue
 		}
 
-		if strings.HasPrefix(name, location.node.(*promql.Item).Val) {
+		if strings.HasPrefix(name, location.Node.(*promql.Item).Val) {
 			item := protocol.CompletionItem{
 				Label: name,
 				Kind:  12, //Value
@@ -390,7 +391,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *location, labelName string) error {
+func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
 	var allNames model.LabelValues
 
 	api := s.getPrometheus()
@@ -413,7 +414,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 		return err
 	}
 
-	quoted := location.node.(*promql.Item).Val
+	quoted := location.Node.(*promql.Item).Val
 
 	var quote byte
 
@@ -472,14 +473,14 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 // getEditRange computes the editRange for a completion. In case the completion area is shorter than
 // the node, the oldname of the token to be completed must be provided. The latter mechanism only
 // works if oldname is an ASCII string, which can be safely assumed for metric and function names.
-func getEditRange(location *location, oldname string) (editRange protocol.Range, err error) {
-	editRange.Start, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().Start))
+func getEditRange(location *cache.Location, oldname string) (editRange protocol.Range, err error) {
+	editRange.Start, err = location.Doc.PosToProtocolPosition(location.Query.Pos + token.Pos(location.Node.PositionRange().Start))
 	if err != nil {
 		return
 	}
 
 	if oldname == "" {
-		editRange.End, err = location.doc.PosToProtocolPosition(location.query.Pos + token.Pos(location.node.PositionRange().End))
+		editRange.End, err = location.Doc.PosToProtocolPosition(location.Query.Pos + token.Pos(location.Node.PositionRange().End))
 		if err != nil {
 			return
 		}

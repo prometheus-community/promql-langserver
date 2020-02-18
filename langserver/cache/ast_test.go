@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package langserver
+package cache
 
 import (
 	"fmt"
@@ -19,7 +19,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/prometheus/promql"
 )
 
@@ -43,7 +42,7 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 			panic("Parser should not have failed on " + test.input)
 		}
 
-		node := getSmallestSurroundingNode(&cache.CompiledQuery{Ast: parseResult}, test.pos)
+		node := getSmallestSurroundingNode(&CompiledQuery{Ast: parseResult}, test.pos)
 
 		if !reflect.DeepEqual(node, parseResult) {
 			panic("Whole Expression should have been matched for " + test.input)
@@ -265,7 +264,7 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 		parseResult, _ := promql.ParseExpr(test)
 
 		for pos := 1; pos <= len(test)+1; pos++ {
-			node := getSmallestSurroundingNode(&cache.CompiledQuery{Ast: parseResult}, token.Pos(pos))
+			node := getSmallestSurroundingNode(&CompiledQuery{Ast: parseResult}, token.Pos(pos))
 
 			// If we are outside the outermost Expression, nothing should be matched
 			if parseResult == nil || int(parseResult.PositionRange().Start) > pos || int(parseResult.PositionRange().End) < pos {
