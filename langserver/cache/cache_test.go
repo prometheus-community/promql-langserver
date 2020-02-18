@@ -146,12 +146,22 @@ groups:
 
 	diagnostics, err := doc.GetDiagnostics()
 	if err != nil {
-		panic("failed to get diagrunostics for rules file")
+		panic("failed to get diagnostics for rules file")
 	}
 
 	if len(diagnostics) != 3 {
 		fmt.Println(diagnostics)
 		panic("expected exactly 3 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
+	}
+
+	queries, err := doc.GetQueries()
+	if err != nil {
+		panic("failed to get queries for rules file")
+	}
+
+	if len(queries) != 2 {
+		fmt.Println(queries)
+		panic("expected exactly 2 queries for rules file got " + fmt.Sprint(len(queries)))
 	}
 
 	expectedNewContent := `
