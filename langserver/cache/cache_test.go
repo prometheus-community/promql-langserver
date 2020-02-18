@@ -96,4 +96,56 @@ func TestCache(t *testing.T) { // nolint:funlen
 	if err == nil {
 		panic("Shouldn't be able to add overlong document")
 	}
+
+	wrongYaml := "asdf["
+
+	_, err = c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
+
+			URI:        "wrong_yaml_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       wrongYaml,
+		})
+	if err != nil {
+		panic("Should be able to handle yaml with syntax errors")
+	}
+
+	rulesFile := `
+groups:
+  - name: example
+    rules:
+    - record: job:http_inprogress_requests:sum
+      expr: sum(http_inprogress_requests) by (job)
+    - record: job:http_inprogress_requests:sum
+      expr: sum(http_inprogress_requests) by (job
+`
+
+	_, err = c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
+
+			URI:        "rules_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       rulesFile,
+		})
+	if err != nil {
+		panic("adding rules file failed")
+	}
+
+	doc, err = c.GetDocument("rules_file")
+	if err != nil {
+		panic("failed to get rules file")
+	}
+
+	diagnostics, err := doc.GetDiagnostics()
+	if err != nil {
+		panic("failed to get diagnostics for rules file")
+	}
+
+	if len(diagnostics) != 1 {
+		panic("expected exactly one error message for rules file")
+	}
 }
