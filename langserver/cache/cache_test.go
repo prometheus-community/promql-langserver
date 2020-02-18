@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
-func TestCache(t *testing.T) {
+func TestCache(t *testing.T) { // nolint:funlen
 	c := &DocumentCache{}
 
 	c.Init()
@@ -64,6 +64,11 @@ func TestCache(t *testing.T) {
 		panic("Failed to RemoveDocument() from cache")
 	}
 
+	err = c.RemoveDocument("test_file")
+	if err == nil {
+		panic("should have failed to RemoveDocument() twice")
+	}
+
 	_, err = c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
@@ -75,5 +80,20 @@ func TestCache(t *testing.T) {
 		})
 	if err != nil {
 		panic("Should be able to readd document after removing it")
+	}
+
+	tooLongString := string(make([]byte, maxDocumentSize+1))
+
+	_, err = c.AddDocument(
+		context.Background(),
+		&protocol.TextDocumentItem{
+
+			URI:        "long_test_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       tooLongString,
+		})
+	if err == nil {
+		panic("Shouldn't be able to add overlong document")
 	}
 }
