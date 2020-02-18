@@ -120,9 +120,8 @@ groups:
     - record: job:http_inprogress_requests:sum
       expr: sum(http_inprogress_requests) by (job)
     - record: job:http_inprogress_requests:sum:wrong
-      expr: |
-          sum(http_inprogress_requests) by (job))
-
+      expr: 
+          sum(http_inprogress_requests) by (job
     - record: job:http_inprogress_requests:sum:quoted
       expr: "sum(http_inprogress_requests) by (job)"
 `
@@ -150,8 +149,8 @@ groups:
 		panic("failed to get diagnostics for rules file")
 	}
 
-	if len(diagnostics) < 2 {
+	if len(diagnostics) != 3 {
 		fmt.Println(diagnostics)
-		panic("expected at least 2 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
+		panic("expected exactly 3 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
 	}
 }
