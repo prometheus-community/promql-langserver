@@ -22,16 +22,16 @@ import (
 
 // Definition is required by the protocol.Server interface
 func (s *server) Definition(ctx context.Context, params *protocol.DefinitionParams) ([]protocol.Location, error) {
-	location, err := s.find(&params.TextDocumentPositionParams)
+	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
 
 	defs := []protocol.Location{}
 
-	switch n := location.node.(type) { // nolint: gocritic
+	switch n := location.Node.(type) { // nolint: gocritic
 	case *promql.VectorSelector:
-		queries, err := location.doc.GetQueries()
+		queries, err := location.Doc.GetQueries()
 		if err != nil {
 			break
 		}
@@ -44,8 +44,8 @@ func (s *server) Definition(ctx context.Context, params *protocol.DefinitionPara
 
 				defLocation := *location
 
-				defLocation.node = q.Ast
-				defLocation.query = q
+				defLocation.Node = q.Ast
+				defLocation.Query = q
 
 				def.Range, err = getEditRange(&defLocation, "")
 				if err != nil {

@@ -381,6 +381,21 @@ func TestServer(t *testing.T) { //nolint:funlen
 		panic("Failed to close document")
 	}
 
+	_, err = s.cache.GetDocument("test.promql")
+	if err == nil {
+		panic("getting a closed document should have failed")
+	}
+
+	// Close a document twice
+	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: "test.promql",
+		},
+	})
+	if err == nil {
+		panic("should have failed to close document")
+	}
+
 	// Reopen a closed document
 	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{

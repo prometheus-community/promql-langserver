@@ -50,8 +50,8 @@ func initializeFunctionDocumentation() http.FileSystem {
 // Hover shows documentation on hover
 // required by the protocol.Server interface
 func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	location, err := s.find(&params.TextDocumentPositionParams)
-	if err != nil || location.node == nil {
+	location, err := s.cache.Find(&params.TextDocumentPositionParams)
+	if err != nil || location.Node == nil {
 		return nil, nil
 	}
 
@@ -74,10 +74,10 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 }
 
 // nolint:funlen
-func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) string { //nolint: golint
+func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: golint
 	var ret bytes.Buffer
 
-	switch n := location.node.(type) {
+	switch n := location.Node.(type) {
 	case *promql.AggregateExpr:
 		name := strings.ToLower(n.Op.String())
 
@@ -109,7 +109,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 	case *promql.VectorSelector:
 		metric := n.Name
 
-		doc, err := s.getRecordingRuleDocs(location.doc, metric)
+		doc, err := s.getRecordingRuleDocs(location.Doc, metric)
 		if err != nil {
 			// nolint: errcheck
 			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -135,7 +135,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 	default:
 	}
 
-	if expr, ok := location.node.(promql.Expr); ok {
+	if expr, ok := location.Node.(promql.Expr); ok {
 		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %v\n\n", expr.Type()))
 		if err != nil {
 			return ""
@@ -147,9 +147,9 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *location) stri
 	if promURL != "" {
 		loc := *location
 
-		loc.node = loc.query.Ast
+		loc.Node = loc.Query.Ast
 
-		qText, err := location.doc.GetSubstring(loc.query.Pos+token.Pos(loc.node.PositionRange().Start), loc.query.Pos+token.Pos(loc.node.PositionRange().End))
+		qText, err := location.Doc.GetSubstring(loc.Query.Pos+token.Pos(loc.Node.PositionRange().Start), loc.Query.Pos+token.Pos(loc.Node.PositionRange().End))
 		if err != nil {
 			return ""
 		}

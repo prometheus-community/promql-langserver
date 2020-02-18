@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.9.1
-	github.com/prometheus/prometheus v1.8.2-0.20200120155032-a6776221848b
+	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
 	github.com/rakyll/statik v0.1.7-0.20191104211043-6b2f3ee522b6
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	golang.org/x/mod v0.2.0

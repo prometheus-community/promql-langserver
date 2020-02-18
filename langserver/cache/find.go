@@ -11,39 +11,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package langserver
+package cache
 
 import (
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/prometheus/promql"
 )
 
-type location struct {
-	doc   *cache.DocumentHandle
-	pos   token.Pos
-	query *cache.CompiledQuery
-	node  promql.Node
+// Location bundles all the context that the cache can provide for a given protocol.Location
+type Location struct {
+	Doc   *DocumentHandle
+	Pos   token.Pos
+	Query *CompiledQuery
+	Node  promql.Node
 }
 
-func (s *server) find(where *protocol.TextDocumentPositionParams) (there *location, err error) {
-	there = &location{}
+func (c *DocumentCache) Find(where *protocol.TextDocumentPositionParams) (there *Location, err error) {
+	there = &Location{}
 
-	if there.doc, err = s.cache.GetDocument(where.TextDocument.URI); err != nil {
+	if there.Doc, err = c.GetDocument(where.TextDocument.URI); err != nil {
 		return
 	}
 
-	if there.pos, err = there.doc.ProtocolPositionToTokenPos(where.Position); err != nil {
+	if there.Pos, err = there.Doc.ProtocolPositionToTokenPos(where.Position); err != nil {
 		return
 	}
 
-	if there.query, err = there.doc.GetQuery(there.pos); err != nil {
+	if there.Query, err = there.Doc.GetQuery(there.Pos); err != nil {
 		return
 	}
 
-	there.node = getSmallestSurroundingNode(there.query, there.pos)
+	there.Node = getSmallestSurroundingNode(there.Query, there.Pos)
 
 	return
 }

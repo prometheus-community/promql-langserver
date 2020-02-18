@@ -23,12 +23,12 @@ import (
 
 // SignatureHelp is required by the protocol.Server interface
 func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
-	location, err := s.find(&params.TextDocumentPositionParams)
+	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
 	}
 
-	call, ok := location.node.(*promql.Call)
+	call, ok := location.Node.(*promql.Call)
 	if !ok {
 		return nil, nil
 	}
