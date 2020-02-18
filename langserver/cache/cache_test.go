@@ -77,7 +77,7 @@ func TestCache(t *testing.T) { // nolint:funlen
 			URI:        "test_file",
 			LanguageID: "yaml",
 			Version:    0,
-			Text:       "test_text",
+			Text:       "test_text:",
 		})
 	if err != nil {
 		panic("Should be able to readd document after removing it")
@@ -124,6 +124,15 @@ groups:
           sum(http_inprogress_requests) by (job
     - record: job:http_inprogress_requests:sum:quoted
       expr: "sum(http_inprogress_requests) by (job)"
+    - expr: sum(http_inprogress_requests) by (job)
+      record: job:http_inprogress_requests:sum:2
+    - expr: |
+        sum(http_inprogress_requests) by (job)
+      record: |
+        job:http_inprogress_requests:sum:3
+    - 1
+    - a:
+      - b :2
 `
 
 	_, err = c.AddDocument(
@@ -159,9 +168,9 @@ groups:
 		panic("failed to get queries for rules file")
 	}
 
-	if len(queries) != 2 {
+	if len(queries) != 4 {
 		fmt.Println(queries)
-		panic("expected exactly 2 queries for rules file got " + fmt.Sprint(len(queries)))
+		panic("expected exactly 4 queries for rules file got " + fmt.Sprint(len(queries)))
 	}
 
 	_, err = doc.GetQuery(queries[0].Pos - 1)
@@ -222,6 +231,15 @@ groups:
     - record: job:http_inprogress_requests:sum:wrong
       expr: 
           sum(http_inprogress_requests) by (job
+    - expr: sum(http_inprogress_requests) by (job)
+      record: job:http_inprogress_requests:sum:2
+    - expr: |
+        sum(http_inprogress_requests) by (job)
+      record: |
+        job:http_inprogress_requests:sum:3
+    - 1
+    - a:
+      - b :2
 `
 
 	newContent, err := doc.ApplyIncrementalChanges([]protocol.TextDocumentContentChangeEvent{
