@@ -174,6 +174,45 @@ groups:
 		panic("failed to get query: " + err.Error())
 	}
 
+	_, err = c.Find(&protocol.TextDocumentPositionParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: "rules_file",
+		},
+		Position: protocol.Position{
+			Line:      5,
+			Character: 25,
+		},
+	})
+	if err != nil {
+		panic("failed to find query: " + err.Error())
+	}
+
+	_, err = c.Find(&protocol.TextDocumentPositionParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: "rules_file",
+		},
+		Position: protocol.Position{
+			Line:      4,
+			Character: 25,
+		},
+	})
+	if err == nil {
+		panic("should have failed to find query")
+	}
+
+	_, err = c.Find(&protocol.TextDocumentPositionParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: "rules_file_nonexistent",
+		},
+		Position: protocol.Position{
+			Line:      4,
+			Character: 25,
+		},
+	})
+	if err == nil {
+		panic("should have failed to find query")
+	}
+
 	expectedNewContent := `
 groups:
   - name: example
@@ -192,10 +231,10 @@ groups:
 					Line:      9.0,
 					Character: 0.0,
 				},
-				End: protocol.Position{
-					Line:      11.0,
-					Character: 0.0,
-				},
+				End: EndOfLine(protocol.Position{
+					Line:      10.0,
+					Character: 0.1,
+				}),
 			},
 			Text: "",
 		},
