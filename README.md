@@ -78,7 +78,7 @@ With Vim, currently only PromQL queries inside YAML files work without additiona
 #### Setup
 
 1. Install the [YouCompleteMe](https://github.com/ycm-core/YouCompleteMe) Plugin.
-2. Put the configuration following configuration file for the langauge server in `.vim/promql-lsp.yaml`.
+2. Put the configuration following configuration file for the language server in `.vim/promql-lsp.yaml`.
 
         # Change this adress to the address of the prometheus server you want to use for metadata
         prometheus_url: http://localhost:9090
