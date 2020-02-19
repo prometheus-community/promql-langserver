@@ -16,7 +16,7 @@ package langserver
 import (
 	"context"
 	"fmt"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
@@ -221,7 +221,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 }
 
 // TestServerState tries to emulate a full server lifetime
-func TestServer(t *testing.T) { //nolint:funlen
+func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = JSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &Config{})
@@ -264,7 +264,48 @@ func TestServer(t *testing.T) { //nolint:funlen
 	// Apply a Full Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 1,
+			Version: 2,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "sum()",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	hover, err := s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("sum", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
+	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 3,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -281,10 +322,30 @@ func TestServer(t *testing.T) { //nolint:funlen
 		panic("Failed to apply full change to document")
 	}
 
+	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("metric_name", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
+	}
 	// Apply a partial Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 2,
+			Version: 4,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -323,7 +384,7 @@ func TestServer(t *testing.T) { //nolint:funlen
 	// Apply a partial Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 3,
+			Version: 5,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -366,11 +427,84 @@ func TestServer(t *testing.T) { //nolint:funlen
 		panic("failed to get document content")
 	}
 
-	fmt.Fprint(os.Stderr, content)
-
 	if content != "rate(metric)" {
 		panic(fmt.Sprintf("unexpected content, expected \"rate(metric)\", got %s", content))
 	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 6,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "rat",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	completion, err := s.Completion(context.Background(), &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+		fmt.Println(completion)
+		panic("Failed to get completion")
+	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 7,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "rat()",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	completion, err = s.Completion(context.Background(), &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+		fmt.Println(completion)
+		panic("Failed to get completion")
+	}
+
 	// Close a document
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
@@ -402,11 +536,74 @@ func TestServer(t *testing.T) { //nolint:funlen
 			URI:        "test.promql",
 			LanguageID: "promql",
 			Version:    0,
-			Text:       "",
+			Text:       "abs()",
 		},
 	})
 	if err != nil {
 		panic("Failed to reopen document")
+	}
+
+	signature, err := s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      1.0,
+				Character: 0.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get signature")
+	}
+
+	if signature != nil && len(signature.Signatures) != 0 {
+		fmt.Println(signature)
+		panic("Wrong number of signatures returned")
+	}
+
+	signature, err = s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0,
+				Character: 4,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get signature")
+	}
+
+	if signature == nil || len(signature.Signatures) != 1 {
+		fmt.Println(signature.Signatures)
+		panic("Wrong number of signatures returned")
+	}
+
+	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("abs", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
 	}
 
 	// Shutdown Server
@@ -419,12 +616,10 @@ func TestServer(t *testing.T) { //nolint:funlen
 	if err == nil {
 		panic("cannot shutdown server twice")
 	}
-	/*
-		// Left out until it does something else than calling os.Exit()
-		// Confirm Shutdown
-		err = s.Exit(context.Background())
-		if err != nil {
-			panic("Failed to initialize Server")
-		}
-	*/
+	// Left out until it does something else than calling os.Exit()
+	// Confirm Shutdown
+	err = s.Exit(context.Background())
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
 } // nolint:wsl
