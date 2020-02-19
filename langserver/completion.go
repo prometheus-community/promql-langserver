@@ -54,7 +54,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 
 		i := 0
 		for j, c := range name {
-			if 'a' <= c && c <= 'Z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' {
+			if 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' {
 				i = j
 			} else {
 				break
