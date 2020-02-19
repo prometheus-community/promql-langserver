@@ -221,7 +221,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 }
 
 // TestServerState tries to emulate a full server lifetime
-func TestServer(t *testing.T) { //nolint:funlen
+func TestServer(t *testing.T) { //nolint:funlen, gocognit
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = JSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &Config{})
@@ -402,13 +402,60 @@ func TestServer(t *testing.T) { //nolint:funlen
 			URI:        "test.promql",
 			LanguageID: "promql",
 			Version:    0,
-			Text:       "",
+			Text:       "abs()",
 		},
 	})
 	if err != nil {
 		panic("Failed to reopen document")
 	}
 
+	signature, err := s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      1.0,
+				Character: 0.0,
+			},
+		},
+		WorkDoneProgressParams: protocol.WorkDoneProgressParams{
+			WorkDoneToken: nil,
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get signature")
+	}
+
+	if signature != nil && len(signature.Signatures) != 0 {
+		fmt.Println(signature)
+		panic("Wrong number of signatures returned")
+	}
+
+	signature, err = s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0,
+				Character: 4,
+			},
+		},
+		WorkDoneProgressParams: protocol.WorkDoneProgressParams{
+			WorkDoneToken: nil,
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get signature")
+	}
+
+	if signature == nil || len(signature.Signatures) != 1 {
+		fmt.Println(signature.Signatures)
+		panic("Wrong number of signatures returned")
+	}
 	// Shutdown Server
 	err = s.Shutdown(context.Background())
 	if err != nil {
