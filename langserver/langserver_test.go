@@ -544,12 +544,10 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	if err == nil {
 		panic("cannot shutdown server twice")
 	}
-	/*
-		// Left out until it does something else than calling os.Exit()
-		// Confirm Shutdown
-		err = s.Exit(context.Background())
-		if err != nil {
-			panic("Failed to initialize Server")
-		}
-	*/
+	// Left out until it does something else than calling os.Exit()
+	// Confirm Shutdown
+	err = s.Exit(context.Background())
+	if err != nil {
+		panic("Failed to initialize Server")
+	}
 } // nolint:wsl
