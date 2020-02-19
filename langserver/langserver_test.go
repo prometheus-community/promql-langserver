@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
@@ -221,7 +222,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 }
 
 // TestServerState tries to emulate a full server lifetime
-func TestServer(t *testing.T) { //nolint:funlen, gocognit
+func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = JSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &Config{})
@@ -264,7 +265,48 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 	// Apply a Full Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 1,
+			Version: 2,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "sum()",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	hover, err := s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("sum", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
+	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 3,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -281,10 +323,30 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 		panic("Failed to apply full change to document")
 	}
 
+	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("metric_name", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
+	}
 	// Apply a partial Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 2,
+			Version: 4,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -323,7 +385,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 	// Apply a partial Change to the document
 	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
-			Version: 3,
+			Version: 5,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
 				URI: "test.promql",
 			},
@@ -419,9 +481,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 				Character: 0.0,
 			},
 		},
-		WorkDoneProgressParams: protocol.WorkDoneProgressParams{
-			WorkDoneToken: nil,
-		},
 	})
 
 	if err != nil {
@@ -443,9 +502,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 				Character: 4,
 			},
 		},
-		WorkDoneProgressParams: protocol.WorkDoneProgressParams{
-			WorkDoneToken: nil,
-		},
 	})
 
 	if err != nil {
@@ -456,6 +512,28 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit
 		fmt.Println(signature.Signatures)
 		panic("Wrong number of signatures returned")
 	}
+
+	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to get hovertext")
+	}
+
+	if hover == nil || strings.Contains("abs", hover.Contents.Value) {
+		fmt.Println(hover)
+		panic("unexpected or no hovertext")
+	}
+
 	// Shutdown Server
 	err = s.Shutdown(context.Background())
 	if err != nil {
