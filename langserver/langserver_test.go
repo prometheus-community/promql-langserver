@@ -16,7 +16,6 @@ package langserver
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -428,11 +427,84 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		panic("failed to get document content")
 	}
 
-	fmt.Fprint(os.Stderr, content)
-
 	if content != "rate(metric)" {
 		panic(fmt.Sprintf("unexpected content, expected \"rate(metric)\", got %s", content))
 	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 6,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "rat",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	completion, err := s.Completion(context.Background(), &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+		fmt.Println(completion)
+		panic("Failed to get completion")
+	}
+
+	// Apply a Full Change to the document
+	err = s.DidChange(context.Background(), &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			Version: 7,
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+		},
+		ContentChanges: []protocol.TextDocumentContentChangeEvent{
+			{
+				Range:       nil,
+				RangeLength: 0,
+				Text:        "rat()",
+			},
+		},
+	})
+	if err != nil {
+		panic("Failed to apply full change to document")
+	}
+
+	completion, err = s.Completion(context.Background(), &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: "test.promql",
+			},
+			Position: protocol.Position{
+				Line:      0.0,
+				Character: 1.0,
+			},
+		},
+	})
+
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+		fmt.Println(completion)
+		panic("Failed to get completion")
+	}
+
 	// Close a document
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
