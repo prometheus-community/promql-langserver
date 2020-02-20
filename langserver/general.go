@@ -68,7 +68,7 @@ func (s *server) Initialized(ctx context.Context, params *protocol.InitializedPa
 	}
 
 	if s.config.PrometheusURL != "" {
-		if err = s.ConnectPrometheus(s.config.PrometheusURL); err != nil {
+		if err := s.connectPrometheus(s.config.PrometheusURL); err != nil {
 			// nolint: errcheck
 			s.client.LogMessage(ctx, &protocol.LogMessageParams{
 				Type:    protocol.Info,
