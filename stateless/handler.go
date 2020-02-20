@@ -13,11 +13,14 @@
 
 package stateless
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // Create an API handler for the stateless langserver API
 // Expects the URL of a Prometheus server as the argument.
 // Will fail if the Prometheus server is not reachable
-func CreateAPIHandler(prometheusURL string) http.Handler {
-	return http.NotFoundHandler()
+func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
+	return http.NotFoundHandler(), nil
 }
