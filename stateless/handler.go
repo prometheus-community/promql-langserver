@@ -100,13 +100,25 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		hasLimit, limit, err := getLimitFromURL(r.URL)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
 		diagnostics, err := s.GetDiagnostics(uri)
 		if err != nil {
 			http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), 500)
 			return
 		}
 
-		returnJSON(w, diagnostics.Diagnostics)
+		items := diagnostics.Diagnostics
+
+		if hasLimit && int64(len(items)) > limit {
+			items = items[:limit]
+		}
+
+		returnJSON(w, items)
 
 	}
 }
@@ -145,6 +157,12 @@ func completionHandler(s langserver.HeadlessServer, uri string) func(http.Respon
 			return
 		}
 
+		hasLimit, limit, err := getLimitFromURL(r.URL)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
 		completion, err := s.Completion(r.Context(), &protocol.CompletionParams{
 			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 				TextDocument: protocol.TextDocumentIdentifier{
@@ -154,11 +172,17 @@ func completionHandler(s langserver.HeadlessServer, uri string) func(http.Respon
 			},
 		})
 		if err != nil {
-			http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+			http.Error(w, errors.Wrapf(err, "failed to get completion info").Error(), 500)
 			return
 		}
 
-		returnJSON(w, completion.Items)
+		items := completion.Items
+
+		if hasLimit && int64(len(items)) > limit {
+			items = items[:limit]
+		}
+
+		returnJSON(w, items)
 
 	}
 }
@@ -226,4 +250,24 @@ func getPositionFromURL(URL *url.URL) (protocol.Position, error) {
 		Line:      line,
 		Character: char,
 	}, nil
+}
+
+func getLimitFromURL(URL *url.URL) (bool, int64, error) {
+	query := URL.Query()
+	limitStrs, ok := query["limit"]
+
+	if !ok || len(limitStrs) == 0 {
+		return false, 0, nil
+	}
+
+	limit, err := strconv.ParseInt(limitStrs[0], 10, 64)
+	if err != nil {
+		return false, 0, errors.Wrap(err, "Failed to parse limit number")
+	}
+
+	if limit <= 0 {
+		return false, 0, errors.New("Limit must be positive")
+	}
+
+	return true, limit, nil
 }
