@@ -15,31 +15,104 @@ package stateless
 
 import (
 	"context"
-	"github.com/prometheus-community/promql-langserver/langserver"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"sync/atomic"
+
+	"github.com/pkg/errors"
+	"github.com/prometheus-community/promql-langserver/langserver"
+	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
 // Create an API handler for the stateless langserver API
 // Expects the URL of a Prometheus server as the argument.
 // Will fail if the Prometheus server is not reachable
 func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
-	langserver := langserver.CreateHeadlessServer(ctx)
-
-	err := langserver.ConnectPrometheus(prometheusURL)
+	langserver, err := langserver.CreateHeadlessServer(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &langserverHandler{langserver: &langserver}, nil
+
+	err = langserver.ConnectPrometheus(prometheusURL)
+	if err != nil {
+		return nil, err
+	}
+	return &langserverHandler{ctx: ctx, langserver: &langserver}, nil
 }
 
 type langserverHandler struct {
 	langserver     *langserver.Server
 	requestCounter int64
+	ctx            context.Context
 }
 
 func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(os.Stderr, r.URL.Path)
+
+	var subHandler func(http.ResponseWriter, *http.Request)
+
+	requestID := fmt.Sprint(atomic.AddInt64(&h.requestCounter, 1), ".promql")
+
 	switch r.URL.Path {
+	case "/diagnostics":
+		subHandler = diagnosticsHandler(h.langserver, requestID)
 	default:
 		http.NotFound(w, r)
+		return
+	}
+
+	exprs, ok := r.URL.Query()["expr"]
+
+	if !ok || len(exprs) == 0 {
+		http.Error(w, "Param expr is not specified", 400)
+		return
+	}
+
+	defer func() {
+		h.langserver.DidClose(h.ctx, &protocol.DidCloseTextDocumentParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: requestID,
+			},
+		},
+		)
+	}()
+
+	if err := h.langserver.DidOpen(h.ctx, &protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{
+			URI:        requestID,
+			LanguageID: "promql",
+			Version:    0,
+			Text:       exprs[0],
+		},
+	}); err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to open document").Error(), 500)
+		return
+	}
+
+	subHandler(w, r)
+
+}
+
+func diagnosticsHandler(s *langserver.Server, uri string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		diagnostics, err := s.GetDiagnostics(uri)
+		if err != nil {
+			http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), 500)
+			return
+		}
+
+		returnJSON(w, diagnostics.Diagnostics)
+
+	}
+}
+
+func returnJSON(w http.ResponseWriter, content interface{}) {
+	encoder := json.NewEncoder(w)
+
+	err := encoder.Encode(content)
+	if err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to write response").Error(), 500)
 	}
 }

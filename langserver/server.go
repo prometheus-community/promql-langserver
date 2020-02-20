@@ -76,16 +76,24 @@ func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
 }
 
-func CreateHeadlessServer(ctx context.Context) Server {
+func CreateHeadlessServer(ctx context.Context) (Server, error) {
 	s := &server{
 		client:   headlessClient{},
-		state:    serverInitialized,
 		headless: true,
+		config:   &Config{},
 	}
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
-	return Server{s}
+	if _, err := s.Initialize(ctx, &protocol.ParamInitialize{}); err != nil {
+		return Server{}, err
+	}
+
+	if err := s.Initialized(ctx, &protocol.InitializedParams{}); err != nil {
+		return Server{}, err
+	}
+
+	return Server{s}, nil
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream

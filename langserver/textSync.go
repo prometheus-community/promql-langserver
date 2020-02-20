@@ -25,6 +25,10 @@ import (
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
+func (s Server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
+	return s.server.DidOpen(ctx, params)
+}
+
 // DidOpen receives a call from the Client, telling that a files has been opened
 // required by the protocol.Server interface
 func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
@@ -38,6 +42,9 @@ func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 	}
 
 	return err
+}
+func (s Server) DidClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) error {
+	return s.server.DidClose(ctx, params)
 }
 
 // DidClose receives a call from the Client, telling that a files has been closed
