@@ -30,15 +30,11 @@ import (
 // Expects the URL of a Prometheus server as the argument.
 // Will fail if the Prometheus server is not reachable
 func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
-	langserver, err := langserver.CreateHeadlessServer(ctx)
+	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
 	if err != nil {
 		return nil, err
 	}
 
-	err = langserver.ConnectPrometheus(prometheusURL)
-	if err != nil {
-		return nil, err
-	}
 	return &langserverHandler{ctx: ctx, langserver: &langserver}, nil
 }
 

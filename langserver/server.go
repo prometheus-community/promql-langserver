@@ -76,11 +76,11 @@ func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
 }
 
-func CreateHeadlessServer(ctx context.Context) (Server, error) {
+func CreateHeadlessServer(ctx context.Context, prometheusURL string) (Server, error) {
 	s := &server{
 		client:   headlessClient{},
 		headless: true,
-		config:   &Config{},
+		config:   &Config{PrometheusURL: prometheusURL},
 	}
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
