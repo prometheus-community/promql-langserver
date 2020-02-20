@@ -59,8 +59,8 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		subHandler = hoverHandler(h.langserver, requestID)
 	case "/completion":
 		subHandler = completionHandler(h.langserver, requestID)
-	case "/signature":
-		subHandler = signatureHandler(h.langserver, requestID)
+	case "/signatureHelp":
+		subHandler = signatureHelpHandler(h.langserver, requestID)
 	default:
 		http.NotFound(w, r)
 		return
@@ -163,7 +163,7 @@ func completionHandler(s langserver.HeadlessServer, uri string) func(http.Respon
 	}
 }
 
-func signatureHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
+func signatureHelpHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		position, err := getPositionFromURL(r.URL)
 		if err != nil {
