@@ -24,12 +24,12 @@ import (
 type headlessClient struct{}
 
 func (headlessClient) ShowMessage(_ context.Context, params *protocol.ShowMessageParams) error {
-	fmt.Fprintf(os.Stderr, params.Message)
+	fmt.Fprintln(os.Stderr, params.Message)
 	return nil
 }
 
 func (headlessClient) LogMessage(_ context.Context, params *protocol.LogMessageParams) error {
-	fmt.Fprintf(os.Stderr, params.Message)
+	fmt.Fprintln(os.Stderr, params.Message)
 	return nil
 }
 

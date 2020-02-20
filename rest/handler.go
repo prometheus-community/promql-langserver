@@ -27,9 +27,11 @@ import (
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
-// Create an API handler for the stateless langserver API
-// Expects the URL of a Prometheus server as the argument.
-// Will fail if the Prometheus server is not reachable
+// Create an API handler for the PromQL langserver REST API
+//
+// Expects the URL of a Prometheus server as the second argument.
+//
+// Will fail if the Prometheus server is not reachable.
 func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
 	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
 	if err != nil {

@@ -35,14 +35,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
 	}
-	if config.StatelessAPIPort != 0 {
-		fmt.Fprintln(os.Stderr, "Statless API: Listening on port ", config.StatelessAPIPort)
+	if config.RESTAPIPort != 0 {
+		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", config.RESTAPIPort)
 		handler, err := rest.CreateAPIHandler(context.Background(), config.PrometheusURL)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = http.ListenAndServe(fmt.Sprint(":", config.StatelessAPIPort), handler)
+		err = http.ListenAndServe(fmt.Sprint(":", config.RESTAPIPort), handler)
 		if err != nil {
 			log.Fatal(err)
 		}
