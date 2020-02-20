@@ -1,7 +1,6 @@
 // Copyright 2020 Tobias Guggenmos
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// you may not use this file except in compliance with the License.  // You may obtain a copy of the License at
 //
 // http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -18,7 +17,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
@@ -54,6 +55,8 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/diagnostics":
 		subHandler = diagnosticsHandler(h.langserver, requestID)
+	case "/hover":
+		subHandler = hoverHandler(h.langserver, requestID)
 	default:
 		http.NotFound(w, r)
 		return
@@ -104,6 +107,32 @@ func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.Respo
 	}
 }
 
+func hoverHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		position, err := getPositionFromURL(r.URL)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		hover, err := s.Hover(r.Context(), &protocol.HoverParams{
+			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+				TextDocument: protocol.TextDocumentIdentifier{
+					URI: uri,
+				},
+				Position: position,
+			},
+		})
+		if err != nil {
+			http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+			return
+		}
+
+		returnJSON(w, hover)
+
+	}
+}
+
 func returnJSON(w http.ResponseWriter, content interface{}) {
 	encoder := json.NewEncoder(w)
 
@@ -111,4 +140,34 @@ func returnJSON(w http.ResponseWriter, content interface{}) {
 	if err != nil {
 		http.Error(w, errors.Wrapf(err, "failed to write response").Error(), 500)
 	}
+}
+
+func getPositionFromURL(URL *url.URL) (protocol.Position, error) {
+	query := URL.Query()
+	lineStrs, ok := query["line"]
+
+	if !ok || len(lineStrs) == 0 {
+		return protocol.Position{}, errors.New("Param line is not specified")
+	}
+
+	line, err := strconv.ParseFloat(lineStrs[0], 64)
+	if err != nil {
+		return protocol.Position{}, errors.Wrap(err, "Failed to parse line number")
+	}
+
+	charStrs, ok := query["char"]
+
+	if !ok || len(charStrs) == 0 {
+		return protocol.Position{}, errors.New("Param char is not specified")
+	}
+
+	char, err := strconv.ParseFloat(charStrs[0], 64)
+	if err != nil {
+		return protocol.Position{}, errors.Wrap(err, "Failed to parse char number")
+	}
+
+	return protocol.Position{
+		Line:      line,
+		Character: char,
+	}, nil
 }
