@@ -21,10 +21,6 @@ import (
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
-func (s Server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error) {
-	return s.server.GetDiagnostics(uri)
-}
-
 func (s *server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error) {
 	d, err := s.cache.GetDocument(uri)
 	if err != nil {
