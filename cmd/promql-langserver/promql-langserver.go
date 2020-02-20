@@ -22,7 +22,7 @@ import (
 	"os"
 
 	"github.com/prometheus-community/promql-langserver/langserver"
-	"github.com/prometheus-community/promql-langserver/stateless"
+	"github.com/prometheus-community/promql-langserver/rest"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	}
 	if config.StatelessAPIPort != 0 {
 		fmt.Fprintln(os.Stderr, "Statless API: Listening on port ", config.StatelessAPIPort)
-		handler, err := stateless.CreateAPIHandler(context.Background(), config.PrometheusURL)
+		handler, err := rest.CreateAPIHandler(context.Background(), config.PrometheusURL)
 		if err != nil {
 			log.Fatal(err)
 		}
