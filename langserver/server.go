@@ -94,7 +94,8 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	return ctx, Server{s}
 }
 
-func (s *server) connectPrometheus(url string) error {
+// ConnectPrometheus tries to connect the provided langserver to a prometheus instance
+func (s *server) ConnectPrometheus(url string) error {
 	s.prometheusMu.Lock()
 	defer s.prometheusMu.Unlock()
 

@@ -80,7 +80,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 		}
 
 		if str, ok := setting.(string); ok {
-			if err := s.connectPrometheus(str); err != nil {
+			if err := s.ConnectPrometheus(str); err != nil {
 				// nolint: errcheck
 				s.client.LogMessage(ctx, &protocol.LogMessageParams{
 					Type:    protocol.Info,
