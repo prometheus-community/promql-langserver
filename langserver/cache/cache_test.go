@@ -83,21 +83,6 @@ func TestCache(t *testing.T) { // nolint:funlen
 		panic("Should be able to readd document after removing it")
 	}
 
-	tooLongString := string(make([]byte, maxDocumentSize+1))
-
-	_, err = c.AddDocument(
-		context.Background(),
-		&protocol.TextDocumentItem{
-
-			URI:        "long_test_file",
-			LanguageID: "yaml",
-			Version:    0,
-			Text:       tooLongString,
-		})
-	if err == nil {
-		panic("Shouldn't be able to add overlong document")
-	}
-
 	wrongYaml := "asdf["
 
 	_, err = c.AddDocument(
