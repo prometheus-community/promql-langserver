@@ -35,11 +35,11 @@ func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, 
 		return nil, err
 	}
 
-	return &langserverHandler{ctx: ctx, langserver: &langserver}, nil
+	return &langserverHandler{ctx: ctx, langserver: langserver}, nil
 }
 
 type langserverHandler struct {
-	langserver     *langserver.Server
+	langserver     langserver.HeadlessServer
 	requestCounter int64
 	ctx            context.Context
 }
@@ -91,7 +91,7 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func diagnosticsHandler(s *langserver.Server, uri string) func(http.ResponseWriter, *http.Request) {
+func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		diagnostics, err := s.GetDiagnostics(uri)
 		if err != nil {
