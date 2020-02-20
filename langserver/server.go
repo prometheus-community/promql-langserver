@@ -59,6 +59,7 @@ type server struct {
 
 	lifetime context.Context
 	exit     func()
+	headless bool
 }
 
 type serverState int
@@ -73,6 +74,18 @@ const (
 // Run starts the language server instance
 func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
+}
+
+func CreateHeadlessServer(ctx context.Context) Server {
+	s := &server{
+		client:   headlessClient{},
+		state:    serverInitialized,
+		headless: true,
+	}
+
+	s.lifetime, s.exit = context.WithCancel(ctx)
+
+	return Server{s}
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream

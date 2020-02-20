@@ -16,11 +16,13 @@ package stateless
 import (
 	"context"
 	"net/http"
+	//	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
 // Create an API handler for the stateless langserver API
 // Expects the URL of a Prometheus server as the argument.
 // Will fail if the Prometheus server is not reachable
 func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
+	//_ := langserver.CreateHeadlessServer(ctx)
 	return http.NotFoundHandler(), nil
 }
