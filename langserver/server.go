@@ -41,6 +41,11 @@ type Server struct {
 	server *server
 }
 
+type HeadlessServer interface {
+	protocol.Server
+	GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error)
+}
+
 // server is a language server instance that can connect to exactly one client
 type server struct {
 	Conn   *jsonrpc2.Conn
@@ -59,6 +64,7 @@ type server struct {
 
 	lifetime context.Context
 	exit     func()
+	headless bool
 }
 
 type serverState int
@@ -73,6 +79,26 @@ const (
 // Run starts the language server instance
 func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
+}
+
+func CreateHeadlessServer(ctx context.Context, prometheusURL string) (HeadlessServer, error) {
+	s := &server{
+		client:   headlessClient{},
+		headless: true,
+		config:   &Config{PrometheusURL: prometheusURL},
+	}
+
+	s.lifetime, s.exit = context.WithCancel(ctx)
+
+	if _, err := s.Initialize(ctx, &protocol.ParamInitialize{}); err != nil {
+		return nil, err
+	}
+
+	if err := s.Initialized(ctx, &protocol.InitializedParams{}); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream

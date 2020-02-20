@@ -33,7 +33,9 @@ func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 		return err
 	}
 
-	go s.diagnostics(params.TextDocument.URI)
+	if !s.headless {
+		go s.diagnostics(params.TextDocument.URI)
+	}
 
 	return err
 }
@@ -77,7 +79,9 @@ func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 		return err
 	}
 
-	go s.diagnostics(uri)
+	if !s.headless {
+		go s.diagnostics(uri)
+	}
 
 	return nil
 }

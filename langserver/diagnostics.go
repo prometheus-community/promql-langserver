@@ -21,20 +21,15 @@ import (
 	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 )
 
-// nolint:funlen
-func (s *server) diagnostics(uri string) {
+func (s *server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error) {
 	d, err := s.cache.GetDocument(uri)
 	if err != nil {
-		// nolint: errcheck
-		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
-			Message: errors.Wrapf(err, "document not found in cache").Error(),
-		})
+		return nil, errors.Wrapf(err, "document not found in cache")
 	}
 
 	version, expired := d.GetVersion()
 	if expired != nil {
-		return
+		return nil, err
 	}
 
 	reply := &protocol.PublishDiagnosticsParams{
@@ -44,14 +39,28 @@ func (s *server) diagnostics(uri string) {
 
 	diagnostics, err := d.GetDiagnostics()
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	reply.Diagnostics = diagnostics
 
+	return reply, nil
+}
+
+// nolint:funlen
+func (s *server) diagnostics(uri string) {
+	reply, err := s.GetDiagnostics(uri)
+	if err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: err.Error(),
+		})
+	}
+
 	if err = s.client.PublishDiagnostics(s.lifetime, reply); err != nil {
 		// nolint: errcheck
-		s.client.LogMessage(d.GetContext(), &protocol.LogMessageParams{
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 			Type:    protocol.Error,
 			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
 		})

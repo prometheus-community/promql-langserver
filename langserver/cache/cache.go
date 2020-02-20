@@ -25,22 +25,16 @@ import (
 
 // We need this so we can reserve a certain position range in the FileSet
 // for each Document.
-// Anything that is larger than 1MB would probably not work with reasonable performance anyway
-// The bad thing is, that it adds an 2000 file limit (no of files per connection)
-// on 32bit systems
-const maxDocumentSize = 1000000
+const maxDocumentSize = 1000000000
 
 // DocumentCache caches the documents and compile Results associated with one server-client connection
 type DocumentCache struct {
-	fileSet *token.FileSet
-
 	documents map[protocol.DocumentURI]*document
 	mu        sync.RWMutex
 }
 
 // Init Initializes a Document cache
 func (c *DocumentCache) Init() {
-	c.fileSet = token.NewFileSet()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.documents = make(map[protocol.DocumentURI]*document)
@@ -52,7 +46,9 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 		return nil, errors.New("document already exists")
 	}
 
-	file := c.fileSet.AddFile(doc.URI, -1, maxDocumentSize)
+	fset := token.NewFileSet()
+
+	file := fset.AddFile(doc.URI, -1, maxDocumentSize)
 
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {

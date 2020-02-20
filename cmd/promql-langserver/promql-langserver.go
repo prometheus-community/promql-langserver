@@ -17,9 +17,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/prometheus-community/promql-langserver/langserver"
+	"github.com/prometheus-community/promql-langserver/rest"
 )
 
 func main() {
@@ -32,6 +35,19 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
 	}
-	_, s := langserver.StdioServer(context.Background(), config)
-	s.Run()
+	if config.RESTAPIPort != 0 {
+		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", config.RESTAPIPort)
+		handler, err := rest.CreateAPIHandler(context.Background(), config.PrometheusURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = http.ListenAndServe(fmt.Sprint(":", config.RESTAPIPort), handler)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		_, s := langserver.StdioServer(context.Background(), config)
+		s.Run()
+	}
 }

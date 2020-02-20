@@ -26,6 +26,7 @@ import (
 type Config struct {
 	RPCTrace      string `yaml:"rpc_trace"`
 	PrometheusURL string `yaml:"prometheus_url"`
+	RESTAPIPort   int    `yaml:"rest_api_port"`
 }
 
 // ParseConfig parses a yaml configuration.
