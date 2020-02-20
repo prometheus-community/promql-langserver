@@ -57,6 +57,8 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		subHandler = diagnosticsHandler(h.langserver, requestID)
 	case "/hover":
 		subHandler = hoverHandler(h.langserver, requestID)
+	case "/completion":
+		subHandler = completionHandler(h.langserver, requestID)
 	default:
 		http.NotFound(w, r)
 		return
@@ -129,6 +131,32 @@ func hoverHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWri
 		}
 
 		returnJSON(w, hover)
+
+	}
+}
+
+func completionHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		position, err := getPositionFromURL(r.URL)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		completion, err := s.Completion(r.Context(), &protocol.CompletionParams{
+			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+				TextDocument: protocol.TextDocumentIdentifier{
+					URI: uri,
+				},
+				Position: position,
+			},
+		})
+		if err != nil {
+			http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+			return
+		}
+
+		returnJSON(w, completion.Items)
 
 	}
 }
