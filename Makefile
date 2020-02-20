@@ -41,7 +41,7 @@ lint: golangci-lint golint
 
 .PHONY: golangci-lint
 golangci-lint:
-	golangci-lint run --enable-all --disable lll ./langserver/...
+	golangci-lint run --enable-all --disable lll ./langserver/... ./rest
 
 .PHONY: golint
 golint:

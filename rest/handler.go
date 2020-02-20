@@ -97,7 +97,6 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	subHandler(w, r)
-
 }
 
 func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
@@ -121,7 +120,6 @@ func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.Respo
 		}
 
 		returnJSON(w, items)
-
 	}
 }
 
@@ -147,7 +145,6 @@ func hoverHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWri
 		}
 
 		returnJSON(w, hover)
-
 	}
 }
 
@@ -185,7 +182,6 @@ func completionHandler(s langserver.HeadlessServer, uri string) func(http.Respon
 		}
 
 		returnJSON(w, items)
-
 	}
 }
 
@@ -211,7 +207,6 @@ func signatureHelpHandler(s langserver.HeadlessServer, uri string) func(http.Res
 		}
 
 		returnJSON(w, signature)
-
 	}
 }
 
@@ -224,8 +219,8 @@ func returnJSON(w http.ResponseWriter, content interface{}) {
 	}
 }
 
-func getPositionFromURL(URL *url.URL) (protocol.Position, error) {
-	query := URL.Query()
+func getPositionFromURL(url *url.URL) (protocol.Position, error) {
+	query := url.Query()
 	lineStrs, ok := query["line"]
 
 	if !ok || len(lineStrs) == 0 {
@@ -254,8 +249,8 @@ func getPositionFromURL(URL *url.URL) (protocol.Position, error) {
 	}, nil
 }
 
-func getLimitFromURL(URL *url.URL) (bool, int64, error) {
-	query := URL.Query()
+func getLimitFromURL(url *url.URL) (bool, int64, error) {
+	query := url.Query()
 	limitStrs, ok := query["limit"]
 
 	if !ok || len(limitStrs) == 0 {
