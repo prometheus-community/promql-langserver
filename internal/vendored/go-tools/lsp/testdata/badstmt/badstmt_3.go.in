@@ -1,9 +1,0 @@
-package badstmt
-
-import (
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/foo"
-)
-
-func _() {
-	go foo. //@complete(" //", Foo, IntFoo, StructFoo)
-}
