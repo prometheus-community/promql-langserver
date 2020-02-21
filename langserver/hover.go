@@ -144,7 +144,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 
 	promURL := s.getPrometheusURL()
 
-	if promURL != "" {
+	if promURL != "" && !s.headless {
 		loc := *location
 
 		loc.Node = loc.Query.Ast
