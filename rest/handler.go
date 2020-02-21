@@ -46,19 +46,19 @@ type langserverHandler struct {
 }
 
 func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var subHandler func(http.ResponseWriter, *http.Request)
+	var subHandler func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)
 
 	requestID := fmt.Sprint(atomic.AddInt64(&h.requestCounter, 1), ".promql")
 
 	switch r.URL.Path {
 	case "/diagnostics":
-		subHandler = diagnosticsHandler(h.langserver, requestID)
+		subHandler = diagnosticsHandler
 	case "/hover":
-		subHandler = hoverHandler(h.langserver, requestID)
+		subHandler = hoverHandler
 	case "/completion":
-		subHandler = completionHandler(h.langserver, requestID)
+		subHandler = completionHandler
 	case "/signatureHelp":
-		subHandler = signatureHelpHandler(h.langserver, requestID)
+		subHandler = signatureHelpHandler
 	default:
 		http.NotFound(w, r)
 		return
@@ -92,118 +92,110 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subHandler(w, r)
+	subHandler(w, r, h.langserver, requestID)
 }
 
-func diagnosticsHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		hasLimit, limit, err := getLimitFromURL(r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-
-		diagnostics, err := s.GetDiagnostics(uri)
-		if err != nil {
-			http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), 500)
-			return
-		}
-
-		items := diagnostics.Diagnostics
-
-		if hasLimit && int64(len(items)) > limit {
-			items = items[:limit]
-		}
-
-		returnJSON(w, items)
+func diagnosticsHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+	hasLimit, limit, err := getLimitFromURL(r.URL)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
 	}
+
+	diagnostics, err := s.GetDiagnostics(requestID)
+	if err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), 500)
+		return
+	}
+
+	items := diagnostics.Diagnostics
+
+	if hasLimit && int64(len(items)) > limit {
+		items = items[:limit]
+	}
+
+	returnJSON(w, items)
 }
 
-func hoverHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		position, err := getPositionFromURL(r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
+func hoverHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+	position, err := getPositionFromURL(r.URL)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
 
-		hover, err := s.Hover(r.Context(), &protocol.HoverParams{
-			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
-				TextDocument: protocol.TextDocumentIdentifier{
-					URI: uri,
-				},
-				Position: position,
+	hover, err := s.Hover(r.Context(), &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: requestID,
 			},
-		})
-		if err != nil {
-			http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
-			return
-		}
-
-		returnJSON(w, hover)
+			Position: position,
+		},
+	})
+	if err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+		return
 	}
+
+	returnJSON(w, hover)
 }
 
-func completionHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		position, err := getPositionFromURL(r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-
-		hasLimit, limit, err := getLimitFromURL(r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-
-		completion, err := s.Completion(r.Context(), &protocol.CompletionParams{
-			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
-				TextDocument: protocol.TextDocumentIdentifier{
-					URI: uri,
-				},
-				Position: position,
-			},
-		})
-		if err != nil {
-			http.Error(w, errors.Wrapf(err, "failed to get completion info").Error(), 500)
-			return
-		}
-
-		items := completion.Items
-
-		if hasLimit && int64(len(items)) > limit {
-			items = items[:limit]
-		}
-
-		returnJSON(w, items)
+func completionHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+	position, err := getPositionFromURL(r.URL)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
 	}
+
+	hasLimit, limit, err := getLimitFromURL(r.URL)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	completion, err := s.Completion(r.Context(), &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: requestID,
+			},
+			Position: position,
+		},
+	})
+	if err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to get completion info").Error(), 500)
+		return
+	}
+
+	items := completion.Items
+
+	if hasLimit && int64(len(items)) > limit {
+		items = items[:limit]
+	}
+
+	returnJSON(w, items)
 }
 
-func signatureHelpHandler(s langserver.HeadlessServer, uri string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		position, err := getPositionFromURL(r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-
-		signature, err := s.SignatureHelp(r.Context(), &protocol.SignatureHelpParams{
-			TextDocumentPositionParams: protocol.TextDocumentPositionParams{
-				TextDocument: protocol.TextDocumentIdentifier{
-					URI: uri,
-				},
-				Position: position,
-			},
-		})
-		if err != nil {
-			http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
-			return
-		}
-
-		returnJSON(w, signature)
+func signatureHelpHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+	position, err := getPositionFromURL(r.URL)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
 	}
+
+	signature, err := s.SignatureHelp(r.Context(), &protocol.SignatureHelpParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: requestID,
+			},
+			Position: position,
+		},
+	})
+	if err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+		return
+	}
+
+	returnJSON(w, signature)
 }
 
 func returnJSON(w http.ResponseWriter, content interface{}) {
