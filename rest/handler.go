@@ -38,13 +38,12 @@ func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, 
 		return nil, err
 	}
 
-	return &langserverHandler{ctx: ctx, langserver: langserver}, nil
+	return &langserverHandler{langserver: langserver}, nil
 }
 
 type langserverHandler struct {
 	langserver     langserver.HeadlessServer
 	requestCounter int64
-	ctx            context.Context
 }
 
 func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +75,7 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-		h.langserver.DidClose(h.ctx, &protocol.DidCloseTextDocumentParams{
+		h.langserver.DidClose(r.Context(), &protocol.DidCloseTextDocumentParams{
 			TextDocument: protocol.TextDocumentIdentifier{
 				URI: requestID,
 			},
@@ -84,7 +83,7 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		)
 	}()
 
-	if err := h.langserver.DidOpen(h.ctx, &protocol.DidOpenTextDocumentParams{
+	if err := h.langserver.DidOpen(r.Context(), &protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{
 			URI:        requestID,
 			LanguageID: "promql",
