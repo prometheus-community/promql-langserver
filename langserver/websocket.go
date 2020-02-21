@@ -20,7 +20,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	//"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
+	//"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 )
 
 // Implements the jsonrpc2.Stream interface

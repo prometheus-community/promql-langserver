@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"gopkg.in/yaml.v3"
 )
 

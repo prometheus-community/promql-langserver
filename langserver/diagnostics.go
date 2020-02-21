@@ -18,7 +18,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 func (s *server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error) {

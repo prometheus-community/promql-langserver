@@ -24,8 +24,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/util/strutil"
