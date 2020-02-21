@@ -16,7 +16,7 @@ package langserver
 import (
 	"context"
 
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/prometheus/promql"
 )
 

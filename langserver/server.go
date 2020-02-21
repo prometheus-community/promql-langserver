@@ -29,9 +29,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )

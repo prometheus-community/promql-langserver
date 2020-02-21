@@ -20,9 +20,9 @@ import (
 	"go/token"
 	"sync"
 
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/span"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
 // document caches content, metadata and compile results of a document

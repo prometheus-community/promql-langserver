@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 type jsonLogStream struct {

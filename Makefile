@@ -49,18 +49,18 @@ golint:
 
 .PHONY: update_internal_packages
 update_internal_packages:
-	for dir in `ls -d vendored/*/`;                                           \
+	for dir in `ls -d internal/vendored/*/`;                                           \
 	do                                                                        \
 	    echo "Updating:";                                                     \
 	    NAME=`basename $$dir`;                                                \
 	    echo "Name: " $$NAME;                                                 \
-	    REPO=`cat vendored/$$NAME.repo`;                                      \
+	    REPO=`cat internal/vendored/$$NAME.repo`;                                      \
 	    echo "Repo: " $$REPO;                                                 \
-	    FCMD=`cat vendored/$$NAME.cmd`;                                       \
+	    FCMD=`cat internal/vendored/$$NAME.cmd`;                                       \
 	    echo "File cmd: " $$FCMD;                                             \
-	    DIRS=`cat vendored/$$NAME.dirs`;                                      \
+	    DIRS=`cat internal/vendored/$$NAME.dirs`;                                      \
 	    echo "Directories: " $$DIRS;                                          \
-	    VERSION=`cat vendored/$$NAME.version`;                                \
+	    VERSION=`cat internal/vendored/$$NAME.version`;                                \
 	    echo "Version: " $$VERSION;                                           \
 	    echo "Cleaning up";                                                   \
 	    rm -rf $$dir*;                                                        \
