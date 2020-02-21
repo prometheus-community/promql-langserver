@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"sync/atomic"
 
@@ -47,8 +46,6 @@ type langserverHandler struct {
 }
 
 func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(os.Stderr, r.URL.Path)
-
 	var subHandler func(http.ResponseWriter, *http.Request)
 
 	requestID := fmt.Sprint(atomic.AddInt64(&h.requestCounter, 1), ".promql")
