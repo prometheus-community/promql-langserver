@@ -1,2 +1,0 @@
--- rFunc-rename --
-renaming "sFunc" to "rFunc" not possible because "github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/rename/bad" has errors

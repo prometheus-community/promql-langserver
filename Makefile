@@ -49,18 +49,18 @@ golint:
 
 .PHONY: update_internal_packages
 update_internal_packages:
-	for dir in `ls -d internal/vendored/*/`;                                           \
+	for dir in `ls -d internal/vendored/*/`;                                  \
 	do                                                                        \
 	    echo "Updating:";                                                     \
 	    NAME=`basename $$dir`;                                                \
 	    echo "Name: " $$NAME;                                                 \
-	    REPO=`cat internal/vendored/$$NAME.repo`;                                      \
+	    REPO=`cat internal/vendored/$$NAME.repo`;                             \
 	    echo "Repo: " $$REPO;                                                 \
-	    FCMD=`cat internal/vendored/$$NAME.cmd`;                                       \
+	    FCMD=`cat internal/vendored/$$NAME.cmd`;                              \
 	    echo "File cmd: " $$FCMD;                                             \
-	    DIRS=`cat internal/vendored/$$NAME.dirs`;                                      \
+	    DIRS=`cat internal/vendored/$$NAME.dirs`;                             \
 	    echo "Directories: " $$DIRS;                                          \
-	    VERSION=`cat internal/vendored/$$NAME.version`;                                \
+	    VERSION=`cat internal/vendored/$$NAME.version`;                       \
 	    echo "Version: " $$VERSION;                                           \
 	    echo "Cleaning up";                                                   \
 	    rm -rf $$dir*;                                                        \
@@ -71,6 +71,8 @@ update_internal_packages:
 	    echo "Copying Files";                                                 \
 	    for subdir in $$DIRS;                                                 \
 	    do                                                                    \
+	        echo mkdir -p `dirname $$dir$$subdir`;                            \
+	        mkdir -p `dirname $$dir$$subdir`;                                 \
 	        cp -r $$TMPDIR/internal/$$subdir $$dir$$subdir;                   \
 	    done;                                                                 \
 	    for file in `find $$dir -type f`;                                     \
