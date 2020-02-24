@@ -238,12 +238,6 @@ func (d *DocumentHandle) GetVersion() (float64, error) {
 	}
 }
 
-// GetURI returns the content of a document
-// Since the URI never changes, it does not block or return errors
-func (d *DocumentHandle) GetURI() string {
-	return d.doc.uri
-}
-
 // GetLanguageID returns the content of a document
 // Since the URI never changes, it does not block or return errors
 func (d *DocumentHandle) GetLanguageID() string {
