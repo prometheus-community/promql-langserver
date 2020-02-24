@@ -69,11 +69,11 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 		Message:  "Quoted queries are not supported by the language server",
 	}
 
-	if message.Range.Start, err = d.PositionToProtocolPosition(startPosition); err != nil {
+	if message.Range.Start, err = d.tokenPositionToProtocolPosition(startPosition); err != nil {
 		return err
 	}
 
-	if message.Range.End, err = d.PositionToProtocolPosition(endPosition); err != nil {
+	if message.Range.End, err = d.tokenPositionToProtocolPosition(endPosition); err != nil {
 		return err
 	}
 

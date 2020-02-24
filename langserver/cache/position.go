@@ -22,8 +22,8 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
-// PositionToProtocolPosition converts a token.Position to a protocol.Position
-func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
+// tokenPositionToProtocolPosition converts a token.Position to a protocol.Position
+func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
@@ -69,7 +69,7 @@ func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protoco
 
 // PosToProtocolPosition converts a token.Pos to a protocol.Position
 func (d *DocumentHandle) PosToProtocolPosition(pos token.Pos) (protocol.Position, error) {
-	ret, err := d.PositionToProtocolPosition(d.doc.posData.Position(pos))
+	ret, err := d.tokenPositionToProtocolPosition(d.doc.posData.Position(pos))
 	return ret, err
 }
 

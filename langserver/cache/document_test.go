@@ -121,7 +121,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 
 	// From position.go
 
-	if _, err := d.PositionToProtocolPosition(token.Position{}); err == nil {
+	if _, err := d.tokenPositionToProtocolPosition(token.Position{}); err == nil {
 		panic("Expected PositionToProtocolPosition to fail with expired context")
 	}
 
