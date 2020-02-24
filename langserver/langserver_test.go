@@ -223,7 +223,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 // TestServerState tries to emulate a full server lifetime
 func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
-	stream = JSONLogStream(stream, &dummyWriter{})
+	stream = jSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &Config{})
 	s := server.server
 

@@ -22,7 +22,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config contains the configuration for a server
+// Config contains the configuration for a server.
 type Config struct {
 	RPCTrace      string `yaml:"rpc_trace"`
 	PrometheusURL string `yaml:"prometheus_url"`
@@ -31,7 +31,7 @@ type Config struct {
 
 // ParseConfig parses a yaml configuration.
 //
-// It expects the content of the configuration file as its argument
+// It expects the content of the configuration file as its argument.
 func ParseConfig(in []byte) (*Config, error) {
 	var config Config
 
@@ -42,7 +42,7 @@ func ParseConfig(in []byte) (*Config, error) {
 
 // ParseConfigFile parses a yaml configuration file.
 //
-// It expects the path to a configuration file as its argument
+// It expects the path to a configuration file as its argument.
 func ParseConfigFile(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

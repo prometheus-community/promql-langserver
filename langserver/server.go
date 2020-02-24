@@ -36,11 +36,12 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
-// Server wraps language server instance that can connect to exactly one client
+// Server wraps language server instance that can connect to exactly one client.
 type Server struct {
 	server *server
 }
 
+// Headless server is a modified Server interface that is used by the REST API.
 type HeadlessServer interface {
 	protocol.Server
 	GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error)
@@ -76,11 +77,14 @@ const (
 	serverShutDown
 )
 
-// Run starts the language server instance
+// Run starts the language server instance.
 func (s Server) Run() error {
 	return s.server.Conn.Run(s.server.lifetime)
 }
 
+// CreateHeadlessServer creates a locked down server instance for the REST API.
+//
+// "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
 func CreateHeadlessServer(ctx context.Context, prometheusURL string) (HeadlessServer, error) {
 	s := &server{
 		client:   headlessClient{},
@@ -101,7 +105,7 @@ func CreateHeadlessServer(ctx context.Context, prometheusURL string) (HeadlessSe
 	return s, nil
 }
 
-// ServerFromStream generates a Server from a jsonrpc2.Stream
+// ServerFromStream generates a Server from a jsonrpc2.Stream.
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, Server) {
 	s := &server{}
 
@@ -109,7 +113,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	case "text":
 		stream = protocol.LoggingStream(stream, os.Stderr)
 	case "json":
-		stream = JSONLogStream(stream, os.Stderr)
+		stream = jSONLogStream(stream, os.Stderr)
 	}
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
@@ -186,9 +190,9 @@ func (s *server) getPrometheusURL() string {
 	return s.PrometheusURL
 }
 
-// TCPServer generates a Server listening on the provided TCP Address, creating a new language Server
-// instance for every connection
-func RunTCPServers(ctx context.Context, addr string, config *Config) error {
+// RunTCPServer generates a server listening on the provided TCP Address, creating a new language Server
+// instance using plain HTTP for every connection.
+func RunTCPServer(ctx context.Context, addr string, config *Config) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -204,7 +208,7 @@ func RunTCPServers(ctx context.Context, addr string, config *Config) error {
 	}
 }
 
-// StdioServer generates a Server talking to stdio
+// StdioServer generates a Server instance talking to stdio.
 func StdioServer(ctx context.Context, config *Config) (context.Context, Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
 	return ServerFromStream(ctx, stream, config)

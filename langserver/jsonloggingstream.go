@@ -30,9 +30,9 @@ type jsonLogStream struct {
 	logWriter  io.Writer
 }
 
-// JSONLogStream returns a stream that does log all communications in a format that
-// can be streamed into the lsp inspector
-func JSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
+// jSONLogStream returns a stream that does log all communications in a format that
+// can be streamed into the LSP inspector.
+func jSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
 	ret := &jsonLogStream{str, w}
 
 	return ret

@@ -65,6 +65,10 @@ func (c wsConn) Write(ctx context.Context, msg []byte) (int64, error) {
 	return int64(len(msg)), nil
 }
 
+// WebSocketHandler creates a HTTP handler that tries to upgrade each request to
+// a websocket connection and then runs a language server instance on that connection.
+//
+// WARNING: This code is mostly untested so it might not work.
 func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), error) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  2048,
