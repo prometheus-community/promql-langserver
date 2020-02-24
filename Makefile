@@ -34,7 +34,7 @@ fmt:
 
 .PHONY: test
 test:
-	go test -race -v -cover ./langserver/...
+	go test -race -v -cover ./...
 
 .PHONY: lint
 lint: golangci-lint golint
