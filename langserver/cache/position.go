@@ -22,8 +22,8 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
-// PositionToProtocolPosition converts a token.Position to a protocol.Position
-func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
+// tokenPositionToProtocolPosition converts a token.Position to a protocol.Position
+func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
@@ -43,7 +43,7 @@ func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protoco
 		}
 
 		// Convert to the Positions as described in the LSP Spec
-		lineStart, err := d.LineStartSafe(line)
+		lineStart, err := d.lineStartSafe(line)
 		if err != nil {
 			return protocol.Position{}, err
 		}
@@ -69,12 +69,12 @@ func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protoco
 
 // PosToProtocolPosition converts a token.Pos to a protocol.Position
 func (d *DocumentHandle) PosToProtocolPosition(pos token.Pos) (protocol.Position, error) {
-	ret, err := d.PositionToProtocolPosition(d.doc.posData.Position(pos))
+	ret, err := d.tokenPositionToProtocolPosition(d.doc.posData.Position(pos))
 	return ret, err
 }
 
-// ProtocolPositionToTokenPos converts a token.Pos to a protocol.Position
-func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+// protocolPositionToTokenPos converts a token.Pos to a protocol.Position
+func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
@@ -86,7 +86,7 @@ func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (toke
 		line := int(pos.Line) + 1
 		char := int(pos.Character)
 
-		lineStart, err := d.LineStartSafe(line)
+		lineStart, err := d.lineStartSafe(line)
 		if err != nil {
 			return token.NoPos, err
 		}
@@ -105,8 +105,8 @@ func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (toke
 	}
 }
 
-// YamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos
-func (d *DocumentHandle) YamlPositionToTokenPos(line int, column int, lineOffset int) (token.Pos, error) {
+// yamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos
+func (d *DocumentHandle) yamlPositionToTokenPos(line int, column int, lineOffset int) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 	select {
@@ -117,7 +117,7 @@ func (d *DocumentHandle) YamlPositionToTokenPos(line int, column int, lineOffset
 			return 0, errors.New("invalid position")
 		}
 
-		lineStart, err := d.LineStartSafe(line + lineOffset)
+		lineStart, err := d.lineStartSafe(line + lineOffset)
 		if err != nil {
 			return token.NoPos, err
 		}
@@ -126,16 +126,16 @@ func (d *DocumentHandle) YamlPositionToTokenPos(line int, column int, lineOffset
 	}
 }
 
-// EndOfLine returns the end of the Line of the given protocol.Position
-func EndOfLine(p protocol.Position) protocol.Position {
+// endOfLine returns the end of the Line of the given protocol.Position
+func endOfLine(p protocol.Position) protocol.Position {
 	return protocol.Position{
 		Line:      p.Line + 1,
 		Character: 0,
 	}
 }
 
-// LineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
-func (d *DocumentHandle) LineStartSafe(line int) (pos token.Pos, err error) {
+// lineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
+func (d *DocumentHandle) lineStartSafe(line int) (pos token.Pos, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -149,8 +149,8 @@ func (d *DocumentHandle) LineStartSafe(line int) (pos token.Pos, err error) {
 	return d.doc.posData.LineStart(line), nil
 }
 
-// TokenPosToTokenPosition converts a token.Pos to a token.Position
-func (d *DocumentHandle) TokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
+// tokenPosToTokenPosition converts a token.Pos to a token.Position
+func (d *DocumentHandle) tokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 	select {

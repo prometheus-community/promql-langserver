@@ -19,7 +19,7 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-// CompiledQuery stores the results of compiling one query
+// CompiledQuery stores the results of compiling one query.
 type CompiledQuery struct {
 	Pos     token.Pos
 	Ast     promql.Node
@@ -28,6 +28,7 @@ type CompiledQuery struct {
 	Record  string
 }
 
+// compile asynchronously parses the provided document.
 func (d *DocumentHandle) compile() error {
 	defer d.doc.compilers.Done()
 
@@ -53,9 +54,12 @@ func (d *DocumentHandle) compile() error {
 	return nil
 }
 
-// compileQuery compiles the query at the position given by the last two arguments
-// if fullFile is set, the last two arguments are ignored and the full file is assumed
-// to be one query
+// compileQuery compiles the query at the position given by the last two arguments.
+//
+// If fullFile is set, the last two arguments are ignored and the full file is assumed
+// to be one query.
+//
+// d.compilers.Add(1) must be called before calling this.
 func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token.Pos, record string) error {
 	defer d.doc.compilers.Done()
 
@@ -84,7 +88,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 		parseErr = nil
 	}
 
-	err = d.AddCompileResult(pos, ast, parseErr, record, content)
+	err = d.addCompileResult(pos, ast, parseErr, record, content)
 	if err != nil {
 		return err
 	}
@@ -95,7 +99,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 			return err
 		}
 
-		err = d.AddDiagnostic(diagnostic)
+		err = d.addDiagnostic(diagnostic)
 		if err != nil {
 			return err
 		}
@@ -104,8 +108,10 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 	return nil
 }
 
-// AddCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
-func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
+// addCompileResult adds a compiled query compilation results of a Document.
+//
+// If the DocumentHandle is expired, the result is discarded.
+func (d *DocumentHandle) addCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 

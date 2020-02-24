@@ -20,6 +20,9 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
+// promQLErrToProtocolDiagnostic converts a promql.ParseErr to a protocol.Diagnostic
+//
+// The position of the query must be passed as the first argument.
 func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) {
 	start, err := d.PosToProtocolPosition(
 		queryPos + token.Pos(promQLErr.PositionRange.Start))
@@ -46,6 +49,8 @@ func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQ
 	return message, nil
 }
 
+// warnQuotedYaml adds a warnign about a quoted PromQL expression to the diagnostics
+// of a document.
 func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 	var startPosition token.Position
 
@@ -53,12 +58,12 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 
 	var err error
 
-	startPosition, err = d.TokenPosToTokenPosition(start)
+	startPosition, err = d.tokenPosToTokenPosition(start)
 	if err != nil {
 		return err
 	}
 
-	endPosition, err = d.TokenPosToTokenPosition(end)
+	endPosition, err = d.tokenPosToTokenPosition(end)
 	if err != nil {
 		return err
 	}
@@ -69,19 +74,21 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 		Message:  "Quoted queries are not supported by the language server",
 	}
 
-	if message.Range.Start, err = d.PositionToProtocolPosition(startPosition); err != nil {
+	if message.Range.Start, err = d.tokenPositionToProtocolPosition(startPosition); err != nil {
 		return err
 	}
 
-	if message.Range.End, err = d.PositionToProtocolPosition(endPosition); err != nil {
+	if message.Range.End, err = d.tokenPositionToProtocolPosition(endPosition); err != nil {
 		return err
 	}
 
-	return d.AddDiagnostic(message)
+	return d.addDiagnostic(message)
 }
 
-// AddDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *DocumentHandle) AddDiagnostic(diagnostic *protocol.Diagnostic) error {
+// addDiagnostic adds a protocol.Diagnostic to the diagnostics of a Document.
+//
+//If the context is expired the diagnostic is discarded.
+func (d *DocumentHandle) addDiagnostic(diagnostic *protocol.Diagnostic) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 
