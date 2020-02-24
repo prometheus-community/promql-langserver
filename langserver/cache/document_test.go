@@ -85,7 +85,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected warnQuotedYaml to fail with expired context")
 	}
 
-	if err := d.AddDiagnostic(nil); err == nil {
+	if err := d.addDiagnostic(nil); err == nil {
 		panic("Expected AddDiagnostic to fail with expired context")
 	}
 

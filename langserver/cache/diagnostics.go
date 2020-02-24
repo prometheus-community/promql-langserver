@@ -77,11 +77,11 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 		return err
 	}
 
-	return d.AddDiagnostic(message)
+	return d.addDiagnostic(message)
 }
 
-// AddDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
-func (d *DocumentHandle) AddDiagnostic(diagnostic *protocol.Diagnostic) error {
+// addDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
+func (d *DocumentHandle) addDiagnostic(diagnostic *protocol.Diagnostic) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 

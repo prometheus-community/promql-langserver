@@ -95,7 +95,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 			return err
 		}
 
-		err = d.AddDiagnostic(diagnostic)
+		err = d.addDiagnostic(diagnostic)
 		if err != nil {
 			return err
 		}
