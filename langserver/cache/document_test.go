@@ -129,7 +129,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected PosToProtocolPosition to fail with expired context")
 	}
 
-	if _, err := d.YamlPositionToTokenPos(0, 0, 0); err == nil {
+	if _, err := d.yamlPositionToTokenPos(0, 0, 0); err == nil {
 		panic("Expected YamlPositionToTokenPos to fail with expired context")
 	}
 

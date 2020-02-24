@@ -119,7 +119,7 @@ func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lin
 		if i+1 < len(node.Content) && node.Content[i+1] != nil {
 			next := node.Content[i+1]
 
-			childEnd, err = d.YamlPositionToTokenPos(next.Line, 1, lineOffset)
+			childEnd, err = d.yamlPositionToTokenPos(next.Line, 1, lineOffset)
 			if err != nil {
 				return err
 			}
@@ -180,7 +180,7 @@ func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Po
 			if i+2 < len(node.Content) && node.Content[i+2] != nil {
 				next := node.Content[i+2]
 
-				exprEnd, err = d.YamlPositionToTokenPos(next.Line, next.Column, lineOffset)
+				exprEnd, err = d.yamlPositionToTokenPos(next.Line, next.Column, lineOffset)
 				if err != nil {
 					return err
 				}
@@ -245,7 +245,7 @@ func (d *DocumentHandle) foundQuery(node *yaml.Node, endPos token.Pos, record *y
 		col = 1
 	}
 
-	pos, err := d.YamlPositionToTokenPos(line, col, lineOffset)
+	pos, err := d.yamlPositionToTokenPos(line, col, lineOffset)
 	if err != nil {
 		return err
 	}
