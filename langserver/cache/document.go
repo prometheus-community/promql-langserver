@@ -56,10 +56,6 @@ type DocumentHandle struct {
 	ctx context.Context
 }
 
-func (d *DocumentHandle) GetContext() context.Context {
-	return d.ctx
-}
-
 // ApplyIncrementalChanges applies giver changes to a given Document Content
 // The context in the DocumentHandle is ignored
 func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) {
