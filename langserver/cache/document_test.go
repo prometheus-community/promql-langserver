@@ -103,7 +103,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected GetQueries to fail with expired context")
 	}
 
-	if _, err := d.GetQuery(token.NoPos); err == nil {
+	if _, err := d.getQuery(token.NoPos); err == nil {
 		panic("Expected GetQuery to fail with expired context")
 	}
 

@@ -39,7 +39,7 @@ func (c *DocumentCache) Find(where *protocol.TextDocumentPositionParams) (there 
 		return
 	}
 
-	if there.Query, err = there.Doc.GetQuery(there.Pos); err != nil {
+	if there.Query, err = there.Doc.getQuery(there.Pos); err != nil {
 		return
 	}
 

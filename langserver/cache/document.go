@@ -203,12 +203,12 @@ func (d *DocumentHandle) GetQueries() ([]*CompiledQuery, error) {
 	}
 }
 
-// GetQuery returns a successfully compiled query at the given position, if there is one
+// getQuery returns a successfully compiled query at the given position, if there is one
 // Otherwise an error will be returned
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *DocumentHandle) GetQuery(pos token.Pos) (*CompiledQuery, error) {
+func (d *DocumentHandle) getQuery(pos token.Pos) (*CompiledQuery, error) {
 	queries, err := d.GetQueries()
 	if err != nil {
 		return nil, err
