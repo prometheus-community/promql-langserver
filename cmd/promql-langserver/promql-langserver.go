@@ -37,7 +37,7 @@ func main() {
 	}
 	if config.RESTAPIPort != 0 {
 		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", config.RESTAPIPort)
-		handler, err := rest.CreateAPIHandler(context.Background(), config.PrometheusURL)
+		handler, err := rest.CreateHandler(context.Background(), config.PrometheusURL)
 		if err != nil {
 			log.Fatal(err)
 		}

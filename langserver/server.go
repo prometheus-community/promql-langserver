@@ -41,7 +41,7 @@ type Server struct {
 	server *server
 }
 
-// Headless server is a modified Server interface that is used by the REST API.
+// HeadlessServer is a modified Server interface that is used by the REST API.
 type HeadlessServer interface {
 	protocol.Server
 	GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error)
@@ -148,22 +148,24 @@ func (s *server) connectPrometheus(url string) error {
 		})
 	}
 
-	testurl := fmt.Sprint(url, "/api/v1/status/buildinfo")
+	if !s.headless {
+		testurl := fmt.Sprint(url, "/api/v1/status/buildinfo")
 
-	resp, err := http.Get(testurl) // nolint: gosec
-	if err != nil {
-		// nolint: errcheck
-		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
-			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
-		})
+		resp, err := http.Get(testurl) // nolint: gosec
+		if err != nil {
+			// nolint: errcheck
+			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+				Type:    protocol.Error,
+				Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
+			})
 
-		s.prometheus = nil
+			s.prometheus = nil
 
-		return err
+			return err
+		}
+
+		resp.Body.Close()
 	}
-
-	resp.Body.Close()
 
 	if err == nil {
 		s.PrometheusURL = url
