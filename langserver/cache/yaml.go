@@ -24,14 +24,17 @@ import (
 
 // yamlDoc contains the results of compiling a yaml document
 type yamlDoc struct {
+	// The syntax tree.
 	AST yaml.Node
+	// Eventually generated parser errors.
 	Err error
-	// Not encoded in the AST
+	// The position of the end of the document.
 	End token.Pos
-	// Offset that has to be added to every line number before translating into a token.Pos
+	// Offset that has to be added to every line number before translating into a token.Pos.
 	LineOffset int
 }
 
+// parse Yamls parses the yaml documents found in a document.
 func (d *DocumentHandle) parseYamls() error {
 	content, err := d.GetContent()
 	if err != nil {
@@ -70,6 +73,7 @@ func (d *DocumentHandle) parseYamls() error {
 	return nil
 }
 
+// addYaml adds a YAML document to the compilation results of a document.
 func (d *DocumentHandle) addYaml(yaml *yamlDoc) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
@@ -84,6 +88,10 @@ func (d *DocumentHandle) addYaml(yaml *yamlDoc) error {
 	}
 }
 
+// scanYamlTree scans a YAML syntax tree for PromQL queries and compiles
+// those that are found.
+//
+// d.compilers.Add(1) must be called before calling this.
 func (d *DocumentHandle) scanYamlTree() error {
 	defer d.doc.compilers.Done()
 
@@ -102,7 +110,7 @@ func (d *DocumentHandle) scanYamlTree() error {
 	return err
 }
 
-// nolint
+// scanYamlTreeRec is the recursive part of scanYamlTree.
 func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lineOffset int, path []string) error { //nolint: unparam
 	if node == nil {
 		return nil
@@ -146,11 +154,13 @@ func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lin
 			return err
 		}
 	}
+
 	return nil
 }
 
-//nolint:gocognit
-func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Pos, lineOffset int) error {
+// foundRelevantYamlPath is called for YAML AST Nodes that are suspected to contain a
+// PromQL query.
+func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Pos, lineOffset int) error { // nolint: gocognit
 	if node.Kind != yaml.MappingNode {
 		return nil
 	}
@@ -207,6 +217,8 @@ func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Po
 	return nil
 }
 
+// relevantYamlPath provides the heuristic of whether a given path
+// in the YAML AST is suspected to be a PromQL query.
 func relevantYamlPath(path []string) bool {
 	relevantSuffixes := [][]string{
 		{"alerts"},
@@ -234,6 +246,9 @@ OUTER:
 	return false
 }
 
+// foundQuery is called on all YAML Nodes that are suspected to be a PromQL query.
+//
+// The node is then passed to the PromQL parser.
 func (d *DocumentHandle) foundQuery(node *yaml.Node, endPos token.Pos, record *yaml.Node, lineOffset int) error {
 	line := node.Line
 	col := node.Column

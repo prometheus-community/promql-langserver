@@ -19,6 +19,8 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
+// getSmallestSurroundingNode searches the syntax tree of the provided PromQL
+// query for the smallest node that contains the given position.
 func getSmallestSurroundingNode(query *CompiledQuery, tokenPos token.Pos) promql.Node {
 	ast := query.Ast
 

@@ -20,6 +20,9 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
+// promQLErrToProtocolDiagnostic converts a promql.ParseErr to a protocol.Diagnostic
+//
+// The position of the query must be passed as the first argument.
 func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) {
 	start, err := d.PosToProtocolPosition(
 		queryPos + token.Pos(promQLErr.PositionRange.Start))
@@ -46,6 +49,8 @@ func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQ
 	return message, nil
 }
 
+// warnQuotedYaml adds a warnign about a quoted PromQL expression to the diagnostics
+// of a document.
 func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 	var startPosition token.Position
 
@@ -80,7 +85,9 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 	return d.addDiagnostic(message)
 }
 
-// addDiagnostic updates the compilation Results of a Document. Discards the Result if the context is expired
+// addDiagnostic adds a protocol.Diagnostic to the diagnostics of a Document.
+//
+//If the context is expired the diagnostic is discarded.
 func (d *DocumentHandle) addDiagnostic(diagnostic *protocol.Diagnostic) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()

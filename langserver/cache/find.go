@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-// Location bundles all the context that the cache can provide for a given protocol.Location
+// Location bundles all the context that the cache can provide for a given protocol.Location.
 type Location struct {
 	Doc   *DocumentHandle
 	Pos   token.Pos
@@ -28,6 +28,9 @@ type Location struct {
 	Node  promql.Node
 }
 
+// Find returns all the information about a given position the cache can provide.
+//
+// It blocks until the document is fully parsed.
 func (c *DocumentCache) Find(where *protocol.TextDocumentPositionParams) (there *Location, err error) {
 	there = &Location{}
 

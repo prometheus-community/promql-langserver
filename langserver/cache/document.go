@@ -25,8 +25,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
-// document caches content, metadata and compile results of a document
-// All exported access methods should be threadsafe
+// document caches content, metadata and compile results of a document.
 type document struct {
 	posData *token.File
 
@@ -37,27 +36,35 @@ type document struct {
 
 	mu sync.RWMutex
 
-	versionCtx      context.Context
+	// A context.Context that expires when the document changes.
+	versionCtx context.Context
+	// The corresponding cancel function.
 	obsoleteVersion context.CancelFunc
 
+	// The queries found in the document.
 	queries []*CompiledQuery
-	yamls   []*yamlDoc
+	// The YAML documents found in the document.
+	yamls []*yamlDoc
 
+	// The diagnostics created when parsing the document.
 	diagnostics []protocol.Diagnostic
 
-	// Wait for this before accessing  compileResults
+	// Wait for this before accessing the compile results or diagnostics.
 	compilers waitGroup
 }
 
 // DocumentHandle bundles a Document together with a context.Context that expires
-// when the document changes
+// when the document changes.
+//
+// All exported document access methods must be threadsafe and fail if the associated
+// context has expired, unless otherwise documented.
 type DocumentHandle struct {
 	doc *document
 	ctx context.Context
 }
 
-// ApplyIncrementalChanges applies giver changes to a given Document Content
-// The context in the DocumentHandle is ignored
+// ApplyIncrementalChanges applies given changes to a given document content.
+// The context in the DocumentHandle is ignored.
 func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -105,7 +112,9 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 	return string(content), nil
 }
 
-// SetContent sets the content of a document
+// SetContent sets the content of a document.
+//
+// This triggers async parsing of the document.
 func (d *DocumentHandle) SetContent(serverLifetime context.Context, content string, version float64, new bool) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
@@ -143,9 +152,7 @@ func (d *DocumentHandle) SetContent(serverLifetime context.Context, content stri
 	return nil
 }
 
-// GetContent returns the content of a document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
+// GetContent returns the content of a document.
 func (d *DocumentHandle) GetContent() (string, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -158,10 +165,9 @@ func (d *DocumentHandle) GetContent() (string, error) {
 	}
 }
 
-// GetSubstring returns a substring of the content of a document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
-// The remaining parameters are the start and end of the substring, encoded
+// GetSubstring returns a substring of the content of a document.
+//
+// The parameters are the start and end of the substring, encoded
 // as token.Pos
 func (d *DocumentHandle) GetSubstring(pos token.Pos, endPos token.Pos) (string, error) {
 	d.doc.mu.RLock()
@@ -184,10 +190,9 @@ func (d *DocumentHandle) GetSubstring(pos token.Pos, endPos token.Pos) (string, 
 	}
 }
 
-// GetQueries returns the Compilation Results of a document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
-// It blocks until all compile tasks are finished
+// GetQueries returns the compiled queries of a document.
+//
+// It blocks until all compile tasks are finished.
 func (d *DocumentHandle) GetQueries() ([]*CompiledQuery, error) {
 	d.doc.compilers.Wait()
 
@@ -203,11 +208,11 @@ func (d *DocumentHandle) GetQueries() ([]*CompiledQuery, error) {
 	}
 }
 
-// getQuery returns a successfully compiled query at the given position, if there is one
-// Otherwise an error will be returned
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
-// It blocks until all compile tasks are finished
+// getQuery returns a successfully compiled query at the given position, if there is one.
+//
+// Otherwise an error will be returned.
+//
+// It blocks until all compile tasks are finished.
 func (d *DocumentHandle) getQuery(pos token.Pos) (*CompiledQuery, error) {
 	queries, err := d.GetQueries()
 	if err != nil {
@@ -223,9 +228,7 @@ func (d *DocumentHandle) getQuery(pos token.Pos) (*CompiledQuery, error) {
 	return nil, errors.New("no query found at given position")
 }
 
-// GetVersion returns the content of a document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
+// GetVersion returns the version of a document.
 func (d *DocumentHandle) GetVersion() (float64, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -238,16 +241,16 @@ func (d *DocumentHandle) GetVersion() (float64, error) {
 	}
 }
 
-// GetLanguageID returns the content of a document
-// Since the URI never changes, it does not block or return errors
+// GetLanguageID returns the language ID of a document.
+//
+// Since the languageID never changes, it does not block or return errors.
 func (d *DocumentHandle) GetLanguageID() string {
 	return d.doc.languageID
 }
 
-// getYamlDocuments returns the yaml documents found in the document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
-// It blocks until all compile tasks are finished
+// getYamlDocuments returns the yaml documents found in the document.
+//
+// It must be ensured by the caller, that these are already compiled.
 func (d *DocumentHandle) getYamlDocuments() ([]*yamlDoc, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -260,10 +263,9 @@ func (d *DocumentHandle) getYamlDocuments() ([]*yamlDoc, error) {
 	}
 }
 
-// GetDiagnostics returns the Compilation Results of a document
-// and returns an error if that context has expired, i.e. the Document
-// has changed since
-// It blocks until all compile tasks are finished
+// GetDiagnostics returns the diagnostics created during the compilation of a document.
+//
+// It blocks until all compile tasks are finished.
 func (d *DocumentHandle) GetDiagnostics() ([]protocol.Diagnostic, error) {
 	d.doc.compilers.Wait()
 

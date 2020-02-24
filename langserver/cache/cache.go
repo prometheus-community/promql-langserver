@@ -27,20 +27,24 @@ import (
 // for each Document.
 const maxDocumentSize = 1000000000
 
-// DocumentCache caches the documents and compile Results associated with one server-client connection
+// DocumentCache caches the documents and compile Results associated with one server-client connection or one REST API instance.
+//
+// Before a cache instance can be used, Init must be called.
 type DocumentCache struct {
 	documents map[protocol.DocumentURI]*document
 	mu        sync.RWMutex
 }
 
-// Init Initializes a Document cache
+// Init initializes a Document cache.
 func (c *DocumentCache) Init() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.documents = make(map[protocol.DocumentURI]*document)
 }
 
-// AddDocument adds a Document to the cache
+// AddDocument adds a document to the cache.
+//
+// This triggers async parsing of the document.
 func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) {
 	if _, ok := c.documents[doc.URI]; ok {
 		return nil, errors.New("document already exists")
@@ -79,8 +83,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 	return &DocumentHandle{d, d.versionCtx}, nil
 }
 
-// GetDocument retrieve a Document from the cache
-// Additionally returns a context that expires as soon as the document changes
+// GetDocument retrieve a document from the cache.
 func (c *DocumentCache) GetDocument(uri protocol.DocumentURI) (*DocumentHandle, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -96,7 +99,7 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentURI) (*DocumentHandle, 
 	return &DocumentHandle{ret, ret.versionCtx}, nil
 }
 
-// RemoveDocument removes a Document from the cache
+// RemoveDocument removes a document from the cache.
 func (c *DocumentCache) RemoveDocument(uri protocol.DocumentURI) error {
 	d, err := c.GetDocument(uri)
 	if err != nil {
