@@ -149,8 +149,8 @@ func (d *DocumentHandle) lineStartSafe(line int) (pos token.Pos, err error) {
 	return d.doc.posData.LineStart(line), nil
 }
 
-// TokenPosToTokenPosition converts a token.Pos to a token.Position
-func (d *DocumentHandle) TokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
+// tokenPosToTokenPosition converts a token.Pos to a token.Position
+func (d *DocumentHandle) tokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 	select {

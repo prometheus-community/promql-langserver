@@ -53,12 +53,12 @@ func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
 
 	var err error
 
-	startPosition, err = d.TokenPosToTokenPosition(start)
+	startPosition, err = d.tokenPosToTokenPosition(start)
 	if err != nil {
 		return err
 	}
 
-	endPosition, err = d.TokenPosToTokenPosition(end)
+	endPosition, err = d.tokenPosToTokenPosition(end)
 	if err != nil {
 		return err
 	}
