@@ -43,7 +43,7 @@ func (d *DocumentHandle) PositionToProtocolPosition(pos token.Position) (protoco
 		}
 
 		// Convert to the Positions as described in the LSP Spec
-		lineStart, err := d.LineStartSafe(line)
+		lineStart, err := d.lineStartSafe(line)
 		if err != nil {
 			return protocol.Position{}, err
 		}
@@ -86,7 +86,7 @@ func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (toke
 		line := int(pos.Line) + 1
 		char := int(pos.Character)
 
-		lineStart, err := d.LineStartSafe(line)
+		lineStart, err := d.lineStartSafe(line)
 		if err != nil {
 			return token.NoPos, err
 		}
@@ -117,7 +117,7 @@ func (d *DocumentHandle) YamlPositionToTokenPos(line int, column int, lineOffset
 			return 0, errors.New("invalid position")
 		}
 
-		lineStart, err := d.LineStartSafe(line + lineOffset)
+		lineStart, err := d.lineStartSafe(line + lineOffset)
 		if err != nil {
 			return token.NoPos, err
 		}
@@ -134,8 +134,8 @@ func endOfLine(p protocol.Position) protocol.Position {
 	}
 }
 
-// LineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
-func (d *DocumentHandle) LineStartSafe(line int) (pos token.Pos, err error) {
+// lineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
+func (d *DocumentHandle) lineStartSafe(line int) (pos token.Pos, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
