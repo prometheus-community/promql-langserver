@@ -2,8 +2,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/prometheus-community/promql-langserver)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
 [![GoDoc](https://godoc.org/github.com/prometheus-community/promql-langserver?status.png)](https://godoc.org/github.com/prometheus-community/promql-langserver)
 
-**Warning:** This software is not in a particulary useful or stable state yet.
-
 # promql-lsp
 
 Implementation of the Language Server Protocol for PromQL.
