@@ -111,7 +111,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected GetVersion to fail with expired context")
 	}
 
-	if _, err := d.GetYamls(); err == nil {
+	if _, err := d.getYamlDocuments(); err == nil {
 		panic("Expected GetYamls to fail with expired context")
 	}
 
@@ -141,7 +141,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 		panic("Expected GetVersion to fail with expired context")
 	}
 
-	if _, err := d.GetYamls(); err == nil {
+	if _, err := d.getYamlDocuments(); err == nil {
 		panic("Expected GetYamls to fail with expired context")
 	}
 

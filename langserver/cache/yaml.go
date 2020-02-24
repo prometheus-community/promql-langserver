@@ -87,7 +87,7 @@ func (d *DocumentHandle) addYaml(yaml *YamlDoc) error {
 func (d *DocumentHandle) scanYamlTree() error {
 	defer d.doc.compilers.Done()
 
-	yamls, err := d.GetYamls()
+	yamls, err := d.getYamlDocuments()
 	if err != nil {
 		return err
 	}

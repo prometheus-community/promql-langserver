@@ -244,11 +244,11 @@ func (d *DocumentHandle) GetLanguageID() string {
 	return d.doc.languageID
 }
 
-// GetYamls returns the yaml documents found in the document
+// getYamlDocuments returns the yaml documents found in the document
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *DocumentHandle) GetYamls() ([]*YamlDoc, error) {
+func (d *DocumentHandle) getYamlDocuments() ([]*YamlDoc, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
