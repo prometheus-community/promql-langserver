@@ -73,8 +73,8 @@ func (d *DocumentHandle) PosToProtocolPosition(pos token.Pos) (protocol.Position
 	return ret, err
 }
 
-// ProtocolPositionToTokenPos converts a token.Pos to a protocol.Position
-func (d *DocumentHandle) ProtocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
+// protocolPositionToTokenPos converts a token.Pos to a protocol.Position
+func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 

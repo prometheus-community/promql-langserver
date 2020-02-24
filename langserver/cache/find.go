@@ -35,7 +35,7 @@ func (c *DocumentCache) Find(where *protocol.TextDocumentPositionParams) (there 
 		return
 	}
 
-	if there.Pos, err = there.Doc.ProtocolPositionToTokenPos(where.Position); err != nil {
+	if there.Pos, err = there.Doc.protocolPositionToTokenPos(where.Position); err != nil {
 		return
 	}
 
