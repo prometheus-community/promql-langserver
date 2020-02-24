@@ -84,7 +84,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 		parseErr = nil
 	}
 
-	err = d.AddCompileResult(pos, ast, parseErr, record, content)
+	err = d.addCompileResult(pos, ast, parseErr, record, content)
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 	return nil
 }
 
-// AddCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
-func (d *DocumentHandle) AddCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
+// addCompileResult updates the compilation Results of a Document. Discards the Result if the DocumentHandle is expired
+func (d *DocumentHandle) addCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 
