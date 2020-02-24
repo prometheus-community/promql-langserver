@@ -22,8 +22,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// YamlDoc contains the results of compiling a yaml document
-type YamlDoc struct {
+// yamlDoc contains the results of compiling a yaml document
+type yamlDoc struct {
 	AST yaml.Node
 	Err error
 	// Not encoded in the AST
@@ -43,7 +43,7 @@ func (d *DocumentHandle) parseYamls() error {
 	lineOffset := 0
 
 	for unread := reader.Len(); unread > 0; {
-		var yamlDoc YamlDoc
+		var yamlDoc yamlDoc
 
 		decoder := yaml.NewDecoder(reader)
 
@@ -70,7 +70,7 @@ func (d *DocumentHandle) parseYamls() error {
 	return nil
 }
 
-func (d *DocumentHandle) addYaml(yaml *YamlDoc) error {
+func (d *DocumentHandle) addYaml(yaml *yamlDoc) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 

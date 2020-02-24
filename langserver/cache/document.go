@@ -41,7 +41,7 @@ type document struct {
 	obsoleteVersion context.CancelFunc
 
 	queries []*CompiledQuery
-	yamls   []*YamlDoc
+	yamls   []*yamlDoc
 
 	diagnostics []protocol.Diagnostic
 
@@ -131,7 +131,7 @@ func (d *DocumentHandle) SetContent(serverLifetime context.Context, content stri
 	d.doc.posData.SetLinesForContent(append([]byte(content), '\n'))
 
 	d.doc.queries = []*CompiledQuery{}
-	d.doc.yamls = []*YamlDoc{}
+	d.doc.yamls = []*yamlDoc{}
 	d.doc.diagnostics = []protocol.Diagnostic{}
 
 	d.doc.compilers.Add(1)
@@ -248,7 +248,7 @@ func (d *DocumentHandle) GetLanguageID() string {
 // and returns an error if that context has expired, i.e. the Document
 // has changed since
 // It blocks until all compile tasks are finished
-func (d *DocumentHandle) getYamlDocuments() ([]*YamlDoc, error) {
+func (d *DocumentHandle) getYamlDocuments() ([]*yamlDoc, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
