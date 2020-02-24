@@ -109,7 +109,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	case "text":
 		stream = protocol.LoggingStream(stream, os.Stderr)
 	case "json":
-		stream = JSONLogStream(stream, os.Stderr)
+		stream = jSONLogStream(stream, os.Stderr)
 	}
 
 	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
