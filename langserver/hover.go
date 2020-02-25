@@ -109,28 +109,30 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 	case *promql.VectorSelector:
 		metric := n.Name
 
-		doc, err := s.getRecordingRuleDocs(location.Doc, metric)
-		if err != nil {
-			// nolint: errcheck
-			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-				Type:    protocol.Error,
-				Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
-			})
-		}
-
-		if doc == "" {
-			doc, err = s.getMetricDocs(ctx, metric)
+		if metric != "" {
+			doc, err := s.getRecordingRuleDocs(location.Doc, metric)
 			if err != nil {
 				// nolint: errcheck
 				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 					Type:    protocol.Error,
-					Message: errors.Wrapf(err, "failed to get metric data").Error(),
+					Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
 				})
 			}
-		}
 
-		if _, err := ret.WriteString(doc); err != nil {
-			return ""
+			if doc == "" {
+				doc, err = s.getMetricDocs(ctx, metric)
+				if err != nil {
+					// nolint: errcheck
+					s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+						Type:    protocol.Error,
+						Message: errors.Wrapf(err, "failed to get metric data").Error(),
+					})
+				}
+			}
+
+			if _, err := ret.WriteString(doc); err != nil {
+				return ""
+			}
 		}
 	default:
 	}
