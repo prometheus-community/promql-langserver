@@ -26,12 +26,10 @@ import (
 	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
-// Create an API handler for the PromQL langserver REST API
+// CreateHandler creates an http.Handler for the PromQL langserver REST API.
 //
 // Expects the URL of a Prometheus server as the second argument.
-//
-// Will fail if the Prometheus server is not reachable.
-func CreateAPIHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
+func CreateHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
 	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
 	if err != nil {
 		return nil, err
