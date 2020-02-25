@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen

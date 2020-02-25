@@ -17,7 +17,7 @@ import (
 	"go/token"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // Location bundles all the context that the cache can provide for a given protocol.Location.

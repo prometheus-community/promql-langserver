@@ -16,7 +16,7 @@ package cache
 import (
 	"go/token"
 
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // getSmallestSurroundingNode searches the syntax tree of the provided PromQL

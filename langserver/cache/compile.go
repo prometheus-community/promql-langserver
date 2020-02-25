@@ -16,7 +16,7 @@ package cache
 import (
 	"go/token"
 
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // CompiledQuery stores the results of compiling one query.
