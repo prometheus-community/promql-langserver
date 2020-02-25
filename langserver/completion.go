@@ -82,12 +82,12 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 				return
 			}
 		} else {
-			if err = s.completeLabels(ctx, completions, location, metricName); err != nil {
+			if err = s.completeLabels(ctx, completions, location); err != nil {
 				return
 			}
 		}
 	case *promql.AggregateExpr, *promql.BinaryExpr:
-		if err = s.completeLabels(ctx, completions, location, ""); err != nil {
+		if err = s.completeLabels(ctx, completions, location); err != nil {
 			return
 		}
 	}
@@ -223,7 +223,7 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location) error {
 	offset := location.Node.PositionRange().Start
 	l := promql.Lex(location.Query.Content[offset:])
 
@@ -283,18 +283,23 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 		}
 	}
 
+	vs, ok := location.Node.(*promql.VectorSelector)
+	if !ok {
+		vs = nil
+	}
+
 	item.Pos += offset
 
 	loc := *location
 
 	if isLabel {
 		loc.Node = &item
-		return s.completeLabel(ctx, completions, &loc, metricName)
+		return s.completeLabel(ctx, completions, &loc, vs)
 	}
 
 	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
 		loc.Node = &promql.Item{Pos: item.Pos + 1}
-		return s.completeLabel(ctx, completions, &loc, metricName)
+		return s.completeLabel(ctx, completions, &loc, vs)
 	}
 
 	if isValue && lastLabel != "" {
@@ -311,7 +316,13 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
+	metricName := ""
+
+	if vs != nil {
+		metricName = vs.Name
+	}
+
 	api := s.getPrometheus()
 
 	var allNames []string
@@ -367,6 +378,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 		return err
 	}
 
+OUTER:
 	for i, name := range allNames {
 		// Skip duplicates
 		if i > 0 && allNames[i-1] == name {
@@ -374,6 +386,15 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 		}
 
 		if strings.HasPrefix(name, location.Node.(*promql.Item).Val) {
+			// Skip labels that already have matchers
+			if vs != nil {
+				for _, m := range vs.LabelMatchers {
+					if m != nil && m.Name == name {
+						continue OUTER
+					}
+				}
+			}
+
 			item := protocol.CompletionItem{
 				Label: name,
 				Kind:  12, //Value
