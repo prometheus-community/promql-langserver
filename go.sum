@@ -395,8 +395,6 @@ github.com/prometheus/procfs v0.0.5 h1:3+auTFlqw+ZaQYJARz6ArODtkaIwtvBTx3N2NehQl
 github.com/prometheus/procfs v0.0.5/go.mod h1:4A/X28fw3Fc593LaREMrKMqOKvUAntwMDaekg4FpcdQ=
 github.com/prometheus/procfs v0.0.8 h1:+fpWZdT24pJBiqJdAwYBjPSk+5YmQzYNPYzQsdzLkt8=
 github.com/prometheus/procfs v0.0.8/go.mod h1:7Qr8sr6344vo1JqZ6HhLceV9o3AJ1Ff+GxbHq6oeK9A=
-github.com/prometheus/prometheus v1.8.2-0.20200225133230-9b9c58aea8e0 h1:U+kyp+MeAkTc90YpJnIzn+QbOu8HzGGZajtwhgcK4L0=
-github.com/prometheus/prometheus v1.8.2-0.20200225133230-9b9c58aea8e0/go.mod h1:/feD9J3z9H+U+gA6A8c4nZ+hB6kJuyelr0XHOF4eNWM=
 github.com/prometheus/prometheus v1.8.2-0.20200225164919-c4e74e241f9e h1:I6G9NKNJw/v4S0kW1wXHD7VwgV+Ps/dkJdDYfsuLvuw=
 github.com/prometheus/prometheus v1.8.2-0.20200225164919-c4e74e241f9e/go.mod h1:/feD9J3z9H+U+gA6A8c4nZ+hB6kJuyelr0XHOF4eNWM=
 github.com/rakyll/statik v0.1.7-0.20191104211043-6b2f3ee522b6 h1:aTZBZ+7KwHnr9TPzd4l4PGvUJckC0Vw30gxXBxMGhyo=
