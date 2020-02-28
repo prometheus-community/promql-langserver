@@ -46,7 +46,7 @@ jobs:
       - restore_cache:
           keys:
             - v3-crossbuild-cache
-      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
       - run: git reset --hard
       - run: make crossbuild
       - run: mkdir artifacts
