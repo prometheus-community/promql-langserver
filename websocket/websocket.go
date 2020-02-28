@@ -11,16 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Websocket provides support to run the language server over websocket (experimental).
 package langserver
 
-//nolint
 import (
 	"context"
 	"errors"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	//"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
+	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
 // Implements the jsonrpc2.Stream interface
@@ -93,9 +93,9 @@ func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), er
 
 		ws.SetCloseHandler(ch)
 
-		var s Server
+		var s langserver.Server
 
-		_, s = ServerFromStream(ctx, wsConn{ws}, &Config{})
+		_, s = langserver.ServerFromStream(ctx, wsConn{ws}, &langserver.Config{})
 
 		if err := s.Run(); err != nil {
 			// If the client disconnects, the above will fail
