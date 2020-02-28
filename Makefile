@@ -10,6 +10,7 @@ BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES))
 all: build test golangci-lint
 
 generated: $(STATIK_FILES)
+	gofmt -w $(STATIK_FILES)
 
 
 .PHONY: install

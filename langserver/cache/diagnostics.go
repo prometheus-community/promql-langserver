@@ -17,7 +17,7 @@ import (
 	"go/token"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // promQLErrToProtocolDiagnostic converts a promql.ParseErr to a protocol.Diagnostic

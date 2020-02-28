@@ -18,7 +18,7 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 	"gopkg.in/yaml.v3"
 )
 

@@ -27,7 +27,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/util/strutil"
 )
 

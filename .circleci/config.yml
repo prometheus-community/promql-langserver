@@ -46,7 +46,7 @@ jobs:
       - restore_cache:
           keys:
             - v3-crossbuild-cache
-      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
       - run: git reset --hard
       - run: make crossbuild
       - run: mkdir artifacts
@@ -67,7 +67,7 @@ jobs:
       - restore_cache:
           keys:
             - v3-crossbuild-cache
-      - run: GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
       - run: git reset --hard
       - run: make release 
 
@@ -76,7 +76,7 @@ jobs:
     
     steps:
       - checkout
-      - run: go get github.com/rakyll/statik
+      - run: go get github.com/rakyll/statik@v0.1.7
       - run: make clean
       - run: make generated
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"

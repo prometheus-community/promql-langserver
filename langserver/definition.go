@@ -17,7 +17,7 @@ import (
 	"context"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // Definition is required by the protocol.Server interface

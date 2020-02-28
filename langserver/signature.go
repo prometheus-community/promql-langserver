@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus/prometheus/promql"
+	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
 // SignatureHelp is required by the protocol.Server interface
