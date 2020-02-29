@@ -53,6 +53,9 @@ func (wg *waitGroup) Add(delta int32) {
 	}
 
 	if new == 0 {
+		wg.mu.Lock()
+		defer wg.mu.Unlock()
+
 		wg.cond.Broadcast()
 	}
 }
