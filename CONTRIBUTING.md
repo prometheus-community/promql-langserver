@@ -13,4 +13,4 @@ For each of them there exists a respective directory in `vendored/<name>` and a 
 * `<name>.dirs` contains the directories that should be copied over
 * `<name>.cmd` contains a `sed` command to be run on all imported files to fix import paths
 
-To update these dependencies, set the approbate version and run `make update_internal_packages`. Then fix every problem the update caused. This should be done every few weeks or so.
+To update these dependencies, set the appropriate version and run `make update_internal_packages`. Then fix every problem the update caused. This should be done every few weeks or so.
