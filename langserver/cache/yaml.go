@@ -131,6 +131,9 @@ func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lin
 			if err != nil {
 				return err
 			}
+
+			// Exclude the trailing newline from the child.
+			childEnd--
 		} else {
 			childEnd = nodeEnd
 		}
@@ -190,10 +193,12 @@ func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Po
 			if i+2 < len(node.Content) && node.Content[i+2] != nil {
 				next := node.Content[i+2]
 
-				exprEnd, err = d.yamlPositionToTokenPos(next.Line, next.Column, lineOffset)
+				exprEnd, err = d.yamlPositionToTokenPos(next.Line, 1, lineOffset)
 				if err != nil {
 					return err
 				}
+				// Exclude the trailing newline from the expression.
+				exprEnd--
 			} else {
 				exprEnd = nodeEnd
 			}
