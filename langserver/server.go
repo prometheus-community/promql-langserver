@@ -20,7 +20,9 @@ package langserver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -59,9 +61,10 @@ type server struct {
 
 	config *Config
 
-	prometheus    api.Client
-	PrometheusURL string
-	prometheusMu  sync.Mutex
+	prometheus        api.Client
+	PrometheusURL     string
+	PrometheusVersion string
+	prometheusMu      sync.Mutex
 
 	lifetime context.Context
 	exit     func()
@@ -162,6 +165,15 @@ func (s *server) connectPrometheus(url string) error {
 			s.prometheus = nil
 
 			return err
+		}
+
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		jsonResponse := map[string]map[string]string{}
+
+		err = json.Unmarshal(bodyBytes, &jsonResponse)
+
+		if err == nil {
+			s.PrometheusVersion = jsonResponse["data"]["version"]
 		}
 
 		resp.Body.Close()

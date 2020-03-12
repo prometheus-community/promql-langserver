@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"go/token"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -45,6 +46,26 @@ func initializeFunctionDocumentation() http.FileSystem {
 	}
 
 	return ret
+}
+
+func compatibleVersion(originalVersion, requiredVersion string) bool {
+	if originalVersion == "" {
+		return false
+	}
+
+	originalVersionArray := strings.Split(originalVersion, ".")
+	requiredVersionArray := strings.Split(requiredVersion, ".")
+	minLength := int(math.Min(float64(len(originalVersionArray)), float64(len(requiredVersionArray))))
+
+	for i := 0; i < minLength; i++ {
+		if originalVersionArray[i] > requiredVersionArray[i] {
+			return true
+		} else if originalVersionArray[i] < requiredVersionArray[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Hover shows documentation on hover
@@ -208,23 +229,44 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 
 	api := v1.NewAPI(s.prometheus)
 
-	metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
-	if err != nil {
-		return ret.String(), err
-	} else if len(metadata) == 0 {
-		return ret.String(), nil
-	}
+	if !compatibleVersion(s.PrometheusVersion, "2.15") {
+		metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
+		if err != nil {
+			return ret.String(), err
+		} else if len(metadata) == 0 {
+			return ret.String(), nil
+		}
 
-	if metadata[0].Help != "" {
-		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
-	}
+		if metadata[0].Help != "" {
+			fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
+		}
 
-	if metadata[0].Type != "" {
-		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[0].Type)
-	}
+		if metadata[0].Type != "" {
+			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[0].Type)
+		}
 
-	if metadata[0].Unit != "" {
-		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
+		if metadata[0].Unit != "" {
+			fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
+		}
+	} else {
+		metadata, err := api.Metadata(ctx, metric, "1")
+		if err != nil {
+			return ret.String(), err
+		} else if len(metadata) == 0 {
+			return ret.String(), nil
+		}
+
+		if metadata[metric][0].Help != "" {
+			fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[metric][0].Help)
+		}
+
+		if metadata[metric][0].Type != "" {
+			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[metric][0].Type)
+		}
+
+		if metadata[metric][0].Unit != "" {
+			fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[metric][0].Unit)
+		}
 	}
 
 	return ret.String(), nil
