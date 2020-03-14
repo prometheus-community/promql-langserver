@@ -256,6 +256,25 @@ func (s *server) getPrometheusURL() string {
 	return s.PrometheusURL
 }
 
+// supportsMetadataAPI checks if language server has access to new metadata APIs.
+func (s *server) supportsMetadataAPI() (bool, error) {
+	var isCompatible = false // nolint:ineffassign
+
+	requiredVersion := semver.MustParse("2.15.0")
+	presentVersion, err := semver.New(s.PrometheusVersion)
+
+	switch {
+	case err != nil && !s.headless:
+		return isCompatible, err
+	case s.headless:
+		isCompatible = true
+	default:
+		isCompatible = presentVersion.GTE(requiredVersion)
+	}
+
+	return isCompatible, err
+}
+
 // RunTCPServer generates a server listening on the provided TCP Address, creating a new language Server
 // instance using plain HTTP for every connection.
 func RunTCPServer(ctx context.Context, addr string, config *Config) error {

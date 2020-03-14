@@ -29,6 +29,8 @@ import (
 	"github.com/prometheus/common/model"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/util/strutil"
+
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // Completion is required by the protocol.Server interface
@@ -99,12 +101,23 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	api := s.getPrometheus()
 
-	var allNames model.LabelValues
+	var allMetadata = map[string][]v1.Metadata{}
+	var err error // nolint: ws1
 
 	if api != nil {
-		var err error
+		isCompatible, _ := s.supportsMetadataAPI()
 
-		allNames, _, err = api.LabelValues(ctx, "__name__")
+		if !isCompatible {
+			var allNames model.LabelValues
+
+			allNames, _, err = api.LabelValues(ctx, "__name__")
+			for _, name := range allNames {
+				allMetadata[string(name)] = []v1.Metadata{{}}
+			}
+		} else {
+			allMetadata, err = api.Metadata(ctx, "", "")
+		}
+
 		if err != nil {
 			// nolint: errcheck
 			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -112,7 +125,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 				Message: errors.Wrapf(err, "could not get metric data from Prometheus").Error(),
 			})
 
-			allNames = nil
+			allMetadata = nil
 		}
 	}
 
@@ -121,15 +134,17 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		return err
 	}
 
-	for _, name := range allNames {
-		if strings.HasPrefix(string(name), metricName) {
+	for name, metadata := range allMetadata {
+		if strings.HasPrefix(name, metricName) {
 			item := protocol.CompletionItem{
-				Label:    string(name),
-				SortText: "__3__" + string(name),
-				Kind:     12, //Value
+				Label:         name,
+				SortText:      "__3__" + name,
+				Kind:          12, //Value
+				Documentation: metadata[0].Help,
+				Detail:        string(metadata[0].Type),
 				TextEdit: &protocol.TextEdit{
 					Range:   editRange,
-					NewText: string(name),
+					NewText: name,
 				},
 			}
 			*completions = append(*completions, item)
