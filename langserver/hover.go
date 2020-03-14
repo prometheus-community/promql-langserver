@@ -23,7 +23,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
@@ -210,19 +209,10 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 
 	api := v1.NewAPI(s.prometheus)
 
-	// isCompatible checks if language server has access to new metadata APIs.
-	var isCompatible = false // nolint:ineffassign
+	isCompatible, err := s.supportsMetadataAPI()
 
-	requiredVersion := semver.MustParse("2.15.0")
-	presentVersion, err := semver.New(s.PrometheusVersion)
-
-	switch {
-	case err != nil && !s.headless:
+	if err != nil {
 		return ret.String(), err
-	case s.headless:
-		isCompatible = true
-	default:
-		isCompatible = presentVersion.GTE(requiredVersion)
 	}
 
 	var (
