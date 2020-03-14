@@ -3,9 +3,10 @@ module github.com/prometheus-community/promql-langserver
 go 1.13
 
 require (
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/gorilla/websocket v1.4.1
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.4.1
+	github.com/prometheus/client_golang v1.5.0
 	github.com/prometheus/common v0.9.1
 	github.com/prometheus/prometheus v1.8.2-0.20200225164919-c4e74e241f9e
 	github.com/rakyll/statik v0.1.7

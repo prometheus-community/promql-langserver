@@ -20,13 +20,16 @@ package langserver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 
+	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
@@ -59,9 +62,10 @@ type server struct {
 
 	config *Config
 
-	prometheus    api.Client
-	PrometheusURL string
-	prometheusMu  sync.Mutex
+	prometheus        api.Client
+	PrometheusURL     string
+	PrometheusVersion string
+	prometheusMu      sync.Mutex
 
 	lifetime context.Context
 	exit     func()
@@ -69,6 +73,24 @@ type server struct {
 }
 
 type serverState int
+
+type testResponse struct {
+	Status    string        `json:"status"`
+	Data      buildInfoData `json:"data,omitempty"`
+	ErrorType string        `json:"errorType,omitempty"`
+	Error     string        `json:"error,omitempty"`
+	Warnings  []string      `json:"warnings,omitempty"`
+}
+
+// buildInfoData contains build information about Prometheus.
+type buildInfoData struct {
+	Version   string `json:"version"`
+	Revision  string `json:"revision"`
+	Branch    string `json:"branch"`
+	BuildUser string `json:"buildUser"`
+	BuildDate string `json:"buildDate"`
+	GoVersion string `json:"goVersion"`
+}
 
 const (
 	serverCreated = serverState(iota)
@@ -124,6 +146,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	return ctx, Server{s}
 }
 
+// nolint:funlen
 func (s *server) connectPrometheus(url string) error {
 	s.prometheusMu.Lock()
 	defer s.prometheusMu.Unlock()
@@ -152,6 +175,7 @@ func (s *server) connectPrometheus(url string) error {
 		testurl := fmt.Sprint(url, "/api/v1/status/buildinfo")
 
 		resp, err := http.Get(testurl) // nolint: gosec
+
 		if err != nil {
 			// nolint: errcheck
 			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
@@ -160,6 +184,46 @@ func (s *server) connectPrometheus(url string) error {
 			})
 
 			s.prometheus = nil
+
+			return err
+		}
+
+		// For prometheus version less than 2.14 `api/v1/status/buildinfo` was not supported this can
+		// break many function which solely depends on version comparing like `hover`, etc.
+		if resp.StatusCode == http.StatusNotFound {
+			err = errors.Errorf("Got %d when tried to access %s%s", resp.StatusCode, url, "/api/v1/status/buildinfo")
+
+			// nolint: errcheck
+			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+				Type:    protocol.Error,
+				Message: fmt.Sprintf("Failed to access build info via %s:\n\n%s ", url, err.Error()),
+			})
+
+			// Setting version 2.13.0 for version less than 2.14 by default.
+			s.PrometheusVersion = "2.13.0"
+
+			return err
+		}
+
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		jsonResponse := testResponse{}
+
+		err = json.Unmarshal(bodyBytes, &jsonResponse)
+
+		if err == nil {
+			s.PrometheusVersion = jsonResponse.Data.Version
+
+			_, err = semver.Parse(s.PrometheusVersion)
+		}
+
+		if err != nil {
+			// nolint: errcheck
+			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+				Type:    protocol.Error,
+				Message: fmt.Sprintf("Failed to abstract version from Prometheus %s:\n\n%s ", url, err.Error()),
+			})
+
+			s.PrometheusVersion = ""
 
 			return err
 		}
