@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"go/token"
 	"log"
-	"math"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
@@ -46,26 +46,6 @@ func initializeFunctionDocumentation() http.FileSystem {
 	}
 
 	return ret
-}
-
-func compatibleVersion(originalVersion, requiredVersion string) bool {
-	if originalVersion == "" {
-		return false
-	}
-
-	originalVersionArray := strings.Split(originalVersion, ".")
-	requiredVersionArray := strings.Split(requiredVersion, ".")
-	minLength := int(math.Min(float64(len(originalVersionArray)), float64(len(requiredVersionArray))))
-
-	for i := 0; i < minLength; i++ {
-		if originalVersionArray[i] > requiredVersionArray[i] {
-			return true
-		} else if originalVersionArray[i] < requiredVersionArray[i] {
-			return false
-		}
-	}
-
-	return true
 }
 
 // Hover shows documentation on hover
@@ -218,6 +198,7 @@ func funcDocStrings(name string) string {
 	return string(ret)
 }
 
+// nolint:funlen
 func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	var ret strings.Builder
 
@@ -229,7 +210,28 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 
 	api := v1.NewAPI(s.prometheus)
 
-	if !compatibleVersion(s.PrometheusVersion, "2.15") {
+	// isCompatible checks if language server has access to new metadata APIs.
+	var isCompatible = false // nolint:ineffassign
+
+	requiredVersion := semver.MustParse("2.15.0")
+	presentVersion, err := semver.New(s.PrometheusVersion)
+
+	switch {
+	case err != nil && !s.headless:
+		return ret.String(), err
+	case s.headless:
+		isCompatible = true
+	default:
+		isCompatible = presentVersion.GTE(requiredVersion)
+	}
+
+	var (
+		help       = ""
+		metricType = ""
+		unit       = ""
+	)
+
+	if !isCompatible {
 		metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
 		if err != nil {
 			return ret.String(), err
@@ -238,15 +240,15 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 		}
 
 		if metadata[0].Help != "" {
-			fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[0].Help)
+			help = metadata[0].Help
 		}
 
 		if metadata[0].Type != "" {
-			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[0].Type)
+			metricType = string(metadata[0].Type)
 		}
 
 		if metadata[0].Unit != "" {
-			fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[0].Unit)
+			unit = metadata[0].Unit
 		}
 	} else {
 		metadata, err := api.Metadata(ctx, metric, "1")
@@ -257,16 +259,28 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 		}
 
 		if metadata[metric][0].Help != "" {
-			fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata[metric][0].Help)
+			help = metadata[metric][0].Help
 		}
 
 		if metadata[metric][0].Type != "" {
-			fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata[metric][0].Type)
+			metricType = string(metadata[metric][0].Type)
 		}
 
 		if metadata[metric][0].Unit != "" {
-			fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata[metric][0].Unit)
+			unit = metadata[metric][0].Unit
 		}
+	}
+
+	if help != "" {
+		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", help)
+	}
+
+	if metricType != "" {
+		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metricType)
+	}
+
+	if unit != "" {
+		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", unit)
 	}
 
 	return ret.String(), nil
