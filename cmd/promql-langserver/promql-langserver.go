@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/prometheus-community/promql-langserver/langserver"
 	"github.com/prometheus-community/promql-langserver/rest"
 )
@@ -37,7 +39,7 @@ func main() {
 	}
 	if config.RESTAPIPort != 0 {
 		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", config.RESTAPIPort)
-		handler, err := rest.CreateHandler(context.Background(), config.PrometheusURL)
+		handler, err := rest.CreateInstHandler(context.Background(), config.PrometheusURL, prometheus.NewRegistry())
 		if err != nil {
 			log.Fatal(err)
 		}

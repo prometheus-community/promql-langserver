@@ -24,6 +24,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // CreateHandler creates an http.Handler for the PromQL langserver REST API.
@@ -35,62 +38,86 @@ func CreateHandler(ctx context.Context, prometheusURL string) (http.Handler, err
 		return nil, err
 	}
 
-	return &langserverHandler{langserver: langserver}, nil
+	ls := &langserverHandler{langserver: langserver}
+	ls.m = make(map[string]http.Handler)
+	ls.createHandlers(nil)
+
+	return ls, nil
+}
+
+// CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
+//
+// Expects the URL of a Prometheus server as the second argument and a Registry as third argument.
+func CreateInstHandler(ctx context.Context, prometheusURL string, r *prometheus.Registry) (http.Handler, error) {
+	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
+	if err != nil {
+		return nil, err
+	}
+
+	ls := &langserverHandler{langserver: langserver}
+	ls.m = make(map[string]http.Handler)
+	ls.createHandlers(r)
+
+	return ls, nil
+}
+
+func (h *langserverHandler) createHandlers(r *prometheus.Registry) {
+	diagnostics := newSubHandler(h, diagnosticsHandler)
+	completion := newSubHandler(h, completionHandler)
+	hover := newSubHandler(h, hoverHandler)
+	signatureHelp := newSubHandler(h, signatureHelpHandler)
+
+	if r != nil {
+		httpRequestsTotal := prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Count of all HTTP requests",
+		}, []string{"code", "method"})
+
+		httpRequestDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name: "http_request_duration_seconds",
+			Help: "Duration of all HTTP requests base on endpoint being queried",
+		}, []string{"code", "handler"})
+
+		r.MustRegister(httpRequestsTotal)
+		r.MustRegister(httpRequestDuration)
+
+		instrumentFunc := func(name string, h http.Handler) http.Handler {
+			return promhttp.InstrumentHandlerDuration(
+				httpRequestDuration.MustCurryWith(prometheus.Labels{"handler": name}),
+				promhttp.InstrumentHandlerCounter(httpRequestsTotal, h))
+		}
+
+		diagnostics = instrumentFunc("diagnostics", diagnostics)
+		completion = instrumentFunc("completion", completion)
+		hover = instrumentFunc("hover", hover)
+		signatureHelp = instrumentFunc("signatureHelp", signatureHelp)
+		metrics := instrumentFunc("metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))
+		h.Handle("/metrics", metrics)
+	}
+
+	h.Handle("/diagnostics", diagnostics)
+	h.Handle("/completion", completion)
+	h.Handle("/hover", hover)
+	h.Handle("/signatureHelp", signatureHelp)
+}
+
+func (h *langserverHandler) Handle(name string, handler http.Handler) {
+	h.m[name] = handler
 }
 
 type langserverHandler struct {
 	langserver     langserver.HeadlessServer
 	requestCounter int64
+	m              map[string]http.Handler //Maps URL path to handlers.
 }
 
 func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var subHandler func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)
-
-	requestID := fmt.Sprint(atomic.AddInt64(&h.requestCounter, 1), ".promql")
-
-	switch r.URL.Path {
-	case "/diagnostics":
-		subHandler = diagnosticsHandler
-	case "/hover":
-		subHandler = hoverHandler
-	case "/completion":
-		subHandler = completionHandler
-	case "/signatureHelp":
-		subHandler = signatureHelpHandler
-	default:
-		http.NotFound(w, r)
+	if h, ok := h.m[r.URL.Path]; ok {
+		h.ServeHTTP(w, r)
 		return
 	}
 
-	exprs, ok := r.URL.Query()["expr"]
-
-	if !ok || len(exprs) == 0 {
-		http.Error(w, "Param expr is not specified", 400)
-		return
-	}
-
-	defer func() {
-		h.langserver.DidClose(r.Context(), &protocol.DidCloseTextDocumentParams{
-			TextDocument: protocol.TextDocumentIdentifier{
-				URI: requestID,
-			},
-		},
-		)
-	}()
-
-	if err := h.langserver.DidOpen(r.Context(), &protocol.DidOpenTextDocumentParams{
-		TextDocument: protocol.TextDocumentItem{
-			URI:        requestID,
-			LanguageID: "promql",
-			Version:    0,
-			Text:       exprs[0],
-		},
-	}); err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to open document").Error(), 500)
-		return
-	}
-
-	subHandler(w, r, h.langserver, requestID)
+	http.NotFound(w, r)
 }
 
 func diagnosticsHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
@@ -253,4 +280,49 @@ func getLimitFromURL(url *url.URL) (bool, int64, error) {
 	}
 
 	return true, limit, nil
+}
+
+// subHandler implements the http.Handler interface.
+// It is used as the http handler for instrumentation functions
+// provided by prometheus client libraries.
+type subHandler struct {
+	caller func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)
+	h      *langserverHandler
+}
+
+func newSubHandler(ls *langserverHandler, handler func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)) http.Handler {
+	return &subHandler{h: ls, caller: handler}
+}
+
+func (uh *subHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	requestID := fmt.Sprint(atomic.AddInt64(&uh.h.requestCounter, 1), ".promql")
+	exprs, ok := r.URL.Query()["expr"]
+
+	if !ok || len(exprs) == 0 {
+		http.Error(w, "Param expr is not specified", 400)
+		return
+	}
+
+	defer func() {
+		uh.h.langserver.DidClose(r.Context(), &protocol.DidCloseTextDocumentParams{
+			TextDocument: protocol.TextDocumentIdentifier{
+				URI: requestID,
+			},
+		},
+		)
+	}()
+
+	if err := uh.h.langserver.DidOpen(r.Context(), &protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{
+			URI:        requestID,
+			LanguageID: "promql",
+			Version:    0,
+			Text:       exprs[0],
+		},
+	}); err != nil {
+		http.Error(w, errors.Wrapf(err, "failed to open document").Error(), 500)
+		return
+	}
+
+	uh.caller(w, r, uh.h.langserver, requestID)
 }
