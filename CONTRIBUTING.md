@@ -1,5 +1,15 @@
 # Contributing
 
+## Building and running the unit tests
+
+Just run `make`.
+
+For crossbuilding run `make crossbuild`.
+
+Note that the langserver doesn't have proper integration tests yet, so manual testing of changed functionality is usually necessary.
+
+PRs that improve the test situation are highly appreciated.
+
 ## Manually testing the language server
 
 The easiest way to test the language server is to use the [VS Code extension](https://github.com/redhat-developer/vscode-promql)
