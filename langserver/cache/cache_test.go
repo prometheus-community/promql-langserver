@@ -158,12 +158,12 @@ groups:
 		panic("expected exactly 4 queries for rules file got " + fmt.Sprint(len(queries)))
 	}
 
-	_, err = doc.getQuery(queries[0].Pos - 1)
+	_, err = doc.getQuery(97)
 	if err == nil {
 		panic("should have failed to get query")
 	}
 
-	_, err = doc.getQuery(queries[0].Pos)
+	_, err = doc.getQuery(98)
 	if err != nil {
 		panic("failed to get query: " + err.Error())
 	}
