@@ -12,8 +12,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry/metric"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry/event"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry/export/metric"
 )
 
 func New() *Exporter {
@@ -22,32 +22,34 @@ func New() *Exporter {
 
 type Exporter struct {
 	mu      sync.Mutex
-	metrics []telemetry.MetricData
+	metrics []metric.Data
 }
 
-func (e *Exporter) StartSpan(ctx context.Context, span *telemetry.Span)  {}
-func (e *Exporter) FinishSpan(ctx context.Context, span *telemetry.Span) {}
-func (e *Exporter) Log(ctx context.Context, event telemetry.Event)       {}
-func (e *Exporter) Flush()                                               {}
-
-func (e *Exporter) Metric(ctx context.Context, data telemetry.MetricData) {
+func (e *Exporter) ProcessEvent(ctx context.Context, ev event.Event, tagMap event.TagMap) context.Context {
+	if !ev.IsRecord() {
+		return ctx
+	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	name := data.Handle()
-	// We keep the metrics in name sorted order so the page is stable and easy
-	// to read. We do this with an insertion sort rather than sorting the list
-	// each time
-	index := sort.Search(len(e.metrics), func(i int) bool {
-		return e.metrics[i].Handle() >= name
-	})
-	if index >= len(e.metrics) || e.metrics[index].Handle() != name {
-		// we have a new metric, so we need to make a space for it
-		old := e.metrics
-		e.metrics = make([]telemetry.MetricData, len(old)+1)
-		copy(e.metrics, old[:index])
-		copy(e.metrics[index+1:], old[index:])
+	metrics := metric.Entries.Get(tagMap).([]metric.Data)
+	for _, data := range metrics {
+		name := data.Handle()
+		// We keep the metrics in name sorted order so the page is stable and easy
+		// to read. We do this with an insertion sort rather than sorting the list
+		// each time
+		index := sort.Search(len(e.metrics), func(i int) bool {
+			return e.metrics[i].Handle() >= name
+		})
+		if index >= len(e.metrics) || e.metrics[index].Handle() != name {
+			// we have a new metric, so we need to make a space for it
+			old := e.metrics
+			e.metrics = make([]metric.Data, len(old)+1)
+			copy(e.metrics, old[:index])
+			copy(e.metrics[index+1:], old[index:])
+		}
+		e.metrics[index] = data
 	}
-	e.metrics[index] = data
+	return ctx
 }
 
 func (e *Exporter) header(w http.ResponseWriter, name, description string, isGauge, isHistogram bool) {
@@ -62,7 +64,7 @@ func (e *Exporter) header(w http.ResponseWriter, name, description string, isGau
 	fmt.Fprintf(w, "# TYPE %s %s\n", name, kind)
 }
 
-func (e *Exporter) row(w http.ResponseWriter, name string, group telemetry.TagList, extra string, value interface{}) {
+func (e *Exporter) row(w http.ResponseWriter, name string, group []event.Tag, extra string, value interface{}) {
 	fmt.Fprint(w, name)
 	buf := &bytes.Buffer{}
 	fmt.Fprint(buf, group)

@@ -4,14 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry/export"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/telemetry/event"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/xcontext"
 )
-
-func init() {
-	export.AddExporters(logExporter{})
-}
 
 type contextKey int
 
@@ -23,23 +18,18 @@ func WithClient(ctx context.Context, client Client) context.Context {
 	return context.WithValue(ctx, clientKey, client)
 }
 
-// logExporter sends the log event back to the client if there is one stored on the
-// context.
-type logExporter struct{}
-
-func (logExporter) StartSpan(context.Context, *telemetry.Span)   {}
-func (logExporter) FinishSpan(context.Context, *telemetry.Span)  {}
-func (logExporter) Metric(context.Context, telemetry.MetricData) {}
-func (logExporter) Flush()                                       {}
-
-func (logExporter) Log(ctx context.Context, event telemetry.Event) {
+func LogEvent(ctx context.Context, ev event.Event, tags event.TagMap) context.Context {
+	if !ev.IsLog() {
+		return ctx
+	}
 	client, ok := ctx.Value(clientKey).(Client)
 	if !ok {
-		return
+		return ctx
 	}
-	msg := &LogMessageParams{Type: Info, Message: fmt.Sprint(event)}
-	if event.Error != nil {
+	msg := &LogMessageParams{Type: Info, Message: fmt.Sprint(ev)}
+	if event.Err.Get(tags) != nil {
 		msg.Type = Error
 	}
 	go client.LogMessage(xcontext.Detach(ctx), msg)
+	return ctx
 }
