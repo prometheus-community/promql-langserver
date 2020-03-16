@@ -143,9 +143,9 @@ groups:
 		panic("failed to get diagnostics for rules file")
 	}
 
-	if len(diagnostics) != 3 {
+	if len(diagnostics) != 2 {
 		fmt.Println(diagnostics)
-		panic("expected exactly 3 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
+		panic("expected exactly 2 error messages for rules file got " + fmt.Sprint(len(diagnostics)))
 	}
 
 	queries, err := doc.GetQueries()
