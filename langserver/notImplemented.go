@@ -132,7 +132,7 @@ func (s *server) NonstandardRequest(_ context.Context, _ string, _ interface{}) 
 }
 
 // PrepareRename is required by the protocol.Server interface
-func (s *server) PrepareRename(_ context.Context, _ *protocol.PrepareRenameParams) (interface{}, error) {
+func (s *server) PrepareRename(_ context.Context, _ *protocol.PrepareRenameParams) (*protocol.Range, error) {
 	return nil, notImplemented("PrepareRename")
 }
 
@@ -184,4 +184,44 @@ func (s *server) ResolveDocumentLink(_ context.Context, _ *protocol.DocumentLink
 // ExecuteCommand is required by the protocol.Server interface
 func (s *server) ExecuteCommand(_ context.Context, _ *protocol.ExecuteCommandParams) (interface{}, error) {
 	return nil, notImplemented("ExecuteCommand")
+}
+
+// IncomingCalls is required by the protocol.Server interface
+func (s *server) IncomingCalls(_ context.Context, _ *protocol.CallHierarchyIncomingCallsParams) ([]protocol.CallHierarchyIncomingCall, error) {
+	return nil, notImplemented("IncomingCalls")
+}
+
+// OutgoingCalls is required by the protocol.Server interface
+func (s *server) OutgoingCalls(_ context.Context, _ *protocol.CallHierarchyOutgoingCallsParams) ([]protocol.CallHierarchyOutgoingCall, error) {
+	return nil, notImplemented("OutgoingCalls")
+}
+
+// PrepareCallHierarchy is required by the protocol.Server interface
+func (s *server) PrepareCallHierarchy(_ context.Context, _ *protocol.CallHierarchyPrepareParams) ([]protocol.CallHierarchyItem, error) {
+	return nil, notImplemented("PrepareCallHierarchy")
+}
+
+// SemanticTokens is required by the protocol.Server interface
+func (s *server) SemanticTokens(_ context.Context, _ *protocol.SemanticTokensParams) (*protocol.SemanticTokens, error) {
+	return nil, notImplemented("SemanticTokens")
+}
+
+// SemanticTokensEdits is required by the protocol.Server interface
+func (s *server) SemanticTokensEdits(_ context.Context, _ *protocol.SemanticTokensEditsParams) (interface{}, error) {
+	return nil, notImplemented("SemanticTokensEdits")
+}
+
+// SemanticTokensRange is required by the protocol.Server interface
+func (s *server) SemanticTokensRange(_ context.Context, _ *protocol.SemanticTokensRangeParams) (*protocol.SemanticTokens, error) {
+	return nil, notImplemented("SemanticTokensRange")
+}
+
+// WorkDoneProgressCancel is required by the protocol.Server interface
+func (s *server) WorkDoneProgressCancel(_ context.Context, _ *protocol.WorkDoneProgressCancelParams) error {
+	return notImplemented("WorkDoneProgressCancel")
+}
+
+// WorkDoneProgressCreate is required by the protocol.Server interface
+func (s *server) WorkDoneProgressCreate(_ context.Context, _ *protocol.WorkDoneProgressCreateParams) error {
+	return notImplemented("WorkDoneProgressCreate")
 }

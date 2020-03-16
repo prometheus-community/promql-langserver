@@ -52,7 +52,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	fset := token.NewFileSet()
 
-	file := fset.AddFile(doc.URI, -1, maxDocumentSize)
+	file := fset.AddFile(string(doc.URI), -1, maxDocumentSize)
 
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {

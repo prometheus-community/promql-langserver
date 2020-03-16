@@ -47,7 +47,7 @@ type Server struct {
 // HeadlessServer is a modified Server interface that is used by the REST API.
 type HeadlessServer interface {
 	protocol.Server
-	GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error)
+	GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error)
 }
 
 // server is a language server instance that can connect to exactly one client
