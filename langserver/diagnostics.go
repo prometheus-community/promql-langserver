@@ -21,7 +21,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
-func (s *server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error) {
+func (s *server) GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error) {
 	d, err := s.cache.GetDocument(uri)
 	if err != nil {
 		return nil, errors.Wrapf(err, "document not found in cache")
@@ -48,7 +48,7 @@ func (s *server) GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams,
 }
 
 // nolint:funlen
-func (s *server) diagnostics(uri string) {
+func (s *server) diagnostics(uri protocol.DocumentURI) {
 	reply, err := s.GetDiagnostics(uri)
 	if err != nil {
 		// nolint: errcheck
@@ -67,7 +67,7 @@ func (s *server) diagnostics(uri string) {
 	}
 }
 
-func (s *server) clearDiagnostics(ctx context.Context, uri string, version float64) {
+func (s *server) clearDiagnostics(ctx context.Context, uri protocol.DocumentURI, version float64) {
 	diagnostics := &protocol.PublishDiagnosticsParams{
 		URI:         uri,
 		Version:     version,
