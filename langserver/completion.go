@@ -102,7 +102,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	api := s.getPrometheus()
 
 	var allMetadata = map[string][]v1.Metadata{}
-	var err error // nolint: ws1
+	var err error // nolint: wsl
 
 	if api != nil {
 		isCompatible, _ := s.supportsMetadataAPI()
