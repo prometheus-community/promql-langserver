@@ -138,7 +138,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 	}
 
 	if expr, ok := location.Node.(promql.Expr); ok {
-		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %v\n\n", expr.Type()))
+		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %s\n\n", promql.DocumentedType(expr.Type())))
 		if err != nil {
 			return ""
 		}
