@@ -191,6 +191,46 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
+
+	_, err = s.IncomingCalls(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	_, err = s.OutgoingCalls(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	_, err = s.PrepareCallHierarchy(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	_, err = s.SemanticTokens(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	_, err = s.SemanticTokensEdits(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	_, err = s.SemanticTokensRange(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	err = s.WorkDoneProgressCancel(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
+
+	err = s.WorkDoneProgressCreate(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	}
 }
 
 // dummyStream is a fake jsonrpc2.Stream for Test purposes
