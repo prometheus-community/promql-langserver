@@ -138,7 +138,11 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		stream = jSONLogStream(stream, os.Stderr)
 	}
 
-	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
+	s.Conn = jsonrpc2.NewConn(stream)
+	s.client = protocol.ClientDispatcher(s.Conn)
+
+	s.Conn.AddHandler(protocol.ServerHandler(s))
+
 	s.config = config
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
