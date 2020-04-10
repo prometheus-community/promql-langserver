@@ -5,7 +5,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.13-node
+      - image: circleci/golang:1.14-node
 
   golangci:
     docker:
@@ -19,10 +19,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v2-build-cache
+            - v3-build-cache
       - run: make build
       - save_cache:
-          key: v2-build-cache
+          key: v3-build-cache
           paths:
             - go/pkg
             - ~/.cache/go-build
@@ -35,7 +35,7 @@ jobs:
       # Reuse build cache if available
       - restore_cache:
           keys:
-            - v2-build-cache
+            - v3-build-cache
       - run: make test
 
   crossbuild:
@@ -45,8 +45,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v3-crossbuild-cache
-      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+            - v4-crossbuild-cache
+      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.131.1
       - run: git reset --hard
       - run: make crossbuild
       - run: mkdir artifacts
@@ -54,7 +54,7 @@ jobs:
       - store_artifacts:
           path: ./artifacts
       - save_cache:
-          key: v3-crossbuild-cache
+          key: v4-crossbuild-cache
           paths:
             - go/pkg
             - ~/.cache/go-build
@@ -66,8 +66,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v3-crossbuild-cache
-      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.126.0
+            - v4-crossbuild-cache
+      - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.131.1
       - run: git reset --hard
       - run: make release 
 
