@@ -72,3 +72,13 @@ func (headlessClient) ApplyEdit(_ context.Context, _ *protocol.ApplyWorkspaceEdi
 	// ignore
 	return nil, nil
 }
+
+func (headlessClient) Progress(_ context.Context, _ *protocol.ProgressParams) error {
+	// ignore
+	return nil
+}
+
+func (headlessClient) WorkDoneProgressCreate(_ context.Context, _ *protocol.WorkDoneProgressCreateParams) error {
+	// ignore
+	return nil
+}

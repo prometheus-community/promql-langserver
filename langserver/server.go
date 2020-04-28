@@ -47,7 +47,7 @@ type Server struct {
 // HeadlessServer is a modified Server interface that is used by the REST API.
 type HeadlessServer interface {
 	protocol.Server
-	GetDiagnostics(uri string) (*protocol.PublishDiagnosticsParams, error)
+	GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error)
 }
 
 // server is a language server instance that can connect to exactly one client
@@ -138,7 +138,11 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		stream = jSONLogStream(stream, os.Stderr)
 	}
 
-	ctx, s.Conn, s.client = protocol.NewServer(ctx, stream, s)
+	s.Conn = jsonrpc2.NewConn(stream)
+	s.client = protocol.ClientDispatcher(s.Conn)
+
+	s.Conn.AddHandler(protocol.ServerHandler(s))
+
 	s.config = config
 
 	s.lifetime, s.exit = context.WithCancel(ctx)

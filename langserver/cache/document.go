@@ -29,7 +29,7 @@ import (
 type document struct {
 	posData *token.File
 
-	uri        string
+	uri        protocol.DocumentURI
 	languageID string
 	version    float64
 	content    string
@@ -78,7 +78,7 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 
 	for _, change := range changes {
 		// Update column mapper along with the content.
-		converter := span.NewContentConverter(uri, content)
+		converter := span.NewContentConverter(string(uri), content)
 		m := &protocol.ColumnMapper{
 			URI:       span.URI(d.doc.uri),
 			Converter: converter,

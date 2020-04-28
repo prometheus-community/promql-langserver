@@ -120,7 +120,7 @@ func (h *langserverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func diagnosticsHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+func diagnosticsHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI) {
 	hasLimit, limit, err := getLimitFromURL(r.URL)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -142,7 +142,7 @@ func diagnosticsHandler(w http.ResponseWriter, r *http.Request, s langserver.Hea
 	returnJSON(w, items)
 }
 
-func hoverHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+func hoverHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI) {
 	position, err := getPositionFromURL(r.URL)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -165,7 +165,7 @@ func hoverHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessS
 	returnJSON(w, hover)
 }
 
-func completionHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+func completionHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI) {
 	position, err := getPositionFromURL(r.URL)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -200,7 +200,7 @@ func completionHandler(w http.ResponseWriter, r *http.Request, s langserver.Head
 	returnJSON(w, items)
 }
 
-func signatureHelpHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string) {
+func signatureHelpHandler(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI) {
 	position, err := getPositionFromURL(r.URL)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -286,16 +286,16 @@ func getLimitFromURL(url *url.URL) (bool, int64, error) {
 // It is used as the http handler for instrumentation functions
 // provided by prometheus client libraries.
 type subHandler struct {
-	caller func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)
+	caller func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI)
 	h      *langserverHandler
 }
 
-func newSubHandler(ls *langserverHandler, handler func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID string)) http.Handler {
+func newSubHandler(ls *langserverHandler, handler func(w http.ResponseWriter, r *http.Request, s langserver.HeadlessServer, requestID protocol.DocumentURI)) http.Handler {
 	return &subHandler{h: ls, caller: handler}
 }
 
 func (uh *subHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	requestID := fmt.Sprint(atomic.AddInt64(&uh.h.requestCounter, 1), ".promql")
+	requestID := protocol.DocumentURI(fmt.Sprint(atomic.AddInt64(&uh.h.requestCounter, 1), ".promql"))
 	exprs, ok := r.URL.Query()["expr"]
 
 	if !ok || len(exprs) == 0 {

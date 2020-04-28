@@ -1,5 +1,6 @@
-lsp/protocol
 jsonrpc2
+lsp/debug/tag
+lsp/protocol
 span
 telemetry
 xcontext
