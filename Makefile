@@ -10,7 +10,6 @@ BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES))
 all: build test golangci-lint
 
 generated: $(STATIK_FILES)
-	gofmt -w $(STATIK_FILES)
 
 
 .PHONY: install
@@ -18,7 +17,7 @@ install: $(STATIK_FILES)
 	$(GO) get ./cmd/...
 
 .PHONY: build
-build: $(STATIK_FILES)
+build:
 	$(GO) build ./cmd/...
 
 .PHONY: clean
@@ -26,8 +25,9 @@ clean:
 	rm -f $(STATIK_FILES)
 	rm -f $(BINARYS)
 
-%_statik/statik.go: $(wildcard $*/*.md)
+%_statik/statik.go: $(wildcard $*/*)
 	statik -src "$*" -dest $(dir $*) -p $(notdir $*_statik) -f -m
+	gofmt -w $@
 
 .PHONY: fmt
 fmt:

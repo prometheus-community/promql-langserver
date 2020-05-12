@@ -76,10 +76,10 @@ jobs:
     
     steps:
       - checkout
-      - run: go get github.com/rakyll/statik@v0.1.7
-      - run: make clean
-      - run: make generated
-      - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"
+    # - run: go get github.com/rakyll/statik@v0.1.7
+    # - run: make clean
+    # - run: make generated
+    # - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"
       - run: make fmt
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make fmt' and commit again ; exit 1 )"
       - run: make update_internal_packages

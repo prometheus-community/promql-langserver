@@ -17,3 +17,5 @@ absent(nonexistent{job="myjob",instance=~".*"})
 absent(sum(nonexistent{job="myjob"}))
 # => {}
 ```
+In the first two examples, `absent()` tries to be smart about deriving labels
+of the 1-element output vector from the input vector.
