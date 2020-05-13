@@ -205,15 +205,15 @@ func (s *server) getMetricDocs(metric string) (string, error) {
 		return "", err
 	}
 
-	if len(metadata.Help) <= 0 {
+	if len(metadata.Help) > 0 {
 		ret.WriteString(fmt.Sprintf("__Metric Help:__ %s\n\n", metadata.Help))
 	}
 
-	if len(metadata.Type) <= 0 {
+	if len(metadata.Type) > 0 {
 		ret.WriteString(fmt.Sprintf("__Metric Type:__  %s\n\n", metadata.Type))
 	}
 
-	if len(metadata.Unit) <= 0 {
+	if len(metadata.Unit) > 0 {
 		ret.WriteString(fmt.Sprintf("__Metric Unit:__  %s\n\n", metadata.Unit))
 	}
 
