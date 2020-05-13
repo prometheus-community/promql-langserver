@@ -20,22 +20,18 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	"github.com/prometheus/common/model"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/util/strutil"
-
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // Completion is required by the protocol.Server interface
 // nolint: wsl
-func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
+func (s *server) Completion(_ context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
@@ -68,28 +64,28 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		if err != nil {
 			return
 		}
-		if err = s.completeFunctionName(ctx, completions, location, name); err != nil {
+		if err = s.completeFunctionName(completions, location, name); err != nil {
 			return
 		}
 	case *promql.VectorSelector:
 		metricName := n.Name
 
 		if posRange := n.PositionRange(); int(posRange.End-posRange.Start) == len(n.Name) {
-			if err = s.completeFunctionName(ctx, completions, location, metricName); err != nil {
+			if err = s.completeFunctionName(completions, location, metricName); err != nil {
 				return
 			}
 		}
 		if location.Query.Pos+token.Pos(location.Node.PositionRange().Start)+token.Pos(len(metricName)) >= location.Pos {
-			if err = s.completeMetricName(ctx, completions, location, metricName); err != nil {
+			if err = s.completeMetricName(completions, location, metricName); err != nil {
 				return
 			}
 		} else {
-			if err = s.completeLabels(ctx, completions, location); err != nil {
+			if err = s.completeLabels(completions, location); err != nil {
 				return
 			}
 		}
 	case *promql.AggregateExpr, *promql.BinaryExpr:
-		if err = s.completeLabels(ctx, completions, location); err != nil {
+		if err = s.completeLabels(completions, location); err != nil {
 			return
 		}
 	}
@@ -98,37 +94,11 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
-	api := s.getPrometheus()
-
-	var allMetadata = map[string][]v1.Metadata{}
-	var err error // nolint: wsl
-
-	if api != nil {
-		isCompatible, _ := s.supportsMetadataAPI()
-
-		if !isCompatible {
-			var allNames model.LabelValues
-
-			allNames, _, err = api.LabelValues(ctx, "__name__")
-			for _, name := range allNames {
-				allMetadata[string(name)] = []v1.Metadata{{}}
-			}
-		} else {
-			allMetadata, err = api.Metadata(ctx, "", "")
-		}
-
-		if err != nil {
-			// nolint: errcheck
-			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-				Type:    protocol.Error,
-				Message: errors.Wrapf(err, "could not get metric data from Prometheus").Error(),
-			})
-
-			allMetadata = nil
-		}
+func (s *server) completeMetricName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+	allMetadata, err := s.prometheusClient.AllMetadata()
+	if err != nil {
+		return err
 	}
-
 	editRange, err := getEditRange(location, metricName)
 	if err != nil {
 		return err
@@ -175,7 +145,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	return nil
 }
 
-func (s *server) completeFunctionName(_ context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+func (s *server) completeFunctionName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	var err error
 
 	editRange, err := getEditRange(location, metricName)
@@ -238,7 +208,7 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location) error {
+func (s *server) completeLabels(completions *[]protocol.CompletionItem, location *cache.Location) error {
 	offset := location.Node.PositionRange().Start
 	l := promql.Lex(location.Query.Content[offset:])
 
@@ -309,81 +279,42 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 
 	if isLabel {
 		loc.Node = &item
-		return s.completeLabel(ctx, completions, &loc, vs)
+		return s.completeLabel(completions, &loc, vs)
 	}
 
 	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
 		loc.Node = &promql.Item{Pos: item.Pos + 1}
-		return s.completeLabel(ctx, completions, &loc, vs)
+		return s.completeLabel(completions, &loc, vs)
 	}
 
 	if isValue && lastLabel != "" {
 		loc.Node = &item
-		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
+		return s.completeLabelValue(completions, &loc, lastLabel)
 	}
 
 	if item.Typ == promql.EQL || item.Typ == promql.NEQ {
 		loc.Node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
-		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
+		return s.completeLabelValue(completions, &loc, lastLabel)
 	}
 
 	return nil
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
+func (s *server) completeLabel(completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
 	metricName := ""
 
 	if vs != nil {
 		metricName = vs.Name
 	}
-
-	api := s.getPrometheus()
-
-	var allNames []string
-
-	if api != nil {
-		var err error
-
-		if metricName == "" {
-			allNames, _, err = api.LabelNames(ctx)
-			if err != nil {
-				// nolint: errcheck
-				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-					Type:    protocol.Error,
-					Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
-				})
-
-				allNames = nil
-			}
-		} else {
-			duration, err := time.ParseDuration("100h")
-			if err != nil {
-				// nolint: errcheck
-				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-					Type:    protocol.Error,
-					Message: errors.Wrapf(err, "could not parse time").Error(),
-				})
-
-				allNames = nil
-			}
-			results, _, err := api.Series(ctx, []string{metricName}, time.Now().Add(-duration), time.Now())
-			if err != nil {
-				// nolint: errcheck
-				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-					Type:    protocol.Error,
-					Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
-				})
-
-				allNames = nil
-			}
-
-			for _, ls := range results {
-				for l := range ls {
-					allNames = append(allNames, string(l))
-				}
-			}
-		}
+	allNames, err := s.prometheusClient.LabelNames(metricName)
+	if err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+		})
+		return err
 	}
 
 	sort.Strings(allNames)
@@ -427,22 +358,15 @@ OUTER:
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
-	var allNames model.LabelValues
-
-	api := s.getPrometheus()
-
-	if api != nil {
-		var err error
-
-		allNames, _, err = api.LabelValues(ctx, labelName)
-		if err != nil {
-			// nolint: errcheck
-			s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-				Type:    protocol.Error,
-				Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
-			})
-		}
+func (s *server) completeLabelValue(completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
+	labelValues, err := s.prometheusClient.LabelValues(labelName)
+	if err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
+		})
+		return err
 	}
 
 	editRange, err := getEditRange(location, "")
@@ -467,7 +391,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 		quote = '"'
 	}
 
-	for _, name := range allNames {
+	for _, name := range labelValues {
 		if strings.HasPrefix(string(name), unquoted) {
 			var quoted string
 

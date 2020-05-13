@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
+	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -31,14 +32,14 @@ import (
 
 // CreateHandler creates an http.Handler for the PromQL langserver REST API.
 //
-// Expects the URL of a Prometheus server as the second argument.
-func CreateHandler(ctx context.Context, prometheusURL string) (http.Handler, error) {
-	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
+// Expects a prometheus Client as a second argument
+func CreateHandler(ctx context.Context, prometheusClient promClient.Client) (http.Handler, error) {
+	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient)
 	if err != nil {
 		return nil, err
 	}
 
-	ls := &langserverHandler{langserver: langserver}
+	ls := &langserverHandler{langserver: lgs}
 	ls.m = make(map[string]http.Handler)
 	ls.createHandlers(nil)
 
@@ -47,14 +48,14 @@ func CreateHandler(ctx context.Context, prometheusURL string) (http.Handler, err
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
 //
-// Expects the URL of a Prometheus server as the second argument and a Registry as third argument.
-func CreateInstHandler(ctx context.Context, prometheusURL string, r *prometheus.Registry) (http.Handler, error) {
-	langserver, err := langserver.CreateHeadlessServer(ctx, prometheusURL)
+// Expects a prometheus Client as a second argument and a Registry as third argument.
+func CreateInstHandler(ctx context.Context, prometheusClient promClient.Client, r *prometheus.Registry) (http.Handler, error) {
+	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient)
 	if err != nil {
 		return nil, err
 	}
 
-	ls := &langserverHandler{langserver: langserver}
+	ls := &langserverHandler{langserver: lgs}
 	ls.m = make(map[string]http.Handler)
 	ls.createHandlers(r)
 

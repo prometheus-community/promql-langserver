@@ -59,7 +59,7 @@ func (s *server) Initialize(ctx context.Context, params *protocol.ParamInitializ
 
 // Initialized receives a confirmation by the client that the connection has been initialized
 // required by the protocol.Server interface
-func (s *server) Initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
+func (s *server) Initialized(ctx context.Context, _ *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
 
