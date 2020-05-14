@@ -53,10 +53,7 @@ func (s *server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 		return nil, nil
 	}
 
-	markdown := ""
-
-	markdown = s.nodeToDocMarkdown(location)
-
+	markdown := s.nodeToDocMarkdown(location)
 	hoverRange, err := getEditRange(location, "")
 	if err != nil {
 		return nil, nil
