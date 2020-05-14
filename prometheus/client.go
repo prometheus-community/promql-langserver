@@ -13,6 +13,7 @@
 package prometheus
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
@@ -84,10 +85,10 @@ type buildInfoData struct {
 }
 
 type Client interface {
-	Metadata(metric string) (v1.Metadata, error)
-	AllMetadata() (map[string][]v1.Metadata, error)
-	LabelNames(metricName string) ([]string, error)
-	LabelValues(label string) ([]model.LabelValue, error)
+	Metadata(ctx context.Context, metric string) (v1.Metadata, error)
+	AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
+	LabelNames(ctx context.Context, metricName string) ([]string, error)
+	LabelValues(ctx context.Context, label string) ([]model.LabelValue, error)
 	ChangeDataSource(prometheusURL string) error
 	// GetURL is returning the url used to contact the prometheus server
 	// In case the instance is used directly in Prometheus, it should be the externalURL
@@ -115,28 +116,28 @@ func NewClient(prometheusURL string) (Client, error) {
 	return c, nil
 }
 
-func (c *httpClient) Metadata(metric string) (v1.Metadata, error) {
+func (c *httpClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.Metadata(metric)
+	return c.subClient.Metadata(ctx, metric)
 }
 
-func (c *httpClient) AllMetadata() (map[string][]v1.Metadata, error) {
+func (c *httpClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.AllMetadata()
+	return c.subClient.AllMetadata(ctx)
 }
 
-func (c *httpClient) LabelNames(name string) ([]string, error) {
+func (c *httpClient) LabelNames(ctx context.Context, name string) ([]string, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelNames(name)
+	return c.subClient.LabelNames(ctx, name)
 }
 
-func (c *httpClient) LabelValues(label string) ([]model.LabelValue, error) {
+func (c *httpClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelValues(label)
+	return c.subClient.LabelValues(ctx, label)
 }
 
 func (c *httpClient) GetURL() string {
@@ -180,12 +181,10 @@ func (c *httpClient) ChangeDataSource(prometheusURL string) error {
 	}
 	if isCompatible {
 		c.subClient = &compatibleHTTPClient{
-			requestTimeout:   c.requestTimeout,
 			prometheusClient: v1.NewAPI(prometheusHTTPClient),
 		}
 	} else {
 		c.subClient = &notCompatibleHTTPClient{
-			requestTimeout:   c.requestTimeout,
 			prometheusClient: v1.NewAPI(prometheusHTTPClient),
 		}
 	}

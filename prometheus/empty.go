@@ -13,6 +13,7 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -24,19 +25,19 @@ type emptyHTTPClient struct {
 	Client
 }
 
-func (c *emptyHTTPClient) Metadata(_ string) (v1.Metadata, error) {
+func (c *emptyHTTPClient) Metadata(_ context.Context, _ string) (v1.Metadata, error) {
 	return v1.Metadata{}, nil
 }
 
-func (c *emptyHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
+func (c *emptyHTTPClient) AllMetadata(_ context.Context) (map[string][]v1.Metadata, error) {
 	return make(map[string][]v1.Metadata), nil
 }
 
-func (c *emptyHTTPClient) LabelNames(_ string) ([]string, error) {
+func (c *emptyHTTPClient) LabelNames(_ context.Context, _ string) ([]string, error) {
 	return []string{}, nil
 }
 
-func (c *emptyHTTPClient) LabelValues(_ string) ([]model.LabelValue, error) {
+func (c *emptyHTTPClient) LabelValues(_ context.Context, _ string) ([]model.LabelValue, error) {
 	return []model.LabelValue{}, nil
 }
 

@@ -47,13 +47,13 @@ func initializeFunctionDocumentation() http.FileSystem {
 
 // Hover shows documentation on hover
 // required by the protocol.Server interface
-func (s *server) Hover(_ context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
+func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil || location.Node == nil {
 		return nil, nil
 	}
 
-	markdown := s.nodeToDocMarkdown(location)
+	markdown := s.nodeToDocMarkdown(ctx, location)
 	hoverRange, err := getEditRange(location, "")
 	if err != nil {
 		return nil, nil
@@ -69,7 +69,7 @@ func (s *server) Hover(_ context.Context, params *protocol.HoverParams) (*protoc
 }
 
 // nolint:funlen
-func (s *server) nodeToDocMarkdown(location *cache.Location) string { //nolint: golint
+func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: golint
 	var ret bytes.Buffer
 
 	switch n := location.Node.(type) {
@@ -115,7 +115,7 @@ func (s *server) nodeToDocMarkdown(location *cache.Location) string { //nolint: 
 			}
 
 			if doc == "" {
-				doc, err = s.getMetricDocs(metric)
+				doc, err = s.getMetricDocs(ctx, metric)
 				if err != nil {
 					// nolint: errcheck
 					s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -193,11 +193,11 @@ func funcDocStrings(name string) string {
 }
 
 // nolint:funlen
-func (s *server) getMetricDocs(metric string) (string, error) {
+func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	var ret strings.Builder
 	ret.WriteString(fmt.Sprintf("### %s\n\n", metric))
 
-	metadata, err := s.prometheusClient.Metadata(metric)
+	metadata, err := s.prometheusClient.Metadata(ctx, metric)
 	if err != nil {
 		return "", err
 	}

@@ -30,8 +30,7 @@ import (
 )
 
 // Completion is required by the protocol.Server interface
-// nolint: wsl
-func (s *server) Completion(_ context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
+func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
@@ -76,16 +75,16 @@ func (s *server) Completion(_ context.Context, params *protocol.CompletionParams
 			}
 		}
 		if location.Query.Pos+token.Pos(location.Node.PositionRange().Start)+token.Pos(len(metricName)) >= location.Pos {
-			if err = s.completeMetricName(completions, location, metricName); err != nil {
+			if err = s.completeMetricName(ctx, completions, location, metricName); err != nil {
 				return
 			}
 		} else {
-			if err = s.completeLabels(completions, location); err != nil {
+			if err = s.completeLabels(ctx, completions, location); err != nil {
 				return
 			}
 		}
 	case *promql.AggregateExpr, *promql.BinaryExpr:
-		if err = s.completeLabels(completions, location); err != nil {
+		if err = s.completeLabels(ctx, completions, location); err != nil {
 			return
 		}
 	}
@@ -94,8 +93,8 @@ func (s *server) Completion(_ context.Context, params *protocol.CompletionParams
 }
 
 // nolint:funlen
-func (s *server) completeMetricName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
-	allMetadata, err := s.prometheusClient.AllMetadata()
+func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+	allMetadata, err := s.prometheusClient.AllMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -146,8 +145,6 @@ func (s *server) completeMetricName(completions *[]protocol.CompletionItem, loca
 }
 
 func (s *server) completeFunctionName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
-	var err error
-
 	editRange, err := getEditRange(location, metricName)
 	if err != nil {
 		return err
@@ -208,7 +205,7 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(completions *[]protocol.CompletionItem, location *cache.Location) error {
+func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location) error {
 	offset := location.Node.PositionRange().Start
 	l := promql.Lex(location.Query.Content[offset:])
 
@@ -279,35 +276,35 @@ func (s *server) completeLabels(completions *[]protocol.CompletionItem, location
 
 	if isLabel {
 		loc.Node = &item
-		return s.completeLabel(completions, &loc, vs)
+		return s.completeLabel(ctx, completions, &loc, vs)
 	}
 
 	if item.Typ == promql.COMMA || item.Typ == promql.LEFT_PAREN || item.Typ == promql.LEFT_BRACE {
 		loc.Node = &promql.Item{Pos: item.Pos + 1}
-		return s.completeLabel(completions, &loc, vs)
+		return s.completeLabel(ctx, completions, &loc, vs)
 	}
 
 	if isValue && lastLabel != "" {
 		loc.Node = &item
-		return s.completeLabelValue(completions, &loc, lastLabel)
+		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
 	if item.Typ == promql.EQL || item.Typ == promql.NEQ {
 		loc.Node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
-		return s.completeLabelValue(completions, &loc, lastLabel)
+		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
 	return nil
 }
 
 // nolint:funlen, unparam
-func (s *server) completeLabel(completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
+func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
 	metricName := ""
 
 	if vs != nil {
 		metricName = vs.Name
 	}
-	allNames, err := s.prometheusClient.LabelNames(metricName)
+	allNames, err := s.prometheusClient.LabelNames(ctx, metricName)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -358,8 +355,8 @@ OUTER:
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
-	labelValues, err := s.prometheusClient.LabelValues(labelName)
+func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
+	labelValues, err := s.prometheusClient.LabelValues(ctx, labelName)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

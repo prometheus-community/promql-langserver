@@ -24,14 +24,10 @@ import (
 // notCompatibleHTTPClient must be used to contact a distant prometheus with a version < v2.15
 type notCompatibleHTTPClient struct {
 	Client
-	requestTimeout   time.Duration
 	prometheusClient v1.API
 }
 
-func (c *notCompatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
+func (c *notCompatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	metadata, err := c.prometheusClient.TargetsMetadata(ctx, "", metric, "1")
 	if err != nil {
 		return v1.Metadata{}, err
@@ -46,10 +42,7 @@ func (c *notCompatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
 	}, nil
 }
 
-func (c *notCompatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
+func (c *notCompatibleHTTPClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	metricNames, _, err := c.prometheusClient.LabelValues(ctx, "__name__")
 	if err != nil {
 		return nil, err
@@ -61,9 +54,7 @@ func (c *notCompatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error
 	return allMetadata, nil
 }
 
-func (c *notCompatibleHTTPClient) LabelNames(name string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
+func (c *notCompatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
 	if len(name) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx)
 		return names, err
@@ -81,9 +72,7 @@ func (c *notCompatibleHTTPClient) LabelNames(name string) ([]string, error) {
 	return result, nil
 }
 
-func (c *notCompatibleHTTPClient) LabelValues(label string) ([]model.LabelValue, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
+func (c *notCompatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
 	values, _, err := c.prometheusClient.LabelValues(ctx, label)
 	return values, err
 }

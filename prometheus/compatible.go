@@ -24,14 +24,10 @@ import (
 // compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15
 type compatibleHTTPClient struct {
 	Client
-	requestTimeout   time.Duration
 	prometheusClient v1.API
 }
 
-func (c *compatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
+func (c *compatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	metadata, err := c.prometheusClient.Metadata(ctx, metric, "1")
 	if err != nil {
 		return v1.Metadata{}, err
@@ -46,15 +42,11 @@ func (c *compatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
 	}, nil
 }
 
-func (c *compatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
+func (c *compatibleHTTPClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(name string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
 	if len(name) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx)
 		return names, err
@@ -72,9 +64,7 @@ func (c *compatibleHTTPClient) LabelNames(name string) ([]string, error) {
 	return result, nil
 }
 
-func (c *compatibleHTTPClient) LabelValues(label string) ([]model.LabelValue, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
+func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
 	values, _, err := c.prometheusClient.LabelValues(ctx, label)
 	return values, err
 }
