@@ -29,7 +29,9 @@ import (
 )
 
 var (
-	requiredVersion = semver.MustParse("2.15.0")
+	// defining this global variable will avoid to initialized it each time
+	// and it will crash immediatly the server during the initialization in case the version is not well defined
+	requiredVersion = semver.MustParse("2.15.0") // nolint: gochecknoglobals
 )
 
 func buildGenericRoundTripper(connectionTimeout time.Duration) *http.Transport {
@@ -49,7 +51,11 @@ func buildStatusRequest(prometheusURL string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// define the path of the buildInfo
+	// using this way will remove any issue that could be caused by a wrong URL set by the user
 	finalURL.Path = "/api/v1/status/buildinfo"
+
 	httpRequest, err := http.NewRequest(http.MethodGet, finalURL.String(), nil)
 	if err != nil {
 		return nil, err
