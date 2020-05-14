@@ -13,10 +13,8 @@
 package prometheus
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -142,23 +140,34 @@ func (c *httpClient) GetURL() string {
 }
 
 func (c *httpClient) ChangeDataSource(prometheusURL string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.url = prometheusURL
+	if len(prometheusURL) == 0 {
+		// having an empty URL is a valid use case. So we should just initialized a "fake" http client
+		c.subClient = &emptyHTTPClient{}
+		return nil
+	}
 	prometheusHTTPClient, err := api.NewClient(api.Config{
 		RoundTripper: buildGenericRoundTripper(c.requestTimeout * time.Second),
 		Address:      prometheusURL,
 	})
 	if err != nil {
+		// always initialized the sub client to avoid any nil pointer usage
+		if c.subClient == nil {
+			c.subClient = &emptyHTTPClient{}
+		}
 		return err
 	}
 
 	isCompatible, err := c.isCompatible(prometheusURL)
 	if err != nil {
+		// always initialized the sub client to avoid any nil pointer usage
+		if c.subClient == nil {
+			c.subClient = &emptyHTTPClient{}
+		}
 		return err
 	}
-
-	// only lock when we are sure we are going to change the instance of the sub client
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	c.url = prometheusURL
 	if isCompatible {
 		c.subClient = &compatibleHTTPClient{
 			requestTimeout:   c.requestTimeout,
@@ -208,145 +217,4 @@ func (c *httpClient) isCompatible(prometheusURL string) (bool, error) {
 		return currentVersion.GTE(requiredVersion), nil
 	}
 	return false, nil
-}
-
-// compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15
-type compatibleHTTPClient struct {
-	Client
-	requestTimeout   time.Duration
-	prometheusClient v1.API
-}
-
-func (c *compatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
-	metadata, err := c.prometheusClient.Metadata(ctx, metric, "1")
-	if err != nil {
-		return v1.Metadata{}, err
-	}
-	if len(metadata) <= 0 {
-		return v1.Metadata{}, nil
-	}
-	return v1.Metadata{
-		Type: metadata[metric][0].Type,
-		Help: metadata[metric][0].Help,
-		Unit: metadata[metric][0].Unit,
-	}, nil
-}
-
-func (c *compatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-	return c.prometheusClient.Metadata(ctx, "", "")
-}
-
-func (c *compatibleHTTPClient) LabelNames(name string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-	if len(name) <= 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx)
-		return names, err
-	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-100*time.Hour), time.Now())
-	if err != nil {
-		return nil, err
-	}
-	var result []string
-	for _, ln := range labelNames {
-		for l := range ln {
-			result = append(result, string(l))
-		}
-	}
-	return result, nil
-}
-
-func (c *compatibleHTTPClient) LabelValues(label string) ([]model.LabelValue, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-	values, _, err := c.prometheusClient.LabelValues(ctx, label)
-	return values, err
-}
-
-func (c *compatibleHTTPClient) ChangeDataSource(_ string) error {
-	return fmt.Errorf("method not supported")
-}
-
-func (c *compatibleHTTPClient) GetURL() string {
-	return ""
-}
-
-// notCompatibleHTTPClient must be used to contact a distant prometheus with a version < v2.15
-type notCompatibleHTTPClient struct {
-	Client
-	requestTimeout   time.Duration
-	prometheusClient v1.API
-}
-
-func (c *notCompatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
-	metadata, err := c.prometheusClient.TargetsMetadata(ctx, "", metric, "1")
-	if err != nil {
-		return v1.Metadata{}, err
-	}
-	if len(metadata) <= 0 {
-		return v1.Metadata{}, nil
-	}
-	return v1.Metadata{
-		Type: metadata[0].Type,
-		Help: metadata[0].Help,
-		Unit: metadata[0].Unit,
-	}, nil
-}
-
-func (c *notCompatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-
-	metricNames, _, err := c.prometheusClient.LabelValues(ctx, "__name__")
-	if err != nil {
-		return nil, err
-	}
-	allMetadata := make(map[string][]v1.Metadata)
-	for _, name := range metricNames {
-		allMetadata[string(name)] = []v1.Metadata{{}}
-	}
-	return allMetadata, nil
-}
-
-func (c *notCompatibleHTTPClient) LabelNames(name string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-	if len(name) <= 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx)
-		return names, err
-	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-100*time.Hour), time.Now())
-	if err != nil {
-		return nil, err
-	}
-	var result []string
-	for _, ln := range labelNames {
-		for l := range ln {
-			result = append(result, string(l))
-		}
-	}
-	return result, nil
-}
-
-func (c *notCompatibleHTTPClient) LabelValues(label string) ([]model.LabelValue, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
-	defer cancel()
-	values, _, err := c.prometheusClient.LabelValues(ctx, label)
-	return values, err
-}
-
-func (c *notCompatibleHTTPClient) ChangeDataSource(_ string) error {
-	return fmt.Errorf("method not supported")
-}
-
-func (c *notCompatibleHTTPClient) GetURL() string {
-	return ""
 }
