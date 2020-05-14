@@ -36,7 +36,7 @@ func (c *compatibleHTTPClient) Metadata(metric string) (v1.Metadata, error) {
 	if err != nil {
 		return v1.Metadata{}, err
 	}
-	if len(metadata) <= 0 {
+	if len(metadata) == 0 {
 		return v1.Metadata{}, nil
 	}
 	return v1.Metadata{
@@ -55,7 +55,7 @@ func (c *compatibleHTTPClient) AllMetadata() (map[string][]v1.Metadata, error) {
 func (c *compatibleHTTPClient) LabelNames(name string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), c.requestTimeout*time.Second)
 	defer cancel()
-	if len(name) <= 0 {
+	if len(name) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx)
 		return names, err
 	}
