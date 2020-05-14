@@ -83,7 +83,7 @@ func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Clien
 	s := &server{
 		client:           headlessClient{},
 		headless:         true,
-		config:           &Config{},
+		config:           &Config{PrometheusURL: prometheusClient.GetURL()},
 		prometheusClient: prometheusClient,
 	}
 
