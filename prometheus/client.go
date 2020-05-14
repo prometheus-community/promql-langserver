@@ -107,7 +107,7 @@ type httpClient struct {
 
 func NewClient(prometheusURL string) (Client, error) {
 	c := &httpClient{
-		requestTimeout: 30 * time.Second,
+		requestTimeout: 30,
 	}
 	if err := c.ChangeDataSource(prometheusURL); err != nil {
 		return nil, err
@@ -148,6 +148,10 @@ func (c *httpClient) GetURL() string {
 func (c *httpClient) ChangeDataSource(prometheusURL string) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	// in case the url given is the same as before, we don't need to initialize again the client
+	if c.url == prometheusURL {
+		return nil
+	}
 	c.url = prometheusURL
 	if len(prometheusURL) == 0 {
 		// having an empty URL is a valid use case. So we should just initialized a "fake" http client
