@@ -120,22 +120,14 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
+	// it is safe to not check the error at this point,
+	// because the error will always be nil when an url is empty
+	s.prometheusClient, _ = promClient.NewClient("") // nolint: errcheck
+
 	return ctx, Server{s}
 }
 
 func (s *server) connectPrometheus(url string) error {
-	if s.prometheusClient != nil {
-		var err error
-		s.prometheusClient, err = promClient.NewClient(url)
-		if err != nil {
-			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-				Type:    protocol.Error,
-				Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
-			})
-			return err
-		}
-		return nil
-	}
 	if err := s.prometheusClient.ChangeDataSource(url); err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
