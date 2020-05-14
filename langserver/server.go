@@ -20,23 +20,16 @@ package langserver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
-	"strings"
 	"sync"
 
-	"github.com/blang/semver"
-	"github.com/pkg/errors"
+	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	"github.com/prometheus/client_golang/api"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // Server wraps language server instance that can connect to exactly one client.
@@ -62,10 +55,7 @@ type server struct {
 
 	config *Config
 
-	prometheus        api.Client
-	PrometheusURL     string
-	PrometheusVersion string
-	prometheusMu      sync.Mutex
+	prometheusClient promClient.Client
 
 	lifetime context.Context
 	exit     func()
@@ -73,24 +63,6 @@ type server struct {
 }
 
 type serverState int
-
-type testResponse struct {
-	Status    string        `json:"status"`
-	Data      buildInfoData `json:"data,omitempty"`
-	ErrorType string        `json:"errorType,omitempty"`
-	Error     string        `json:"error,omitempty"`
-	Warnings  []string      `json:"warnings,omitempty"`
-}
-
-// buildInfoData contains build information about Prometheus.
-type buildInfoData struct {
-	Version   string `json:"version"`
-	Revision  string `json:"revision"`
-	Branch    string `json:"branch"`
-	BuildUser string `json:"buildUser"`
-	BuildDate string `json:"buildDate"`
-	GoVersion string `json:"goVersion"`
-}
 
 const (
 	serverCreated = serverState(iota)
@@ -107,11 +79,12 @@ func (s Server) Run() error {
 // CreateHeadlessServer creates a locked down server instance for the REST API.
 //
 // "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
-func CreateHeadlessServer(ctx context.Context, prometheusURL string) (HeadlessServer, error) {
+func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Client) (HeadlessServer, error) {
 	s := &server{
-		client:   headlessClient{},
-		headless: true,
-		config:   &Config{PrometheusURL: prometheusURL},
+		client:           headlessClient{},
+		headless:         true,
+		config:           &Config{PrometheusURL: prometheusClient.GetURL()},
+		prometheusClient: prometheusClient,
 	}
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
@@ -147,136 +120,30 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
+	prometheusClient, err := promClient.NewClient("") // nolint: errcheck
+	if err != nil {
+		// nolint: errcheck
+		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprintf("Failed to inialized the prometheus client\n\n%s ", err.Error()),
+		})
+		panic(err)
+	}
+	s.prometheusClient = prometheusClient
+
 	return ctx, Server{s}
 }
 
-// nolint:funlen
 func (s *server) connectPrometheus(url string) error {
-	s.prometheusMu.Lock()
-	defer s.prometheusMu.Unlock()
-
-	s.PrometheusURL = ""
-	s.prometheus = nil
-
-	if strings.TrimSpace(url) == "" {
-		return nil
-	}
-
-	var err error
-
-	s.prometheus, err = api.NewClient(api.Config{Address: url})
-	err = errors.Wrapf(err, "Failed to connect to prometheus: %s\n", url)
-
-	if err == nil {
+	if err := s.prometheusClient.ChangeDataSource(url); err != nil {
 		// nolint: errcheck
-		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Info,
-			Message: fmt.Sprint("Prometheus: ", url),
+		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
 		})
+		return err
 	}
-
-	if !s.headless {
-		testurl := fmt.Sprint(url, "/api/v1/status/buildinfo")
-
-		resp, err := http.Get(testurl) // nolint: gosec
-
-		if err != nil {
-			// nolint: errcheck
-			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-				Type:    protocol.Error,
-				Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
-			})
-
-			s.prometheus = nil
-
-			return err
-		}
-
-		// For prometheus version less than 2.14 `api/v1/status/buildinfo` was not supported this can
-		// break many function which solely depends on version comparing like `hover`, etc.
-		if resp.StatusCode == http.StatusNotFound {
-			err = errors.Errorf("Got %d when tried to access %s%s", resp.StatusCode, url, "/api/v1/status/buildinfo")
-
-			// nolint: errcheck
-			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-				Type:    protocol.Error,
-				Message: fmt.Sprintf("Failed to access build info via %s:\n\n%s ", url, err.Error()),
-			})
-
-			// Setting version 2.13.0 for version less than 2.14 by default.
-			s.PrometheusVersion = "2.13.0"
-
-			return err
-		}
-
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		jsonResponse := testResponse{}
-
-		err = json.Unmarshal(bodyBytes, &jsonResponse)
-
-		if err == nil {
-			s.PrometheusVersion = jsonResponse.Data.Version
-
-			_, err = semver.Parse(s.PrometheusVersion)
-		}
-
-		if err != nil {
-			// nolint: errcheck
-			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-				Type:    protocol.Error,
-				Message: fmt.Sprintf("Failed to abstract version from Prometheus %s:\n\n%s ", url, err.Error()),
-			})
-
-			s.PrometheusVersion = ""
-
-			return err
-		}
-
-		resp.Body.Close()
-	}
-
-	if err == nil {
-		s.PrometheusURL = url
-	}
-
-	return err
-}
-
-func (s *server) getPrometheus() v1.API {
-	s.prometheusMu.Lock()
-	defer s.prometheusMu.Unlock()
-
-	if s.prometheus != nil {
-		return v1.NewAPI(s.prometheus)
-	}
-
 	return nil
-}
-
-func (s *server) getPrometheusURL() string {
-	s.prometheusMu.Lock()
-	defer s.prometheusMu.Unlock()
-
-	return s.PrometheusURL
-}
-
-// supportsMetadataAPI checks if language server has access to new metadata APIs.
-func (s *server) supportsMetadataAPI() (bool, error) {
-	var isCompatible = false // nolint:ineffassign
-
-	requiredVersion := semver.MustParse("2.15.0")
-	presentVersion, err := semver.New(s.PrometheusVersion)
-
-	switch {
-	case err != nil && !s.headless:
-		return isCompatible, err
-	case s.headless:
-		isCompatible = true
-	default:
-		isCompatible = presentVersion.GTE(requiredVersion)
-	}
-
-	return isCompatible, err
 }
 
 // RunTCPServer generates a server listening on the provided TCP Address, creating a new language Server

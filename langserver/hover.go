@@ -31,8 +31,6 @@ import (
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	// Do not remove! Side effects of init() needed
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
-
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 //nolint: gochecknoglobals
@@ -55,10 +53,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 		return nil, nil
 	}
 
-	markdown := ""
-
-	markdown = s.nodeToDocMarkdown(ctx, location)
-
+	markdown := s.nodeToDocMarkdown(ctx, location)
 	hoverRange, err := getEditRange(location, "")
 	if err != nil {
 		return nil, nil
@@ -144,7 +139,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 		}
 	}
 
-	promURL := s.getPrometheusURL()
+	promURL := s.prometheusClient.GetURL()
 
 	if promURL != "" && !s.headless {
 		loc := *location
@@ -200,77 +195,23 @@ func funcDocStrings(name string) string {
 // nolint:funlen
 func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	var ret strings.Builder
+	ret.WriteString(fmt.Sprintf("### %s\n\n", metric))
 
-	fmt.Fprintf(&ret, "### %s\n\n", metric)
-
-	if s.prometheus == nil {
-		return ret.String(), nil
-	}
-
-	api := v1.NewAPI(s.prometheus)
-
-	isCompatible, err := s.supportsMetadataAPI()
-
+	metadata, err := s.prometheusClient.Metadata(ctx, metric)
 	if err != nil {
-		return ret.String(), err
+		return "", err
 	}
 
-	var (
-		help       = ""
-		metricType = ""
-		unit       = ""
-	)
-
-	if !isCompatible {
-		metadata, err := api.TargetsMetadata(ctx, "", metric, "1")
-		if err != nil {
-			return ret.String(), err
-		} else if len(metadata) == 0 {
-			return ret.String(), nil
-		}
-
-		if metadata[0].Help != "" {
-			help = metadata[0].Help
-		}
-
-		if metadata[0].Type != "" {
-			metricType = string(metadata[0].Type)
-		}
-
-		if metadata[0].Unit != "" {
-			unit = metadata[0].Unit
-		}
-	} else {
-		metadata, err := api.Metadata(ctx, metric, "1")
-		if err != nil {
-			return ret.String(), err
-		} else if len(metadata) == 0 {
-			return ret.String(), nil
-		}
-
-		if metadata[metric][0].Help != "" {
-			help = metadata[metric][0].Help
-		}
-
-		if metadata[metric][0].Type != "" {
-			metricType = string(metadata[metric][0].Type)
-		}
-
-		if metadata[metric][0].Unit != "" {
-			unit = metadata[metric][0].Unit
-		}
+	if len(metadata.Help) > 0 {
+		ret.WriteString(fmt.Sprintf("__Metric Help:__ %s\n\n", metadata.Help))
 	}
 
-	if help != "" {
-		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", help)
+	if len(metadata.Type) > 0 {
+		ret.WriteString(fmt.Sprintf("__Metric Type:__  %s\n\n", metadata.Type))
 	}
 
-	if metricType != "" {
-		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metricType)
-	}
-
-	if unit != "" {
-		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", unit)
+	if len(metadata.Unit) > 0 {
+		ret.WriteString(fmt.Sprintf("__Metric Unit:__  %s\n\n", metadata.Unit))
 	}
 
 	return ret.String(), nil

@@ -13,3 +13,6 @@
 /promql-langserver
 /coverage.out
 dist
+
+# IDEA
+.idea
