@@ -84,11 +84,19 @@ type buildInfoData struct {
 	GoVersion string `json:"goVersion"`
 }
 
+// Client is a light prometheus client used by LSP to get data from a a prometheus Server
 type Client interface {
+	// Metadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
 	Metadata(ctx context.Context, metric string) (v1.Metadata, error)
+	// AllMetadata returns metadata about metrics currently scraped for all existing metrics.
 	AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
+	// LabelNames returns all the unique label names present in the block in sorted order.
+	// If a metric is provided, then it will return all unique label names linked to the metric during a predefined period of time
 	LabelNames(ctx context.Context, metricName string) ([]string, error)
+	// LabelValues performs a query for the values of the given label.
 	LabelValues(ctx context.Context, label string) ([]model.LabelValue, error)
+	// ChangeDataSource is used if the prometheusURL is changing.
+	// The client should re init its own parameter accordingly if necessary
 	ChangeDataSource(prometheusURL string) error
 	// GetURL is returning the url used to contact the prometheus server
 	// In case the instance is used directly in Prometheus, it should be the externalURL
@@ -150,7 +158,7 @@ func (c *httpClient) ChangeDataSource(prometheusURL string) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	// in case the url given is the same as before, we don't need to initialize again the client
-	if c.url == prometheusURL {
+	if c.url == prometheusURL && c.subClient != nil {
 		return nil
 	}
 	c.url = prometheusURL
