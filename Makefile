@@ -42,7 +42,7 @@ lint: golangci-lint golint
 
 .PHONY: golangci-lint
 golangci-lint:
-	golangci-lint run --enable-all --disable lll ./langserver/... ./rest ./prometheus
+	golangci-lint run --enable-all --disable lll --disable wsl ./langserver/... ./rest ./prometheus
 
 .PHONY: golint
 golint:
