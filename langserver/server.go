@@ -64,24 +64,6 @@ type server struct {
 
 type serverState int
 
-type testResponse struct {
-	Status    string        `json:"status"`
-	Data      buildInfoData `json:"data,omitempty"`
-	ErrorType string        `json:"errorType,omitempty"`
-	Error     string        `json:"error,omitempty"`
-	Warnings  []string      `json:"warnings,omitempty"`
-}
-
-// buildInfoData contains build information about Prometheus.
-type buildInfoData struct {
-	Version   string `json:"version"`
-	Revision  string `json:"revision"`
-	Branch    string `json:"branch"`
-	BuildUser string `json:"buildUser"`
-	BuildDate string `json:"buildDate"`
-	GoVersion string `json:"goVersion"`
-}
-
 const (
 	serverCreated = serverState(iota)
 	serverInitializing
