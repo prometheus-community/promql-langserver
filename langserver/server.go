@@ -120,9 +120,16 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
-	// it is safe to not check the error at this point,
-	// because the error will always be nil when an url is empty
-	s.prometheusClient, _ = promClient.NewClient("") // nolint: errcheck
+	prometheusClient, err := promClient.NewClient("") // nolint: errcheck
+	if err != nil {
+		// nolint: errcheck
+		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprintf("Failed to inialized the prometheus client\n\n%s ", err.Error()),
+		})
+		panic(err)
+	}
+	s.prometheusClient = prometheusClient
 
 	return ctx, Server{s}
 }
