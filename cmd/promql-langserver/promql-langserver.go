@@ -29,11 +29,11 @@ import (
 )
 
 func main() {
-	configFilePath := flag.String("config-file", "promql-lsp.yaml", "Configuration file for the language server")
+	configFilePath := flag.String("config-file", "", "Configuration file for the language server. If unset, the configuration will be retrieved from environment")
 
 	flag.Parse()
 
-	config, err := langserver.ParseConfigFile(*configFilePath)
+	config, err := langserver.ReadConfig(*configFilePath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
