@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/kelseyhightower/envconfig"
@@ -82,8 +83,10 @@ func (c *Config) Validate() error {
 // ReadConfig gets the GlobalConfig from a configFile (that is a path to the file)
 func ReadConfig(configFile string) (*Config, error) {
 	if len(configFile) == 0 {
+		fmt.Fprintln(os.Stderr, "Config file empty, configuration is reading from System environment")
 		return readConfigFromENV()
 	}
+	fmt.Fprintln(os.Stderr, "Configuration is reading from configuration file")
 	return readConfigFromYAML(configFile)
 }
 
