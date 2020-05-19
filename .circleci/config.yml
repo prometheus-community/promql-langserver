@@ -7,38 +7,15 @@ executors:
     docker:
       - image: circleci/golang:1.14-node
 
-  golangci:
-    docker:
-      - image: golangci/golangci-lint:v1.21.0
-
 jobs:
-  build:
-    executor: golang
-
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v3-build-cache
-      - run: make build
-      - save_cache:
-          key: v3-build-cache
-          paths:
-            - go/pkg
-            - ~/.cache/go-build
-
   test:
     executor: golang
 
     steps:
       - checkout
-      # Reuse build cache if available
-      - restore_cache:
-          keys:
-            - v3-build-cache
       - run: make test
 
-  crossbuild:
+  build:
     executor: golang
 
     steps:
@@ -87,13 +64,6 @@ jobs:
       - run: go mod tidy
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'go mod tidy' and commit again ; exit 1 )"
 
-  golangci-lint:
-    executor: golangci
-       
-    steps:
-     - checkout
-     - run: make golangci-lint
-
 workflows:
     version: 2
     default:
@@ -101,8 +71,6 @@ workflows:
         - build
         - test
         - check_repo_consistency
-        - crossbuild
-        - golangci-lint
       
     release:
       jobs:
@@ -124,18 +92,6 @@ workflows:
                 ignore: /.*/
               tags:
                 only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-        - crossbuild:
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-        - golangci-lint:
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
         - hold:
             type:
               approval
@@ -143,8 +99,6 @@ workflows:
               - build
               - test
               - check_repo_consistency
-              - crossbuild
-              - golangci-lint
             filters:
               branches:
                 ignore: /.*/
