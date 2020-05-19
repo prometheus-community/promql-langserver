@@ -29,7 +29,7 @@ import (
 	"github.com/prometheus/prometheus/util/strutil"
 )
 
-// Completion is required by the protocol.Server interface
+// Completion is required by the protocol.Server interface.
 func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
@@ -92,7 +92,6 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	return //nolint: nakedret
 }
 
-// nolint:funlen
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	allMetadata, err := s.prometheusClient.AllMetadata(ctx)
 	if err != nil {
@@ -297,7 +296,6 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 	return nil
 }
 
-// nolint:funlen, unparam
 func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
 	metricName := ""
 
@@ -446,5 +444,5 @@ func getEditRange(location *cache.Location, oldname string) (editRange protocol.
 		editRange.End.Character += float64(len(oldname))
 	}
 
-	return //nolint: nakedret
+	return
 }

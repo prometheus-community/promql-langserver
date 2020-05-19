@@ -55,6 +55,8 @@ func main() {
 		}
 	} else {
 		_, s := langserver.StdioServer(context.Background(), config)
-		s.Run()
+		if err := s.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }

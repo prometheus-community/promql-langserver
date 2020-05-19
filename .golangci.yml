@@ -45,12 +45,12 @@ linters:
     - gocognit
     - godot
     - godox
-    - goerr113
     - maligned
     - prealloc
-    - testpackage
   # don't enable:
+  # - testpackage
   # - wsl
   # - lll
   # - gomnd
   # - nestif
+  # - goerr113

@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// emptyHTTPClient must be used when no prometheus URL has been defined
+// emptyHTTPClient must be used when no prometheus URL has been defined.
 type emptyHTTPClient struct {
 	Client
 }

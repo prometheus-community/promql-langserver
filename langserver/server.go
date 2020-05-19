@@ -43,7 +43,7 @@ type HeadlessServer interface {
 	GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error)
 }
 
-// server is a language server instance that can connect to exactly one client
+// server is a language server instance that can connect to exactly one client.
 type server struct {
 	Conn   *jsonrpc2.Conn
 	client protocol.Client
@@ -120,7 +120,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
-	prometheusClient, err := promClient.NewClient("") // nolint: errcheck
+	prometheusClient, err := promClient.NewClient("")
 	if err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{

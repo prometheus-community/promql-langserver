@@ -43,8 +43,8 @@ func (wg *waitGroup) initialize() {
 	wg.cond = sync.NewCond(&wg.mu)
 }
 
-// Add changes the waitGroup counter by the pecified amount.
-// It panics if the counter becomes < 0
+// Add changes the waitGroup counter by the specified amount.
+// It panics if the counter becomes < 0.
 func (wg *waitGroup) Add(delta int32) {
 	new := atomic.AddInt32(&wg.workers, delta)
 
@@ -60,13 +60,13 @@ func (wg *waitGroup) Add(delta int32) {
 	}
 }
 
-// Done decrements the waitGroup counter
+// Done decrements the waitGroup counter.
 func (wg *waitGroup) Done() {
 	wg.Add(-1)
 }
 
 // Wait blocks until the WaitGroup is zero
-// Beware that this might already have changed when the Wait returns
+// Beware that this might already have changed when the Wait returns.
 func (wg *waitGroup) Wait() {
 	wg.mu.Lock()
 	defer wg.mu.Unlock()

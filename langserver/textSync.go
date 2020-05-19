@@ -26,7 +26,7 @@ import (
 )
 
 // DidOpen receives a call from the Client, telling that a files has been opened
-// required by the protocol.Server interface
+// required by the protocol.Server interface.
 func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	_, err := s.cache.AddDocument(s.lifetime, &params.TextDocument)
 	if err != nil {
@@ -41,14 +41,14 @@ func (s *server) DidOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 }
 
 // DidClose receives a call from the Client, telling that a files has been closed
-// required by the protocol.Server interface
+// required by the protocol.Server interface.
 func (s *server) DidClose(_ context.Context, params *protocol.DidCloseTextDocumentParams) error {
 	s.clearDiagnostics(s.lifetime, params.TextDocument.URI, 0)
 	return s.cache.RemoveDocument(params.TextDocument.URI)
 }
 
 // DidChange receives a call from the Client, telling that a files has been changed
-// required by the protocol.Server interface
+// required by the protocol.Server interface.
 func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
 	//options := s.session.Options()
 	if len(params.ContentChanges) < 1 {
