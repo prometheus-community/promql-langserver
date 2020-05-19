@@ -7,7 +7,7 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
 
-all: build test golangci-lint
+all: build test 
 
 generated: $(STATIK_FILES)
 
@@ -36,17 +36,6 @@ fmt:
 .PHONY: test
 test:
 	go test -race -v -cover ./...
-
-.PHONY: lint
-lint: golangci-lint golint
-
-.PHONY: golangci-lint
-golangci-lint:
-	golangci-lint run --enable-all --disable lll --disable wsl ./langserver/... ./rest ./prometheus
-
-.PHONY: golint
-golint:
-	golint -set_exit_status ./langserver/...
 
 .PHONY: update_internal_packages
 update_internal_packages:
