@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
+	"github.com/go-kit/kit/log"
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
@@ -33,24 +34,17 @@ import (
 // CreateHandler creates an http.Handler for the PromQL langserver REST API.
 //
 // Expects a prometheus Client as a second argument.
-func CreateHandler(ctx context.Context, prometheusClient promClient.Client) (http.Handler, error) {
-	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient)
-	if err != nil {
-		return nil, err
-	}
-
-	ls := &langserverHandler{langserver: lgs}
-	ls.m = make(map[string]http.Handler)
-	ls.createHandlers(nil)
-
-	return ls, nil
+// The provided Logger should be synchronized.
+func CreateHandler(ctx context.Context, prometheusClient promClient.Client, logger log.Logger) (http.Handler, error) {
+	return CreateInstHandler(ctx, prometheusClient, nil, logger)
 }
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
 //
 // Expects a prometheus Client as a second argument and a Registry as third argument.
-func CreateInstHandler(ctx context.Context, prometheusClient promClient.Client, r *prometheus.Registry) (http.Handler, error) {
-	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient)
+// The provided Logger should be synchronized.
+func CreateInstHandler(ctx context.Context, prometheusClient promClient.Client, r *prometheus.Registry, logger log.Logger) (http.Handler, error) {
+	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient, logger)
 	if err != nil {
 		return nil, err
 	}
