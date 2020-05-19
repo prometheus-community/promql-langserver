@@ -37,12 +37,13 @@ func (c *headlessClient) log(typ protocol.MessageType, msg string) error {
 	case protocol.Log:
 		logLevel = level.Debug
 	default:
-		level.Error(c.logger).Log("msg", "Message with unknown log level: "+msg)
+		if err := level.Error(c.logger).Log("msg", "Message with unknown log level: "+msg); err != nil {
+			return err
+		}
 		return fmt.Errorf("unknown log level %f", typ)
 	}
 
-	logLevel(c.logger).Log("msg", msg)
-	return nil
+	return logLevel(c.logger).Log("msg", msg)
 }
 
 func (c *headlessClient) ShowMessage(_ context.Context, params *protocol.ShowMessageParams) error {
