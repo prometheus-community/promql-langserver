@@ -22,7 +22,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
-// tokenPositionToProtocolPosition converts a token.Position to a protocol.Position
+// tokenPositionToProtocolPosition converts a token.Position to a protocol.Position.
 func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (protocol.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -67,13 +67,13 @@ func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (pr
 	}
 }
 
-// PosToProtocolPosition converts a token.Pos to a protocol.Position
+// PosToProtocolPosition converts a token.Pos to a protocol.Position.
 func (d *DocumentHandle) PosToProtocolPosition(pos token.Pos) (protocol.Position, error) {
 	ret, err := d.tokenPositionToProtocolPosition(d.doc.posData.Position(pos))
 	return ret, err
 }
 
-// protocolPositionToTokenPos converts a token.Pos to a protocol.Position
+// protocolPositionToTokenPos converts a token.Pos to a protocol.Position.
 func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -82,7 +82,7 @@ func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (toke
 	case <-d.ctx.Done():
 		return 0, d.ctx.Err()
 	default:
-		// protocol.Position is 0 based
+		// protocol.Position is 0 based.
 		line := int(pos.Line) + 1
 		char := int(pos.Character)
 
@@ -105,7 +105,7 @@ func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (toke
 	}
 }
 
-// yamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos
+// yamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos.
 func (d *DocumentHandle) yamlPositionToTokenPos(line int, column int, lineOffset int) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
@@ -126,7 +126,7 @@ func (d *DocumentHandle) yamlPositionToTokenPos(line int, column int, lineOffset
 	}
 }
 
-// endOfLine returns the end of the Line of the given protocol.Position
+// endOfLine returns the end of the Line of the given protocol.Position.
 func endOfLine(p protocol.Position) protocol.Position {
 	return protocol.Position{
 		Line:      p.Line + 1,
@@ -134,7 +134,7 @@ func endOfLine(p protocol.Position) protocol.Position {
 	}
 }
 
-// lineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error
+// lineStartSafe is a wrapper around token.File.LineStart() that does not panic on Error.
 func (d *DocumentHandle) lineStartSafe(line int) (pos token.Pos, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -149,7 +149,7 @@ func (d *DocumentHandle) lineStartSafe(line int) (pos token.Pos, err error) {
 	return d.doc.posData.LineStart(line), nil
 }
 
-// tokenPosToTokenPosition converts a token.Pos to a token.Position
+// tokenPosToTokenPosition converts a token.Pos to a token.Position.
 func (d *DocumentHandle) tokenPosToTokenPosition(pos token.Pos) (token.Position, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()

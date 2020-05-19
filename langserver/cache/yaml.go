@@ -22,7 +22,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// yamlDoc contains the results of compiling a yaml document
+// yamlDoc contains the results of compiling a yaml document.
 type yamlDoc struct {
 	// The syntax tree.
 	AST yaml.Node
@@ -110,13 +110,13 @@ func (d *DocumentHandle) scanYamlTree() error {
 	return err
 }
 
-// scanYamlTreeRec is the recursive part of scanYamlTree.
-func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lineOffset int, path []string) error { //nolint: unparam
+// scanYamlTreeRec is the recursive part of scanYamlTree.25G.
+func (d *DocumentHandle) scanYamlTreeRec(node *yaml.Node, nodeEnd token.Pos, lineOffset int, path []string) error {
 	if node == nil {
 		return nil
 	}
 
-	// Visit all childs
+	// Visit all childs.
 	for i, child := range node.Content {
 		var err error
 

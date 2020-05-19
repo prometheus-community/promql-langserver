@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
-// TestNotImplemented checks whether unimplemented functions return the approbiate Error
+// TestNotImplemented checks whether unimplemented functions return the approbiate Error.
 func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	s := &server{}
 
@@ -233,8 +233,8 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	}
 }
 
-// dummyStream is a fake jsonrpc2.Stream for Test purposes
-type dummyStream struct { //nolint:unused
+// dummyStream is a fake jsonrpc2.Stream for Test purposes.
+type dummyStream struct {
 	readQueue []byte
 }
 
@@ -249,7 +249,7 @@ func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
 	return int64(len(text)), nil
 }
 
-// Push adds a text to the readQueue
+// Push adds a text to the readQueue.
 func (d *dummyStream) Push(text []byte) {
 	d.readQueue = append(d.readQueue, text...)
 }
@@ -260,7 +260,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 	return len(text), nil
 }
 
-// TestServerState tries to emulate a full server lifetime
+// TestServerState tries to emulate a full server lifetime.
 func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = jSONLogStream(stream, &dummyWriter{})
@@ -662,4 +662,4 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	if err != nil {
 		panic("Failed to initialize Server")
 	}
-} // nolint:wsl
+}

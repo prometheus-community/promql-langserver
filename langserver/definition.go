@@ -20,7 +20,7 @@ import (
 	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
-// Definition is required by the protocol.Server interface
+// Definition is required by the protocol.Server interface.
 func (s *server) Definition(ctx context.Context, params *protocol.DefinitionParams) ([]protocol.Location, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {

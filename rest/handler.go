@@ -32,7 +32,7 @@ import (
 
 // CreateHandler creates an http.Handler for the PromQL langserver REST API.
 //
-// Expects a prometheus Client as a second argument
+// Expects a prometheus Client as a second argument.
 func CreateHandler(ctx context.Context, prometheusClient promClient.Client) (http.Handler, error) {
 	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient)
 	if err != nil {

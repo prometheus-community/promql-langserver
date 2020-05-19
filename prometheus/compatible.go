@@ -21,7 +21,7 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15
+// compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15.
 type compatibleHTTPClient struct {
 	Client
 	prometheusClient v1.API

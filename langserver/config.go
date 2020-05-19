@@ -70,7 +70,7 @@ func (c *Config) UnmarshalENV() error {
 	return c.Validate()
 }
 
-// Validate returns an error if the config is not valid
+// Validate returns an error if the config is not valid.
 func (c *Config) Validate() error {
 	if len(c.PrometheusURL) > 0 {
 		if _, err := url.Parse(c.PrometheusURL); err != nil {
@@ -80,7 +80,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// ReadConfig gets the GlobalConfig from a configFile (that is a path to the file)
+// ReadConfig gets the GlobalConfig from a configFile (that is a path to the file).
 func ReadConfig(configFile string) (*Config, error) {
 	if len(configFile) == 0 {
 		fmt.Fprintln(os.Stderr, "No config file provided, configuration is reading from System environment")
@@ -91,7 +91,7 @@ func ReadConfig(configFile string) (*Config, error) {
 }
 
 func readConfigFromYAML(configFile string) (*Config, error) {
-	b, err := ioutil.ReadFile(configFile) //nolint
+	b, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func readConfigFromENV() (*Config, error) {
 	return res, err
 }
 
-// DidChangeConfiguration is required by the protocol.Server interface
+// DidChangeConfiguration is required by the protocol.Server interface.
 func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
 	langserverAddressConfigPath := []string{"promql", "url"}
 

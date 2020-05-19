@@ -21,7 +21,7 @@ import (
 	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
-// SignatureHelp is required by the protocol.Server interface
+// SignatureHelp is required by the protocol.Server interface.
 func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {

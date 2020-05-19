@@ -168,7 +168,7 @@ func (d *DocumentHandle) GetContent() (string, error) {
 // GetSubstring returns a substring of the content of a document.
 //
 // The parameters are the start and end of the substring, encoded
-// as token.Pos
+// as token.Pos.
 func (d *DocumentHandle) GetSubstring(pos token.Pos, endPos token.Pos) (string, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()

@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
-// Implements the jsonrpc2.Stream interface
+// Implements the jsonrpc2.Stream interface.
 type wsConn struct {
 	*websocket.Conn
 }

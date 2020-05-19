@@ -47,7 +47,6 @@ func (s *server) GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiag
 	return reply, nil
 }
 
-// nolint:funlen
 func (s *server) diagnostics(uri protocol.DocumentURI) {
 	reply, err := s.GetDiagnostics(uri)
 	if err != nil {
