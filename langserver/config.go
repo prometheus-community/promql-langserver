@@ -70,7 +70,7 @@ func (c *Config) Validate() error {
 	}
 
 	if !regexp.MustCompile("(text|json)?").MatchString(c.LogFormat) {
-		return fmt.Errorf(`Log Format must be "text", "json" is "%s"`, c.LogFormat)
+		return fmt.Errorf(`log Format must be "text", "json" is "%s"`, c.LogFormat)
 	}
 
 	return nil
