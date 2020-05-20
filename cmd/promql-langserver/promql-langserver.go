@@ -45,7 +45,17 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		logger := kitlog.NewSyncLogger(kitlog.NewJSONLogger(os.Stderr))
+
+		var logger kitlog.Logger
+
+		if config.LogFormat == "json" {
+			logger = kitlog.NewJSONLogger(os.Stderr)
+		} else {
+			logger = kitlog.NewLogfmtLogger(os.Stderr)
+		}
+
+		logger = kitlog.NewSyncLogger(logger)
+
 		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, prometheus.NewRegistry(), logger)
 		if err != nil {
 			log.Fatal(err)

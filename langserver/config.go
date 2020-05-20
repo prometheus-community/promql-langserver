@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/kelseyhightower/envconfig"
@@ -29,11 +30,12 @@ import (
 // Config contains the configuration for a server.
 type Config struct {
 	RPCTrace      string `yaml:"rpc_trace"`
+	LogFormat     string `yaml:"log_format"`
 	PrometheusURL string `yaml:"prometheus_url"`
 	RESTAPIPort   uint64 `yaml:"rest_api_port"`
 }
 
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *Config) unmarshalYAML(unmarshal func(interface{}) error) error {
 	tmp := &Config{}
 	type plain Config
 	if err := unmarshal((*plain)(tmp)); err != nil {
@@ -46,10 +48,11 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (c *Config) UnmarshalENV() error {
+func (c *Config) unmarshalENV() error {
 	prefix := "LANGSERVER"
 	conf := &struct {
 		RPCTrace      string
+		LogFormat     string
 		PrometheusURL string
 		// the envconfig lib is not able to convert an empty string to the value 0
 		// so we have to convert it manually
@@ -67,6 +70,7 @@ func (c *Config) UnmarshalENV() error {
 	}
 	c.RPCTrace = conf.RPCTrace
 	c.PrometheusURL = conf.PrometheusURL
+	c.LogFormat = conf.LogFormat
 	return c.Validate()
 }
 
@@ -77,6 +81,11 @@ func (c *Config) Validate() error {
 			return err
 		}
 	}
+
+	if !regexp.MustCompile("(text|json)?").MatchString(c.LogFormat) {
+		return fmt.Errorf(`Log Format must be "text", "json" is "%s"`, c.LogFormat)
+	}
+
 	return nil
 }
 
@@ -102,7 +111,7 @@ func readConfigFromYAML(configFile string) (*Config, error) {
 
 func readConfigFromENV() (*Config, error) {
 	res := new(Config)
-	err := res.UnmarshalENV()
+	err := res.unmarshalENV()
 	return res, err
 }
 
