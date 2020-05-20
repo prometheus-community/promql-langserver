@@ -35,19 +35,6 @@ type Config struct {
 	RESTAPIPort   uint64 `yaml:"rest_api_port"`
 }
 
-func (c *Config) unmarshalYAML(unmarshal func(interface{}) error) error {
-	tmp := &Config{}
-	type plain Config
-	if err := unmarshal((*plain)(tmp)); err != nil {
-		return err
-	}
-	if err := tmp.Validate(); err != nil {
-		return err
-	}
-	*c = *tmp
-	return nil
-}
-
 func (c *Config) unmarshalENV() error {
 	prefix := "LANGSERVER"
 	conf := &struct {
