@@ -35,7 +35,8 @@ type Config struct {
 	RESTAPIPort   uint64 `yaml:"rest_api_port"`
 }
 
-func (c *Config) unmarshalYAML(unmarshal func(interface{}) error) error {
+// UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	tmp := &Config{}
 	type plain Config
 	if err := unmarshal((*plain)(tmp)); err != nil {
