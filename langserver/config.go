@@ -44,7 +44,7 @@ const (
 	TextFormat LogFormat = "text"
 )
 
-var mapLogFormat = map[LogFormat]bool{
+var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
 	JSONFormat: true,
 	TextFormat: true,
 }
@@ -98,7 +98,7 @@ func (c *Config) Validate() error {
 	}
 
 	if len(c.LogFormat) > 0 {
-		if !mapLogFormat[LogFormat(c.LogFormat)] {
+		if !mapLogFormat[c.LogFormat] {
 			return fmt.Errorf(`invalid value for logFormat. "%s" Valid values are  "text" or "string"`, c.LogFormat)
 		}
 	} else {
