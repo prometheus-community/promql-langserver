@@ -48,10 +48,13 @@ func main() {
 
 		var logger kitlog.Logger
 
-		if config.LogFormat == "json" {
+		switch config.LogFormat {
+		case langserver.JSONFormat:
 			logger = kitlog.NewJSONLogger(os.Stderr)
-		} else {
+		case langserver.TextFormat:
 			logger = kitlog.NewLogfmtLogger(os.Stderr)
+		default:
+			log.Fatalf(`invalid log format: "%s"`, config.LogFormat)
 		}
 
 		logger = kitlog.NewSyncLogger(logger)

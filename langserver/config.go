@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/kelseyhightower/envconfig"
@@ -29,10 +28,25 @@ import (
 
 // Config contains the configuration for a server.
 type Config struct {
-	RPCTrace      string `yaml:"rpc_trace"`
-	LogFormat     string `yaml:"log_format"`
-	PrometheusURL string `yaml:"prometheus_url"`
-	RESTAPIPort   uint64 `yaml:"rest_api_port"`
+	RPCTrace      string    `yaml:"rpc_trace"`
+	LogFormat     LogFormat `yaml:"log_format"`
+	PrometheusURL string    `yaml:"prometheus_url"`
+	RESTAPIPort   uint64    `yaml:"rest_api_port"`
+}
+
+// LogFormat is the type used for describing the format of logs.
+type LogFormat string
+
+const (
+	// JSONFormat is used for JSON logs.
+	JSONFormat LogFormat = "json"
+	// TextFormat is used of structured text logs.
+	TextFormat LogFormat = "text"
+)
+
+var mapLogFormat = map[LogFormat]bool{
+	JSONFormat: true,
+	TextFormat: true,
 }
 
 // UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
@@ -71,7 +85,7 @@ func (c *Config) unmarshalENV() error {
 	}
 	c.RPCTrace = conf.RPCTrace
 	c.PrometheusURL = conf.PrometheusURL
-	c.LogFormat = conf.LogFormat
+	c.LogFormat = LogFormat(conf.LogFormat)
 	return c.Validate()
 }
 
@@ -83,8 +97,13 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	if !regexp.MustCompile("(text|json)?").MatchString(c.LogFormat) {
-		return fmt.Errorf(`log Format must be "text", "json" is "%s"`, c.LogFormat)
+	if len(c.LogFormat) > 0 {
+		if !mapLogFormat[LogFormat(c.LogFormat)] {
+			return fmt.Errorf(`invalid value for logFormat. "%s" Valid values are  "text" or "string"`, c.LogFormat)
+		}
+	} else {
+		// default value
+		c.LogFormat = TextFormat
 	}
 
 	return nil
