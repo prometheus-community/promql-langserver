@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 
+	kitlog "github.com/go-kit/kit/log"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -44,7 +45,21 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, prometheus.NewRegistry())
+
+		var logger kitlog.Logger
+
+		switch config.LogFormat {
+		case langserver.JSONFormat:
+			logger = kitlog.NewJSONLogger(os.Stderr)
+		case langserver.TextFormat:
+			logger = kitlog.NewLogfmtLogger(os.Stderr)
+		default:
+			log.Fatalf(`invalid log format: "%s"`, config.LogFormat)
+		}
+
+		logger = kitlog.NewSyncLogger(logger)
+
+		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, prometheus.NewRegistry(), logger)
 		if err != nil {
 			log.Fatal(err)
 		}

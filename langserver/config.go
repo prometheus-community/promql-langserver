@@ -28,11 +28,28 @@ import (
 
 // Config contains the configuration for a server.
 type Config struct {
-	RPCTrace      string `yaml:"rpc_trace"`
-	PrometheusURL string `yaml:"prometheus_url"`
-	RESTAPIPort   uint64 `yaml:"rest_api_port"`
+	RPCTrace      string    `yaml:"rpc_trace"`
+	LogFormat     LogFormat `yaml:"log_format"`
+	PrometheusURL string    `yaml:"prometheus_url"`
+	RESTAPIPort   uint64    `yaml:"rest_api_port"`
 }
 
+// LogFormat is the type used for describing the format of logs.
+type LogFormat string
+
+const (
+	// JSONFormat is used for JSON logs.
+	JSONFormat LogFormat = "json"
+	// TextFormat is used of structured text logs.
+	TextFormat LogFormat = "text"
+)
+
+var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
+	JSONFormat: true,
+	TextFormat: true,
+}
+
+// UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	tmp := &Config{}
 	type plain Config
@@ -46,10 +63,11 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (c *Config) UnmarshalENV() error {
+func (c *Config) unmarshalENV() error {
 	prefix := "LANGSERVER"
 	conf := &struct {
 		RPCTrace      string
+		LogFormat     string
 		PrometheusURL string
 		// the envconfig lib is not able to convert an empty string to the value 0
 		// so we have to convert it manually
@@ -67,6 +85,7 @@ func (c *Config) UnmarshalENV() error {
 	}
 	c.RPCTrace = conf.RPCTrace
 	c.PrometheusURL = conf.PrometheusURL
+	c.LogFormat = LogFormat(conf.LogFormat)
 	return c.Validate()
 }
 
@@ -77,6 +96,16 @@ func (c *Config) Validate() error {
 			return err
 		}
 	}
+
+	if len(c.LogFormat) > 0 {
+		if !mapLogFormat[c.LogFormat] {
+			return fmt.Errorf(`invalid value for logFormat. "%s" Valid values are  "text" or "string"`, c.LogFormat)
+		}
+	} else {
+		// default value
+		c.LogFormat = TextFormat
+	}
+
 	return nil
 }
 
@@ -102,7 +131,7 @@ func readConfigFromYAML(configFile string) (*Config, error) {
 
 func readConfigFromENV() (*Config, error) {
 	res := new(Config)
-	err := res.UnmarshalENV()
+	err := res.unmarshalENV()
 	return res, err
 }
 

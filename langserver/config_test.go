@@ -29,7 +29,9 @@ func TestUnmarshalENV(t *testing.T) {
 		{
 			title:     "empty config",
 			variables: map[string]string{},
-			expected:  &Config{},
+			expected: &Config{
+				LogFormat: TextFormat,
+			},
 		},
 		{
 			title: "full config",
@@ -37,11 +39,13 @@ func TestUnmarshalENV(t *testing.T) {
 				"LANGSERVER_RPCTRACE":      "text",
 				"LANGSERVER_PROMETHEUSURL": "http://localhost:9090",
 				"LANGSERVER_RESTAPIPORT":   "8080",
+				"LANGSERVER_LOGFORMAT":     "json",
 			},
 			expected: &Config{
 				RPCTrace:      "text",
 				PrometheusURL: "http://localhost:9090",
 				RESTAPIPort:   8080,
+				LogFormat:     JSONFormat,
 			},
 		},
 	}

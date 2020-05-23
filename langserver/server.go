@@ -27,6 +27,7 @@ import (
 
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
+	"github.com/go-kit/kit/log"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
@@ -79,9 +80,9 @@ func (s Server) Run() error {
 // CreateHeadlessServer creates a locked down server instance for the REST API.
 //
 // "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
-func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Client) (HeadlessServer, error) {
+func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Client, logger log.Logger) (HeadlessServer, error) {
 	s := &server{
-		client:           headlessClient{},
+		client:           &headlessClient{logger: logger},
 		headless:         true,
 		config:           &Config{PrometheusURL: prometheusClient.GetURL()},
 		prometheusClient: prometheusClient,
