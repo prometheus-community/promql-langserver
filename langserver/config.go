@@ -99,7 +99,7 @@ func (c *Config) Validate() error {
 
 	if len(c.LogFormat) > 0 {
 		if !mapLogFormat[c.LogFormat] {
-			return fmt.Errorf(`invalid value for logFormat. "%s" Valid values are  "text" or "string"`, c.LogFormat)
+			return fmt.Errorf(`invalid value for logFormat. "%s" Valid values are  "%s" or "%s"`, c.LogFormat, TextFormat, JSONFormat)
 		}
 	} else {
 		// default value
