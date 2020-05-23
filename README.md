@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/prometheus-community/promql-langserver.svg?style=svg)](https://circleci.com/gh/prometheus-community/promql-langserver)
 [![Go Report Card](https://goreportcard.com/badge/github.com/prometheus-community/promql-langserver)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
-[![GoDoc](https://godoc.org/github.com/prometheus-community/promql-langserver?status.png)](https://godoc.org/github.com/prometheus-community/promql-langserver)
+[![GoDoc](https://godoc.org/github.com/prometheus-community/promql-langserver?status.png)](https://pkg.go.dev/github.com/prometheus-community/promql-langserver)
 ![golangci-lint](https://github.com/prometheus-community/promql-langserver/workflows/golangci-lint/badge.svg)
 
 # promql-lsp
