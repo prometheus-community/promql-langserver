@@ -95,3 +95,8 @@ With Vim, currently only PromQL queries inside YAML files work without additiona
 #### Debugging
 
 The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
+
+### Sublime Text 3
+
+1. Install package `LSP`, `LSP-promql` via `Package Control`.
+2. Follow the [installation instruction](https://github.com/nevill/lsp-promql#installation).
