@@ -93,9 +93,7 @@ func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), er
 
 		ws.SetCloseHandler(ch)
 
-		var s langserver.Server
-
-		_, s = langserver.ServerFromStream(ctx, wsConn{ws}, &langserver.Config{})
+		_, s := langserver.ServerFromStream(ctx, wsConn{ws}, &langserver.Config{})
 
 		if err := s.Run(); err != nil {
 			// If the client disconnects, the above will fail

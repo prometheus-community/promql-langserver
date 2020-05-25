@@ -264,8 +264,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = jSONLogStream(stream, &dummyWriter{})
-	_, server := ServerFromStream(context.Background(), stream, &Config{})
-	s := server.server
+	_, s := ServerFromStream(context.Background(), stream, &Config{})
 
 	// Initialize Server
 	_, err := s.Initialize(context.Background(), &protocol.ParamInitialize{})
