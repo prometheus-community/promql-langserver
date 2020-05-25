@@ -33,8 +33,13 @@ clean:
 fmt:
 	go fmt ./...
 
+
 .PHONY: test
 test:
+	go test ./...
+
+.PHONY: test-coverage
+test-coverage:
 	go test -race -v -cover ./...
 
 .PHONY: update_internal_packages
