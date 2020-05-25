@@ -30,7 +30,7 @@ import (
 )
 
 // Completion is required by the protocol.Server interface.
-func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
+func (s *Server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
@@ -92,7 +92,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 	return //nolint: nakedret
 }
 
-func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+func (s *Server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	allMetadata, err := s.prometheusClient.AllMetadata(ctx)
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 	return nil
 }
 
-func (s *server) completeFunctionName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
+func (s *Server) completeFunctionName(completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
 	editRange, err := getEditRange(location, metricName)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ var aggregators = map[string]string{ // nolint:gochecknoglobals
 }
 
 // nolint: funlen
-func (s *server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location) error {
+func (s *Server) completeLabels(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location) error {
 	offset := location.Node.PositionRange().Start
 	l := promql.Lex(location.Query.Content[offset:])
 
@@ -296,7 +296,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 	return nil
 }
 
-func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
+func (s *Server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
 	metricName := ""
 
 	if vs != nil {
@@ -353,7 +353,7 @@ OUTER:
 }
 
 // nolint: funlen
-func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
+func (s *Server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
 	labelValues, err := s.prometheusClient.LabelValues(ctx, labelName)
 	if err != nil {
 		// nolint: errcheck

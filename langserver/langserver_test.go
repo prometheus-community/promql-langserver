@@ -25,7 +25,7 @@ import (
 
 // TestNotImplemented checks whether unimplemented functions return the approbiate Error.
 func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
-	s := &server{}
+	s := &Server{}
 
 	err := s.DidChangeWorkspaceFolders(context.Background(), &protocol.DidChangeWorkspaceFoldersParams{})
 	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {

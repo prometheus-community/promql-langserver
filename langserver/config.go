@@ -136,7 +136,7 @@ func readConfigFromENV() (*Config, error) {
 }
 
 // DidChangeConfiguration is required by the protocol.Server interface.
-func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
+func (s *Server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
 	langserverAddressConfigPath := []string{"promql", "url"}
 
 	if params != nil {

@@ -33,20 +33,15 @@ import (
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 )
 
-// Server wraps language server instance that can connect to exactly one client.
-type Server struct {
-	server *server
-}
-
 // HeadlessServer is a modified Server interface that is used by the REST API.
 type HeadlessServer interface {
 	protocol.Server
 	GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error)
 }
 
-// server is a language server instance that can connect to exactly one client.
-type server struct {
-	Conn   *jsonrpc2.Conn
+// Server is a language server instance that can connect to exactly one client.
+type Server struct {
+	conn   *jsonrpc2.Conn
 	client protocol.Client
 
 	state   serverState
@@ -73,15 +68,15 @@ const (
 )
 
 // Run starts the language server instance.
-func (s Server) Run() error {
-	return s.server.Conn.Run(s.server.lifetime)
+func (s *Server) Run() error {
+	return s.conn.Run(s.lifetime)
 }
 
 // CreateHeadlessServer creates a locked down server instance for the REST API.
 //
 // "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
 func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Client, logger log.Logger) (HeadlessServer, error) {
-	s := &server{
+	s := &Server{
 		client:           &headlessClient{logger: logger},
 		headless:         true,
 		config:           &Config{PrometheusURL: prometheusClient.GetURL()},
@@ -102,8 +97,8 @@ func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Clien
 }
 
 // ServerFromStream generates a Server from a jsonrpc2.Stream.
-func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, Server) {
-	s := &server{}
+func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Config) (context.Context, *Server) {
+	s := &Server{}
 
 	switch config.RPCTrace {
 	case "text":
@@ -112,10 +107,10 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		stream = jSONLogStream(stream, os.Stderr)
 	}
 
-	s.Conn = jsonrpc2.NewConn(stream)
-	s.client = protocol.ClientDispatcher(s.Conn)
+	s.conn = jsonrpc2.NewConn(stream)
+	s.client = protocol.ClientDispatcher(s.conn)
 
-	s.Conn.AddHandler(protocol.ServerHandler(s))
+	s.conn.AddHandler(protocol.ServerHandler(s))
 
 	s.config = config
 
@@ -132,10 +127,10 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	}
 	s.prometheusClient = prometheusClient
 
-	return ctx, Server{s}
+	return ctx, s
 }
 
-func (s *server) connectPrometheus(url string) error {
+func (s *Server) connectPrometheus(url string) error {
 	if err := s.prometheusClient.ChangeDataSource(url); err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
@@ -166,7 +161,7 @@ func RunTCPServer(ctx context.Context, addr string, config *Config) error {
 }
 
 // StdioServer generates a Server instance talking to stdio.
-func StdioServer(ctx context.Context, config *Config) (context.Context, Server) {
+func StdioServer(ctx context.Context, config *Config) (context.Context, *Server) {
 	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
 	return ServerFromStream(ctx, stream, config)
 }

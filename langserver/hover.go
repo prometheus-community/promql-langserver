@@ -47,7 +47,7 @@ func initializeFunctionDocumentation() http.FileSystem {
 
 // Hover shows documentation on hover
 // required by the protocol.Server interface.
-func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
+func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil || location.Node == nil {
 		return nil, nil
@@ -68,7 +68,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	}, nil
 }
 
-func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: funlen
+func (s *Server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: funlen
 	var ret bytes.Buffer
 
 	switch n := location.Node.(type) {
@@ -191,7 +191,7 @@ func funcDocStrings(name string) string {
 	return string(ret)
 }
 
-func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
+func (s *Server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	var ret strings.Builder
 	ret.WriteString(fmt.Sprintf("### %s\n\n", metric))
 
@@ -215,7 +215,7 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 	return ret.String(), nil
 }
 
-func (s *server) getRecordingRuleDocs(doc *cache.DocumentHandle, metric string) (string, error) {
+func (s *Server) getRecordingRuleDocs(doc *cache.DocumentHandle, metric string) (string, error) {
 	var ret strings.Builder
 
 	queries, err := doc.GetQueries()
