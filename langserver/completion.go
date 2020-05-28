@@ -27,6 +27,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/util/strutil"
+	"github.com/sahilm/fuzzy"
 )
 
 // Completion is required by the protocol.Server interface.
@@ -102,21 +103,26 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		return err
 	}
 
-	for name, metadata := range allMetadata {
-		if strings.HasPrefix(name, metricName) {
-			item := protocol.CompletionItem{
-				Label:         name,
-				SortText:      "__3__" + name,
-				Kind:          12, //Value
-				Documentation: metadata[0].Help,
-				Detail:        string(metadata[0].Type),
-				TextEdit: &protocol.TextEdit{
-					Range:   editRange,
-					NewText: name,
-				},
-			}
-			*completions = append(*completions, item)
+	names := make([]string, len(allMetadata))
+	i := 0
+	for name := range allMetadata {
+		names[i] = name
+		i++
+	}
+	matches := fuzzy.Find(metricName, names)
+	for _, match := range matches {
+		item := protocol.CompletionItem{
+			Label:         match.Str,
+			SortText:      fmt.Sprintf("__3__%d", match.Score),
+			Kind:          12, //Value
+			Documentation: allMetadata[match.Str][0].Help,
+			Detail:        string(allMetadata[match.Str][0].Type),
+			TextEdit: &protocol.TextEdit{
+				Range:   editRange,
+				NewText: match.Str,
+			},
 		}
+		*completions = append(*completions, item)
 	}
 
 	queries, err := location.Doc.GetQueries()
