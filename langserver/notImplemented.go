@@ -143,7 +143,11 @@ func (s *server) Symbol(_ context.Context, _ *protocol.WorkspaceSymbolParams) ([
 
 // CodeLens is required by the protocol.Server interface.
 func (s *server) CodeLens(_ context.Context, _ *protocol.CodeLensParams) ([]protocol.CodeLens, error) {
-	return nil, notImplemented("CodeLens")
+	// As of version 0.4.0 of gopls it is not possible to instruct the language
+	// client to stop asking for Code Lenses and Document Links. To prevent
+	// VS Code from showing error messages, this feature is implemented by
+	// returning empty values.
+	return nil, nil
 }
 
 // ResolveCodeLens is required by the protocol.Server interface.
@@ -173,7 +177,11 @@ func (s *server) Rename(_ context.Context, _ *protocol.RenameParams) (*protocol.
 
 // DocumentLink is required by the protocol.Server interface.
 func (s *server) DocumentLink(_ context.Context, _ *protocol.DocumentLinkParams) ([]protocol.DocumentLink, error) {
-	return nil, notImplemented("DocumentLink")
+	// As of version 0.4.0 of gopls it is not possible to instruct the language
+	// client to stop asking for Code Lenses and Document Links. To prevent
+	// VS Code from showing error messages, this feature is implemented by
+	// returning empty values.
+	return nil, nil
 }
 
 // ResolveDocumentLink is required by the protocol.Server interface.
