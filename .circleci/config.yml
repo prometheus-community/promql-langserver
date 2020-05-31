@@ -20,6 +20,7 @@ jobs:
 
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           keys:
             - v4-crossbuild-cache
@@ -41,6 +42,7 @@ jobs:
 
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           keys:
             - v4-crossbuild-cache

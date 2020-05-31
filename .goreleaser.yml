@@ -30,3 +30,14 @@ checksum:
   name_template: 'checksums.txt'
 snapshot:
   name_template: "{{ .Tag }}-next"
+dockers:
+  -
+    goos: linux
+    goarch: amd64
+    binaries:
+      - promql-langserver
+    image_templates:
+    - "docker.io/prometheuscommunity/promql_langserver:latest"
+    - "docker.io/prometheuscommunity/promql_langserver:{{ .Tag }}"
+    - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}"
+    - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}.{{ .Minor }}"
