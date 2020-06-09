@@ -94,7 +94,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
-	allMetadata, err := s.prometheusClient.AllMetadata(ctx)
+	allMetadata, err := s.prometheusClient.AllMetricMetadata(ctx)
 	if err != nil {
 		return err
 	}

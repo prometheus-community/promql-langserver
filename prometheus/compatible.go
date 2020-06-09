@@ -27,7 +27,7 @@ type compatibleHTTPClient struct {
 	prometheusClient v1.API
 }
 
-func (c *compatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
+func (c *compatibleHTTPClient) MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	metadata, err := c.prometheusClient.Metadata(ctx, metric, "1")
 	if err != nil {
 		return v1.Metadata{}, err
@@ -42,7 +42,7 @@ func (c *compatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.
 	}, nil
 }
 
-func (c *compatibleHTTPClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
+func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 

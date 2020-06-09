@@ -195,7 +195,7 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 	var ret strings.Builder
 	ret.WriteString(fmt.Sprintf("### %s\n\n", metric))
 
-	metadata, err := s.prometheusClient.Metadata(ctx, metric)
+	metadata, err := s.prometheusClient.MetricMetadata(ctx, metric)
 	if err != nil {
 		return "", err
 	}

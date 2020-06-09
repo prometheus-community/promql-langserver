@@ -86,10 +86,10 @@ type buildInfoData struct {
 
 // Client is a light prometheus client used by LSP to get data from a a prometheus Server.
 type Client interface {
-	// Metadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
-	Metadata(ctx context.Context, metric string) (v1.Metadata, error)
-	// AllMetadata returns metadata about metrics currently scraped for all existing metrics.
-	AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
+	// MetricMetadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
+	MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error)
+	// AllMetricMetadata returns metadata about metrics currently scraped for all existing metrics.
+	AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
 	// LabelNames returns all the unique label names present in the block in sorted order.
 	// If a metric is provided, then it will return all unique label names linked to the metric during a predefined period of time
 	LabelNames(ctx context.Context, metricName string) ([]string, error)
@@ -124,16 +124,16 @@ func NewClient(prometheusURL string) (Client, error) {
 	return c, nil
 }
 
-func (c *httpClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
+func (c *httpClient) MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.Metadata(ctx, metric)
+	return c.subClient.MetricMetadata(ctx, metric)
 }
 
-func (c *httpClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
+func (c *httpClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.AllMetadata(ctx)
+	return c.subClient.AllMetricMetadata(ctx)
 }
 
 func (c *httpClient) LabelNames(ctx context.Context, name string) ([]string, error) {

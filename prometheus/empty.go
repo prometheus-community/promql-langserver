@@ -25,11 +25,11 @@ type emptyHTTPClient struct {
 	Client
 }
 
-func (c *emptyHTTPClient) Metadata(_ context.Context, _ string) (v1.Metadata, error) {
+func (c *emptyHTTPClient) MetricMetadata(_ context.Context, _ string) (v1.Metadata, error) {
 	return v1.Metadata{}, nil
 }
 
-func (c *emptyHTTPClient) AllMetadata(_ context.Context) (map[string][]v1.Metadata, error) {
+func (c *emptyHTTPClient) AllMetricMetadata(_ context.Context) (map[string][]v1.Metadata, error) {
 	return make(map[string][]v1.Metadata), nil
 }
 
