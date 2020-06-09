@@ -55,11 +55,16 @@ func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]s
 	if err != nil {
 		return nil, err
 	}
-	var result []string
+	// subResult is used as a set of label. Like that we are sure we don't have any duplication
+	subResult := make(map[string]bool)
 	for _, ln := range labelNames {
 		for l := range ln {
-			result = append(result, string(l))
+			subResult[string(l)] = true
 		}
+	}
+	result := make([]string, 0, len(subResult))
+	for l := range subResult {
+		result = append(result, l)
 	}
 	return result, nil
 }
