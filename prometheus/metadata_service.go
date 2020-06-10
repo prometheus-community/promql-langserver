@@ -84,8 +84,8 @@ type buildInfoData struct {
 	GoVersion string `json:"goVersion"`
 }
 
-// Client is a light prometheus client used by LSP to get data from a a prometheus Server.
-type Client interface {
+// MetadataService is a light prometheus client used by LSP to get metric or label information from prometheus Server.
+type MetadataService interface {
 	// MetricMetadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
 	MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error)
 	// AllMetricMetadata returns metadata about metrics currently scraped for all existing metrics.
@@ -107,14 +107,14 @@ type Client interface {
 // You should use this instance directly and not the other one (compatibleHTTPClient and notCompatibleHTTPClient)
 // because it will manage which sub instance of the Client to use (like a factory).
 type httpClient struct {
-	Client
+	MetadataService
 	requestTimeout time.Duration
 	mutex          sync.RWMutex
-	subClient      Client
+	subClient      MetadataService
 	url            string
 }
 
-func NewClient(prometheusURL string) (Client, error) {
+func NewClient(prometheusURL string) (MetadataService, error) {
 	c := &httpClient{
 		requestTimeout: 30,
 	}

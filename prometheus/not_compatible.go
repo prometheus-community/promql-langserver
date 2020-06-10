@@ -23,7 +23,7 @@ import (
 
 // notCompatibleHTTPClient must be used to contact a distant prometheus with a version < v2.15.
 type notCompatibleHTTPClient struct {
-	Client
+	MetadataService
 	prometheusClient v1.API
 }
 

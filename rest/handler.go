@@ -35,16 +35,16 @@ import (
 //
 // Expects a prometheus Client as a second argument.
 // The provided Logger should be synchronized.
-func CreateHandler(ctx context.Context, prometheusClient promClient.Client, logger log.Logger) (http.Handler, error) {
-	return CreateInstHandler(ctx, prometheusClient, nil, logger)
+func CreateHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
+	return CreateInstHandler(ctx, metadataService, nil, logger)
 }
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
 //
 // Expects a prometheus Client as a second argument and a Registry as third argument.
 // The provided Logger should be synchronized.
-func CreateInstHandler(ctx context.Context, prometheusClient promClient.Client, r *prometheus.Registry, logger log.Logger) (http.Handler, error) {
-	lgs, err := langserver.CreateHeadlessServer(ctx, prometheusClient, logger)
+func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, r *prometheus.Registry, logger log.Logger) (http.Handler, error) {
+	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
 	if err != nil {
 		return nil, err
 	}

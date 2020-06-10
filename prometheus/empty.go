@@ -23,7 +23,7 @@ import (
 
 // emptyHTTPClient must be used when no prometheus URL has been defined.
 type emptyHTTPClient struct {
-	Client
+	MetadataService
 }
 
 func (c *emptyHTTPClient) MetricMetadata(_ context.Context, _ string) (v1.Metadata, error) {
