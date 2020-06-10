@@ -327,14 +327,8 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	}
 
 	labelName := location.Node.(*promql.Item).Val
-	var prevMatched string
 OUTER:
 	for _, match := range getMatches(labelName, allNames) {
-		// Skip duplicates
-		if prevMatched == match.Str {
-			continue
-		}
-		prevMatched = match.Str
 		// Skip labels that already have matchers
 		if vs != nil {
 			for _, m := range vs.LabelMatchers {
