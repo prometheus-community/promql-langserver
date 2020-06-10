@@ -15,6 +15,7 @@ package prometheus
 import (
 	"context"
 	"fmt"
+	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -33,7 +34,7 @@ func (c *emptyHTTPClient) AllMetricMetadata(_ context.Context) (map[string][]v1.
 	return make(map[string][]v1.Metadata), nil
 }
 
-func (c *emptyHTTPClient) LabelNames(_ context.Context, _ string) ([]string, error) {
+func (c *emptyHTTPClient) LabelNames(_ context.Context, _ string, _ time.Time, _ time.Time) ([]string, error) {
 	return []string{}, nil
 }
 

@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -311,7 +312,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	if vs != nil {
 		metricName = vs.Name
 	}
-	allNames, err := s.prometheusClient.LabelNames(ctx, metricName)
+	allNames, err := s.prometheusClient.LabelNames(ctx, metricName, time.Now().Add(-100*time.Hour), time.Now())
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

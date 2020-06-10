@@ -46,12 +46,12 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
 	if len(name) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx)
 		return names, err
 	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-100*time.Hour), time.Now())
+	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, startTime, endTime)
 	if err != nil {
 		return nil, err
 	}

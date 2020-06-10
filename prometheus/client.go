@@ -92,7 +92,7 @@ type Client interface {
 	AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
 	// LabelNames returns all the unique label names present in the block in sorted order.
 	// If a metric is provided, then it will return all unique label names linked to the metric during a predefined period of time
-	LabelNames(ctx context.Context, metricName string) ([]string, error)
+	LabelNames(ctx context.Context, metricName string, startTime time.Time, endTime time.Time) ([]string, error)
 	// LabelValues performs a query for the values of the given label.
 	LabelValues(ctx context.Context, label string) ([]model.LabelValue, error)
 	// ChangeDataSource is used if the prometheusURL is changing.
@@ -136,10 +136,10 @@ func (c *httpClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Met
 	return c.subClient.AllMetricMetadata(ctx)
 }
 
-func (c *httpClient) LabelNames(ctx context.Context, name string) ([]string, error) {
+func (c *httpClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelNames(ctx, name)
+	return c.subClient.LabelNames(ctx, name, startTime, endTime)
 }
 
 func (c *httpClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
