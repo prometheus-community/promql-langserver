@@ -40,7 +40,7 @@ func CreateHandler(ctx context.Context, metadataService promClient.MetadataServi
 }
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
-// In addtion to the endpoints created with CreateHandler, a /metrics endpoint is provided.
+// In addition to the endpoints created with CreateHandler, a /metrics endpoint is provided.
 //
 // If you use the REST API with some middleware that already provides its own instrumentation,
 // use CreateHandler instead.
