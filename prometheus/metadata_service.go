@@ -84,15 +84,15 @@ type buildInfoData struct {
 	GoVersion string `json:"goVersion"`
 }
 
-// Client is a light prometheus client used by LSP to get data from a a prometheus Server.
-type Client interface {
-	// Metadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
-	Metadata(ctx context.Context, metric string) (v1.Metadata, error)
-	// AllMetadata returns metadata about metrics currently scraped for all existing metrics.
-	AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
+// MetadataService is a light prometheus client used by LSP to get metric or label information from prometheus Server.
+type MetadataService interface {
+	// MetricMetadata returns the first occurrence of metadata about metrics currently scraped by the metric name.
+	MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error)
+	// AllMetricMetadata returns metadata about metrics currently scraped for all existing metrics.
+	AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
 	// LabelNames returns all the unique label names present in the block in sorted order.
 	// If a metric is provided, then it will return all unique label names linked to the metric during a predefined period of time
-	LabelNames(ctx context.Context, metricName string) ([]string, error)
+	LabelNames(ctx context.Context, metricName string, startTime time.Time, endTime time.Time) ([]string, error)
 	// LabelValues performs a query for the values of the given label.
 	LabelValues(ctx context.Context, label string) ([]model.LabelValue, error)
 	// ChangeDataSource is used if the prometheusURL is changing.
@@ -107,14 +107,14 @@ type Client interface {
 // You should use this instance directly and not the other one (compatibleHTTPClient and notCompatibleHTTPClient)
 // because it will manage which sub instance of the Client to use (like a factory).
 type httpClient struct {
-	Client
+	MetadataService
 	requestTimeout time.Duration
 	mutex          sync.RWMutex
-	subClient      Client
+	subClient      MetadataService
 	url            string
 }
 
-func NewClient(prometheusURL string) (Client, error) {
+func NewClient(prometheusURL string) (MetadataService, error) {
 	c := &httpClient{
 		requestTimeout: 30,
 	}
@@ -124,22 +124,22 @@ func NewClient(prometheusURL string) (Client, error) {
 	return c, nil
 }
 
-func (c *httpClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
+func (c *httpClient) MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.Metadata(ctx, metric)
+	return c.subClient.MetricMetadata(ctx, metric)
 }
 
-func (c *httpClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
+func (c *httpClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.AllMetadata(ctx)
+	return c.subClient.AllMetricMetadata(ctx)
 }
 
-func (c *httpClient) LabelNames(ctx context.Context, name string) ([]string, error) {
+func (c *httpClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelNames(ctx, name)
+	return c.subClient.LabelNames(ctx, name, startTime, endTime)
 }
 
 func (c *httpClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {

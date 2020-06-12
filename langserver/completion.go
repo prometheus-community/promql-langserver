@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -94,7 +95,7 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 }
 
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
-	allMetadata, err := s.prometheusClient.AllMetadata(ctx)
+	allMetadata, err := s.metadataService.AllMetricMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -311,7 +312,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	if vs != nil {
 		metricName = vs.Name
 	}
-	allNames, err := s.prometheusClient.LabelNames(ctx, metricName)
+	allNames, err := s.metadataService.LabelNames(ctx, metricName, time.Now().Add(-100*time.Hour), time.Now())
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -327,14 +328,8 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	}
 
 	labelName := location.Node.(*promql.Item).Val
-	var prevMatched string
 OUTER:
 	for _, match := range getMatches(labelName, allNames) {
-		// Skip duplicates
-		if prevMatched == match.Str {
-			continue
-		}
-		prevMatched = match.Str
 		// Skip labels that already have matchers
 		if vs != nil {
 			for _, m := range vs.LabelMatchers {
@@ -360,7 +355,7 @@ OUTER:
 
 // nolint: funlen
 func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
-	labelValues, err := s.prometheusClient.LabelValues(ctx, labelName)
+	labelValues, err := s.metadataService.LabelValues(ctx, labelName)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

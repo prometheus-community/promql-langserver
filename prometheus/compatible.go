@@ -23,11 +23,11 @@ import (
 
 // compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15.
 type compatibleHTTPClient struct {
-	Client
+	MetadataService
 	prometheusClient v1.API
 }
 
-func (c *compatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.Metadata, error) {
+func (c *compatibleHTTPClient) MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error) {
 	metadata, err := c.prometheusClient.Metadata(ctx, metric, "1")
 	if err != nil {
 		return v1.Metadata{}, err
@@ -42,24 +42,29 @@ func (c *compatibleHTTPClient) Metadata(ctx context.Context, metric string) (v1.
 	}, nil
 }
 
-func (c *compatibleHTTPClient) AllMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
+func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
 	if len(name) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx)
 		return names, err
 	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-100*time.Hour), time.Now())
+	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, startTime, endTime)
 	if err != nil {
 		return nil, err
 	}
-	var result []string
+	// subResult is used as a set of label. Like that we are sure we don't have any duplication
+	subResult := make(map[string]bool)
 	for _, ln := range labelNames {
 		for l := range ln {
-			result = append(result, string(l))
+			subResult[string(l)] = true
 		}
+	}
+	result := make([]string, 0, len(subResult))
+	for l := range subResult {
+		result = append(result, l)
 	}
 	return result, nil
 }

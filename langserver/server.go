@@ -56,7 +56,7 @@ type server struct {
 
 	config *Config
 
-	prometheusClient promClient.Client
+	metadataService promClient.MetadataService
 
 	lifetime context.Context
 	exit     func()
@@ -80,12 +80,12 @@ func (s Server) Run() error {
 // CreateHeadlessServer creates a locked down server instance for the REST API.
 //
 // "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
-func CreateHeadlessServer(ctx context.Context, prometheusClient promClient.Client, logger log.Logger) (HeadlessServer, error) {
+func CreateHeadlessServer(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (HeadlessServer, error) {
 	s := &server{
-		client:           &headlessClient{logger: logger},
-		headless:         true,
-		config:           &Config{PrometheusURL: prometheusClient.GetURL()},
-		prometheusClient: prometheusClient,
+		client:          &headlessClient{logger: logger},
+		headless:        true,
+		config:          &Config{PrometheusURL: metadataService.GetURL()},
+		metadataService: metadataService,
 	}
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
@@ -130,13 +130,13 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 		})
 		panic(err)
 	}
-	s.prometheusClient = prometheusClient
+	s.metadataService = prometheusClient
 
 	return ctx, Server{s}
 }
 
 func (s *server) connectPrometheus(url string) error {
-	if err := s.prometheusClient.ChangeDataSource(url); err != nil {
+	if err := s.metadataService.ChangeDataSource(url); err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
 			Type:    protocol.Error,
