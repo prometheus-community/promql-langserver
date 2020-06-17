@@ -23,7 +23,6 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
-	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus-community/promql-langserver/langserver"
 	"github.com/prometheus-community/promql-langserver/rest"
@@ -59,7 +58,7 @@ func main() {
 
 		logger = kitlog.NewSyncLogger(logger)
 
-		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, prometheus.NewRegistry(), logger)
+		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, logger)
 		if err != nil {
 			log.Fatal(err)
 		}

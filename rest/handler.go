@@ -33,17 +33,30 @@ import (
 
 // CreateHandler creates an http.Handler for the PromQL langserver REST API.
 //
-// Expects a prometheus Client as a second argument.
+// If metadata is fetched from a remote Prometheus, the metadataService
+// implementation from the promql-langserver/prometheus package can be used,
+// otherwise you need to provide your own implementation of the interface.
+//
 // The provided Logger should be synchronized.
 func CreateHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
-	return CreateInstHandler(ctx, metadataService, nil, logger)
+	return createHandler(ctx, metadataService, logger, false)
 }
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
+// In addition to the endpoints created with CreateHandler, a /metrics endpoint // is provided.
 //
-// Expects a prometheus Client as a second argument and a Registry as third argument.
+// If you use the REST API with some middleware that already provides its own
+// instrumentation, use CreateHandler instead.
+//
+// If metadata is fetched from a remote Prometheus, the metadataService
+// implementation from the promql-langserver/prometheus package can be used,
+// otherwise you need to provide your own implementation of the interface.
+//
 // The provided Logger should be synchronized.
-func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, r *prometheus.Registry, logger log.Logger) (http.Handler, error) {
+func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
+	return createHandler(ctx, metadataService, logger, true)
+}
+func createHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, metricsEnpoint bool) (http.Handler, error) {
 	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
 	if err != nil {
 		return nil, err
@@ -51,18 +64,20 @@ func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataS
 
 	ls := &langserverHandler{langserver: lgs}
 	ls.m = make(map[string]http.Handler)
-	ls.createHandlers(r)
+	ls.createHandlers(metricsEnpoint)
 
 	return ls, nil
 }
 
-func (h *langserverHandler) createHandlers(r *prometheus.Registry) {
+func (h *langserverHandler) createHandlers(metricsEndpoint bool) {
 	diagnostics := newSubHandler(h, diagnosticsHandler)
 	completion := newSubHandler(h, completionHandler)
 	hover := newSubHandler(h, hoverHandler)
 	signatureHelp := newSubHandler(h, signatureHelpHandler)
 
-	if r != nil {
+	if metricsEndpoint {
+		r := prometheus.NewRegistry()
+
 		httpRequestsTotal := prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_requests_total",
 			Help: "Count of all HTTP requests",
