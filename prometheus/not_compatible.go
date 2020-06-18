@@ -43,7 +43,7 @@ func (c *notCompatibleHTTPClient) MetricMetadata(ctx context.Context, metric str
 }
 
 func (c *notCompatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error) {
-	metricNames, _, err := c.prometheusClient.LabelValues(ctx, "__name__")
+	metricNames, _, err := c.prometheusClient.LabelValues(ctx, "__name__", time.Now().Add(-100*time.Hour), time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +54,10 @@ func (c *notCompatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[st
 	return allMetadata, nil
 }
 
-func (c *notCompatibleHTTPClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
+func (c *notCompatibleHTTPClient) LabelNames(ctx context.Context, name string,
+	startTime time.Time, endTime time.Time) ([]string, error) {
 	if len(name) == 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx)
+		names, _, err := c.prometheusClient.LabelNames(ctx, startTime, endTime)
 		return names, err
 	}
 	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, startTime, endTime)
@@ -77,8 +78,9 @@ func (c *notCompatibleHTTPClient) LabelNames(ctx context.Context, name string, s
 	return result, nil
 }
 
-func (c *notCompatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label)
+func (c *notCompatibleHTTPClient) LabelValues(ctx context.Context, label string,
+	startTime time.Time, endTime time.Time) ([]model.LabelValue, error) {
+	values, _, err := c.prometheusClient.LabelValues(ctx, label, startTime, endTime)
 	return values, err
 }
 

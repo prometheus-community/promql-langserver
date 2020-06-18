@@ -355,7 +355,7 @@ OUTER:
 
 // nolint: funlen
 func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
-	labelValues, err := s.metadataService.LabelValues(ctx, labelName)
+	labelValues, err := s.metadataService.LabelValues(ctx, labelName, time.Now().Add(-100*time.Hour), time.Now())
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

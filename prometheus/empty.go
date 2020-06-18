@@ -38,7 +38,7 @@ func (c *emptyHTTPClient) LabelNames(_ context.Context, _ string, _ time.Time, _
 	return []string{}, nil
 }
 
-func (c *emptyHTTPClient) LabelValues(_ context.Context, _ string) ([]model.LabelValue, error) {
+func (c *emptyHTTPClient) LabelValues(_ context.Context, _ string, _ time.Time, _ time.Time) ([]model.LabelValue, error) {
 	return []model.LabelValue{}, nil
 }
 
