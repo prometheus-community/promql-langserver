@@ -46,9 +46,10 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string,
+	startTime time.Time, endTime time.Time) ([]string, error) {
 	if len(name) == 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx)
+		names, _, err := c.prometheusClient.LabelNames(ctx, startTime, endTime)
 		return names, err
 	}
 	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, startTime, endTime)
@@ -69,8 +70,9 @@ func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string, star
 	return result, nil
 }
 
-func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label)
+func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string,
+	startTime time.Time, endTime time.Time) ([]model.LabelValue, error) {
+	values, _, err := c.prometheusClient.LabelValues(ctx, label, startTime, endTime)
 	return values, err
 }
 

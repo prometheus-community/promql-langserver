@@ -94,7 +94,7 @@ type MetadataService interface {
 	// If a metric is provided, then it will return all unique label names linked to the metric during a predefined period of time
 	LabelNames(ctx context.Context, metricName string, startTime time.Time, endTime time.Time) ([]string, error)
 	// LabelValues performs a query for the values of the given label.
-	LabelValues(ctx context.Context, label string) ([]model.LabelValue, error)
+	LabelValues(ctx context.Context, label string, startTime time.Time, endTime time.Time) ([]model.LabelValue, error)
 	// ChangeDataSource is used if the prometheusURL is changing.
 	// The client should re init its own parameter accordingly if necessary
 	ChangeDataSource(prometheusURL string) error
@@ -136,16 +136,18 @@ func (c *httpClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Met
 	return c.subClient.AllMetricMetadata(ctx)
 }
 
-func (c *httpClient) LabelNames(ctx context.Context, name string, startTime time.Time, endTime time.Time) ([]string, error) {
+func (c *httpClient) LabelNames(ctx context.Context, name string,
+	startTime time.Time, endTime time.Time) ([]string, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 	return c.subClient.LabelNames(ctx, name, startTime, endTime)
 }
 
-func (c *httpClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
+func (c *httpClient) LabelValues(ctx context.Context, label string,
+	startTime time.Time, endTime time.Time) ([]model.LabelValue, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelValues(ctx, label)
+	return c.subClient.LabelValues(ctx, label, startTime, endTime)
 }
 
 func (c *httpClient) GetURL() string {
