@@ -65,6 +65,7 @@ update_internal_packages:
 	        mkdir -p `dirname $$dir$$subdir`;                                 \
 	        cp -r $$TMPDIR/internal/$$subdir $$dir$$subdir;                   \
 	    done;                                                                 \
+	    cp $$TMPDIR/LICENSE $$dir;                                            \
 	    for file in `find $$dir -type f`;                                     \
 	    do                                                                    \
 	        CMD=`echo $$FCMD $$file`;                                         \

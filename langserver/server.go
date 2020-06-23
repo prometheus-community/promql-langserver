@@ -12,9 +12,12 @@
 // limitations under the License.
 
 // This File includes code from the go/tools project which is governed by the following license:
+//
 // Copyright 2019 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+//
+// The full license of the golang/tools project can be found in internal/vendored/go-tools/LICENSE .
 
 package langserver
 
