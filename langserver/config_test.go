@@ -31,6 +31,7 @@ func TestUnmarshalENV(t *testing.T) {
 			variables: map[string]string{},
 			expected: &Config{
 				LogFormat: TextFormat,
+				Interval:  defaultInterval,
 			},
 		},
 		{
@@ -40,12 +41,14 @@ func TestUnmarshalENV(t *testing.T) {
 				"LANGSERVER_PROMETHEUSURL": "http://localhost:9090",
 				"LANGSERVER_RESTAPIPORT":   "8080",
 				"LANGSERVER_LOGFORMAT":     "json",
+				"LANGSERVER_INTERVAL":      "1w",
 			},
 			expected: &Config{
 				RPCTrace:      "text",
 				PrometheusURL: "http://localhost:9090",
 				RESTAPIPort:   8080,
 				LogFormat:     JSONFormat,
+				Interval:      604800000000000,
 			},
 		},
 	}

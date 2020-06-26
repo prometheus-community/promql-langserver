@@ -58,7 +58,7 @@ func main() {
 
 		logger = kitlog.NewSyncLogger(logger)
 
-		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, logger)
+		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, logger, config.Interval)
 		if err != nil {
 			log.Fatal(err)
 		}

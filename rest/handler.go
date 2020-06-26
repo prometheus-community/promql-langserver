@@ -26,6 +26,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
+	"github.com/prometheus/common/model"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -38,8 +39,10 @@ import (
 // otherwise you need to provide your own implementation of the interface.
 //
 // The provided Logger should be synchronized.
-func CreateHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
-	return createHandler(ctx, metadataService, logger, false)
+//
+// interval is the period of time (in second) used to retrieve data such as label and metrics from metrics.
+func CreateHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, interval model.Duration) (http.Handler, error) {
+	return createHandler(ctx, metadataService, logger, false, interval)
 }
 
 // CreateInstHandler creates an instrumented http.Handler for the PromQL langserver REST API.
@@ -53,11 +56,14 @@ func CreateHandler(ctx context.Context, metadataService promClient.MetadataServi
 // otherwise you need to provide your own implementation of the interface.
 //
 // The provided Logger should be synchronized.
-func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
-	return createHandler(ctx, metadataService, logger, true)
+//
+// interval is the period of time (in second) used to retrieve data such as label and metrics from metrics.
+func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, interval model.Duration) (http.Handler, error) {
+	return createHandler(ctx, metadataService, logger, true, interval)
 }
-func createHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, metricsEnpoint bool) (http.Handler, error) {
-	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
+
+func createHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, metricsEnpoint bool, interval model.Duration) (http.Handler, error) {
+	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger, interval)
 	if err != nil {
 		return nil, err
 	}

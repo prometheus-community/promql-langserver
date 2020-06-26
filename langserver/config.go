@@ -20,11 +20,15 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v3"
 )
+
+const defaultInterval = model.Duration(12 * 3600 * time.Second)
 
 // Config contains the configuration for a server.
 type Config struct {
@@ -32,6 +36,8 @@ type Config struct {
 	LogFormat     LogFormat `yaml:"log_format"`
 	PrometheusURL string    `yaml:"prometheus_url"`
 	RESTAPIPort   uint64    `yaml:"rest_api_port"`
+	// Interval is the time in second used to retrieve label and metrics from Prometheus
+	Interval model.Duration `yaml:"interval"`
 }
 
 // LogFormat is the type used for describing the format of logs.
@@ -49,6 +55,7 @@ var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
 	TextFormat: true,
 }
 
+// Parameterizable
 // UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	tmp := &Config{}
@@ -72,6 +79,7 @@ func (c *Config) unmarshalENV() error {
 		// the envconfig lib is not able to convert an empty string to the value 0
 		// so we have to convert it manually
 		RESTAPIPort string
+		Interval    string
 	}{}
 	if err := envconfig.Process(prefix, conf); err != nil {
 		return err
@@ -79,6 +87,13 @@ func (c *Config) unmarshalENV() error {
 	if len(conf.RESTAPIPort) > 0 {
 		var parseError error
 		c.RESTAPIPort, parseError = strconv.ParseUint(conf.RESTAPIPort, 10, 64)
+		if parseError != nil {
+			return parseError
+		}
+	}
+	if len(conf.Interval) > 0 {
+		var parseError error
+		c.Interval, parseError = model.ParseDuration(conf.Interval)
 		if parseError != nil {
 			return parseError
 		}
@@ -104,6 +119,9 @@ func (c *Config) Validate() error {
 	} else {
 		// default value
 		c.LogFormat = TextFormat
+	}
+	if c.Interval <= 0 {
+		c.Interval = defaultInterval
 	}
 
 	return nil
