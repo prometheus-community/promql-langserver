@@ -86,11 +86,11 @@ func (s Server) Run() error {
 // "locked down" in this case means, that the instance cannot send or receive any JSONRPC communication. Logging messages that the instance tries to send over JSONRPC are redirected to stderr.
 func CreateHeadlessServer(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, interval model.Duration) (HeadlessServer, error) {
 	conf := &Config{
-		PrometheusURL: metadataService.GetURL(),
-		Interval:      interval,
+		PrometheusURL:            metadataService.GetURL(),
+		MetadataLookbackInterval: interval,
 	}
 	if interval <= 0 {
-		conf.Interval = defaultInterval
+		conf.MetadataLookbackInterval = defaultInterval
 	}
 	s := &server{
 		client:          &headlessClient{logger: logger},
@@ -144,18 +144,6 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, config *Confi
 	s.metadataService = prometheusClient
 
 	return ctx, Server{s}
-}
-
-func (s *server) connectPrometheus(url string) error {
-	if err := s.metadataService.ChangeDataSource(url); err != nil {
-		// nolint: errcheck
-		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
-			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
-		})
-		return err
-	}
-	return nil
 }
 
 // RunTCPServer generates a server listening on the provided TCP Address, creating a new language Server

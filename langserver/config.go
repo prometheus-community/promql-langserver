@@ -36,8 +36,8 @@ type Config struct {
 	LogFormat     LogFormat `yaml:"log_format"`
 	PrometheusURL string    `yaml:"prometheus_url"`
 	RESTAPIPort   uint64    `yaml:"rest_api_port"`
-	// Interval is the time in second used to retrieve label and metrics from Prometheus
-	Interval model.Duration `yaml:"interval"`
+	// MetadataLookbackInterval is the time in second used to retrieve label and metrics from Prometheus
+	MetadataLookbackInterval model.Duration `yaml:"metadataLookbackInterval"`
 }
 
 // LogFormat is the type used for describing the format of logs.
@@ -55,7 +55,6 @@ var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
 	TextFormat: true,
 }
 
-// Parameterizable
 // UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	tmp := &Config{}
@@ -78,8 +77,8 @@ func (c *Config) unmarshalENV() error {
 		PrometheusURL string
 		// the envconfig lib is not able to convert an empty string to the value 0
 		// so we have to convert it manually
-		RESTAPIPort string
-		Interval    string
+		RESTAPIPort              string
+		MetadataLookbackInterval string
 	}{}
 	if err := envconfig.Process(prefix, conf); err != nil {
 		return err
@@ -91,9 +90,9 @@ func (c *Config) unmarshalENV() error {
 			return parseError
 		}
 	}
-	if len(conf.Interval) > 0 {
+	if len(conf.MetadataLookbackInterval) > 0 {
 		var parseError error
-		c.Interval, parseError = model.ParseDuration(conf.Interval)
+		c.MetadataLookbackInterval, parseError = model.ParseDuration(conf.MetadataLookbackInterval)
 		if parseError != nil {
 			return parseError
 		}
@@ -120,8 +119,8 @@ func (c *Config) Validate() error {
 		// default value
 		c.LogFormat = TextFormat
 	}
-	if c.Interval <= 0 {
-		c.Interval = defaultInterval
+	if c.MetadataLookbackInterval <= 0 {
+		c.MetadataLookbackInterval = defaultInterval
 	}
 
 	return nil
@@ -155,41 +154,91 @@ func readConfigFromENV() (*Config, error) {
 
 // DidChangeConfiguration is required by the protocol.Server interface.
 func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) error {
-	langserverAddressConfigPath := []string{"promql", "url"}
+	if params == nil {
+		return nil
+	}
+	// nolint: errcheck
+	s.client.LogMessage(
+		s.lifetime,
+		&protocol.LogMessageParams{
+			Type:    protocol.Info,
+			Message: fmt.Sprintf("Received notification change: %v\n", params),
+		})
 
-	if params != nil {
+	setting := params.Settings
+
+	// the struct expected is the following
+	// promql:
+	//   url: http://
+	//   interval: 3w
+	m, ok := setting.(map[string]map[string]string)
+	if !ok {
 		// nolint: errcheck
-		s.client.LogMessage(
-			s.lifetime,
-			&protocol.LogMessageParams{
-				Type:    protocol.Info,
-				Message: fmt.Sprintf("Received notification change: %v\n", params),
-			})
-
-		setting := params.Settings
-
-		for _, e := range langserverAddressConfigPath {
-			m, ok := setting.(map[string]interface{})
-			if !ok {
-				break
-			}
-
-			setting, ok = m[e]
-			if !ok {
-				break
-			}
-		}
-
-		if str, ok := setting.(string); ok {
-			if err := s.connectPrometheus(str); err != nil {
-				// nolint: errcheck
-				s.client.LogMessage(ctx, &protocol.LogMessageParams{
-					Type:    protocol.Info,
-					Message: err.Error(),
-				})
-			}
-		}
+		s.client.LogMessage(ctx, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprint("unexpected format of the configuration"),
+		})
+		return nil
+	}
+	config, ok := m["promql"]
+	if !ok {
+		// nolint: errcheck
+		s.client.LogMessage(ctx, &protocol.LogMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprint("promQL key not found"),
+		})
+		return nil
 	}
 
+	if err := s.setURLFromChangeConfiguration(config); err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(ctx, &protocol.LogMessageParams{
+			Type:    protocol.Info,
+			Message: err.Error(),
+		})
+	}
+
+	if err := s.setMetadataLookbackIntervalFromChangeConfiguration(config); err != nil {
+		// nolint: errcheck
+		s.client.LogMessage(ctx, &protocol.LogMessageParams{
+			Type:    protocol.Info,
+			Message: err.Error(),
+		})
+	}
+	return nil
+}
+
+func (s *server) setURLFromChangeConfiguration(settings map[string]string) error {
+	if promURL, ok := settings["url"]; ok {
+		if _, err := url.Parse(promURL); err != nil {
+			return err
+		}
+		if err := s.connectPrometheus(promURL); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *server) connectPrometheus(url string) error {
+	if err := s.metadataService.ChangeDataSource(url); err != nil {
+		// nolint: errcheck
+		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+			Type:    protocol.Error,
+			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
+		})
+		return err
+	}
+	return nil
+}
+
+func (s *server) setMetadataLookbackIntervalFromChangeConfiguration(settings map[string]string) error {
+	if interval, ok := settings["metadataLookbackInterval"]; ok {
+		duration, err := model.ParseDuration(interval)
+		if err != nil {
+			return err
+		}
+		s.config.MetadataLookbackInterval = duration
+	}
 	return nil
 }
