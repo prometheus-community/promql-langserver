@@ -32,6 +32,7 @@ import (
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
 	"github.com/go-kit/kit/log"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/fakenet"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
@@ -50,7 +51,7 @@ type HeadlessServer interface {
 
 // server is a language server instance that can connect to exactly one client.
 type server struct {
-	Conn   *jsonrpc2.Conn
+	Conn   jsonrpc2.Conn
 	client protocol.Client
 
 	state   serverState
@@ -164,12 +165,13 @@ func RunTCPServer(ctx context.Context, addr string, conf *config.Config) error {
 			return err
 		}
 
-		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn, conn), conf)
+		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn), conf)
 	}
 }
 
 // StdioServer generates a Server instance talking to stdio.
 func StdioServer(ctx context.Context, conf *config.Config) (context.Context, Server) {
-	stream := jsonrpc2.NewRawStream(os.Stdin, os.Stdout)
+	conn := fakenet.NewConn("stdio", os.Stdin, os.Stdout)
+	stream := jsonrpc2.NewRawStream(conn)
 	return ServerFromStream(ctx, stream, conf)
 }
