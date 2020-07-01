@@ -1,3 +1,4 @@
+event
 jsonrpc2
 lsp/debug/tag
 lsp/protocol
