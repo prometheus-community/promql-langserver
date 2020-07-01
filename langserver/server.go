@@ -175,6 +175,6 @@ func RunTCPServer(ctx context.Context, addr string, conf *config.Config) error {
 // StdioServer generates a Server instance talking to stdio.
 func StdioServer(ctx context.Context, conf *config.Config) (context.Context, Server) {
 	conn := fakenet.NewConn("stdio", os.Stdin, os.Stdout)
-	stream := jsonrpc2.NewRawStream(conn)
+	stream := jsonrpc2.NewHeaderStream(conn)
 	return ServerFromStream(ctx, stream, conf)
 }

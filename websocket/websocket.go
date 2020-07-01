@@ -21,6 +21,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/prometheus-community/promql-langserver/config"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
@@ -29,7 +30,7 @@ type wsConn struct {
 	*websocket.Conn
 }
 
-func (c wsConn) Read(ctx context.Context) ([]byte, int64, error) {
+func (c wsConn) Read(ctx context.Context) (jsonrpc2.Message, int64, error) {
 	// Returning an error on an expired context is important here.
 	// If that isn't done, the server won't stop after the connection
 	// has been closed.
