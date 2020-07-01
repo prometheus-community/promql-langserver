@@ -16,6 +16,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"go/token"
 	"sync"
 
@@ -56,7 +57,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {
-			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", err)
+			return nil, fmt.Errorf("%w: cache/addDocument: %v", jsonrpc2.ErrInternal, err)
 		}
 	}
 
@@ -90,7 +91,7 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentURI) (*DocumentHandle, 
 	ret, ok := c.documents[uri]
 
 	if !ok {
-		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
+		return nil, fmt.Errorf("%w:  cache/getDocument: Document not found: %v", jsonrpc2.ErrInternal, uri)
 	}
 
 	ret.mu.RLock()

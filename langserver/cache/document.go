@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"go/token"
 	"sync"
 
@@ -70,7 +71,7 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 	defer d.doc.mu.RUnlock()
 
 	if version <= d.doc.version {
-		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
+		return "", fmt.Errorf("%w, Update to file didn't increase version number", jsonrpc2.ErrInvalidParams)
 	}
 
 	content := []byte(d.doc.content)
@@ -92,12 +93,12 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 		}
 
 		if !spn.HasOffset() {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
+			return "", fmt.Errorf("%w: invalid range for content change", jsonrpc2.ErrInvalidParams)
 		}
 
 		start, end := spn.Start().Offset(), spn.End().Offset()
 		if end < start {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
+			return "", fmt.Errorf("%w: invalid range for content change", jsonrpc2.ErrInvalidParams)
 		}
 
 		var buf bytes.Buffer
@@ -120,11 +121,11 @@ func (d *DocumentHandle) SetContent(serverLifetime context.Context, content stri
 	defer d.doc.mu.Unlock()
 
 	if !new && version <= d.doc.version {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
+		return fmt.Errorf("%w: Update to file didn't increase version number", jsonrpc2.ErrInvalidParams)
 	}
 
 	if len(content) > maxDocumentSize {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/SetContent: Provided.document to large.")
+		return fmt.Errorf("%w: cache/SetContent: Provided.document to large.", jsonrpc2.ErrInvalidParams)
 	}
 
 	if !new {
