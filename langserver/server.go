@@ -106,19 +106,21 @@ func CreateHeadlessServer(ctx context.Context, metadataService promClient.Metada
 func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.Config) (context.Context, Server) {
 	s := &server{}
 
-	switch conf.LogFormat {
-	case config.TextFormat:
-		stream = protocol.LoggingStream(stream, os.Stderr)
-	case config.JSONFormat:
-		stream = jSONLogStream(stream, os.Stderr)
-	default:
-		err := fmt.Errorf("invalid log format: '%s'", conf.LogFormat)
-		// nolint: errcheck
-		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
-			Message: err.Error(),
-		})
-		panic(err)
+	if conf.ActivateRPCLog {
+		switch conf.LogFormat {
+		case config.TextFormat:
+			stream = protocol.LoggingStream(stream, os.Stderr)
+		case config.JSONFormat:
+			stream = jSONLogStream(stream, os.Stderr)
+		default:
+			err := fmt.Errorf("invalid log format: '%s'", conf.LogFormat)
+			// nolint: errcheck
+			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
+				Type:    protocol.Error,
+				Message: err.Error(),
+			})
+			panic(err)
+		}
 	}
 
 	s.Conn = jsonrpc2.NewConn(stream)

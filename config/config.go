@@ -66,9 +66,10 @@ var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
 
 // Config contains the configuration for a server.
 type Config struct {
-	LogFormat     LogFormat `yaml:"log_format"`
-	PrometheusURL string    `yaml:"prometheus_url"`
-	RESTAPIPort   uint64    `yaml:"rest_api_port"`
+	ActivateRPCLog bool      `yaml:"activate_rpc_log"`
+	LogFormat      LogFormat `yaml:"log_format"`
+	PrometheusURL  string    `yaml:"prometheus_url"`
+	RESTAPIPort    uint64    `yaml:"rest_api_port"`
 }
 
 // UnmarshalYAML overrides a function used internally by the yaml.v3 lib.
@@ -88,8 +89,9 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 func (c *Config) unmarshalENV() error {
 	prefix := "LANGSERVER"
 	conf := &struct {
-		LogFormat     string
-		PrometheusURL string
+		ActivateRPCLog bool
+		LogFormat      string
+		PrometheusURL  string
 		// the envconfig lib is not able to convert an empty string to the value 0
 		// so we have to convert it manually
 		RESTAPIPort string
@@ -104,6 +106,7 @@ func (c *Config) unmarshalENV() error {
 			return parseError
 		}
 	}
+	c.ActivateRPCLog = conf.ActivateRPCLog
 	c.PrometheusURL = conf.PrometheusURL
 	c.LogFormat = LogFormat(conf.LogFormat)
 	return c.Validate()
