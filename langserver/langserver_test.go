@@ -240,23 +240,28 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 
 // dummyStream is a fake jsonrpc2.Stream for Test purposes.
 type dummyStream struct {
-	readQueue []byte
+	readQueue *jsonrpc2.Message
 }
 
-func (d *dummyStream) Read(_ context.Context) ([]byte, int64, error) {
-	ret := d.readQueue
-	d.readQueue = []byte{}
+func (d *dummyStream) Read(_ context.Context) (jsonrpc2.Message, int64, error) {
+	defer func() {
+		d.readQueue = nil
+	}()
 
-	return ret, int64(len(ret)), nil
+	return *d.readQueue, 0, nil
 }
 
-func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
-	return int64(len(text)), nil
+func (d *dummyStream) Write(_ context.Context, text jsonrpc2.Message) (int64, error) {
+	return 0, nil
+}
+
+func (d *dummyStream) Close() error {
+	return nil
 }
 
 // Push adds a text to the readQueue.
-func (d *dummyStream) Push(text []byte) {
-	d.readQueue = append(d.readQueue, text...)
+func (d *dummyStream) Push(message jsonrpc2.Message) {
+	d.readQueue = &message
 }
 
 type dummyWriter struct{}
