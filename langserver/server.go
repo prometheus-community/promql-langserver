@@ -27,6 +27,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/prometheus-community/promql-langserver/config"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
@@ -136,7 +137,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 
 	// In order to have an error message in the IDE/editor, we are going to set the prometheusURL in the method server#Initialized.
 	s.prometheusURL = conf.PrometheusURL
-	prometheusClient, err := promClient.NewClient("")
+	prometheusClient, err := promClient.NewClient("", time.Duration(conf.MetadataLookbackInterval))
 	if err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{

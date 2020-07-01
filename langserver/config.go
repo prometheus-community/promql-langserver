@@ -17,8 +17,10 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus/common/model"
 )
 
 // DidChangeConfiguration is required by the protocol.Server interface.
@@ -67,13 +69,13 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 		})
 	}
 
-/*	if err := s.setMetadataLookbackIntervalFromChangeConfiguration(config); err != nil {
+	if err := s.setMetadataLookbackInterval(config); err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
 			Type:    protocol.Info,
 			Message: err.Error(),
 		})
-	}*/
+	}
 	return nil
 }
 
@@ -101,13 +103,13 @@ func (s *server) connectPrometheus(url string) error {
 	return nil
 }
 
-/*func (s *server) setMetadataLookbackIntervalFromChangeConfiguration(settings map[string]string) error {
+func (s *server) setMetadataLookbackInterval(settings map[string]string) error {
 	if interval, ok := settings["metadataLookbackInterval"]; ok {
 		duration, err := model.ParseDuration(interval)
 		if err != nil {
 			return err
 		}
-		s.config.MetadataLookbackInterval = duration
+		s.metadataService.SetLookbackInterval(time.Duration(duration))
 	}
 	return nil
-}*/
+}
