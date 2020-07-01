@@ -197,44 +197,44 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
+	_, err = s.IncomingCalls(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	_, err = s.OutgoingCalls(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	_, err = s.PrepareCallHierarchy(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	_, err = s.SemanticTokens(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	_, err = s.SemanticTokensEdits(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	_, err = s.SemanticTokensRange(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	err = s.WorkDoneProgressCancel(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 
+	err = s.WorkDoneProgressCreate(context.Background(), nil)
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
 	}
 }
 
