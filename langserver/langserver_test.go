@@ -25,7 +25,7 @@ import (
 )
 
 func isMethodNotFoundError(err error) bool {
-	return strings.Contains(err.Error(), jsonrpc2.ErrMethodNotFound.Error())
+	return err != nil && strings.Contains(err.Error(), "method not found")
 }
 
 // TestNotImplemented checks whether unimplemented functions return the approbiate Error.
@@ -117,11 +117,6 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
-	_, err = s.Definition(context.Background(), &protocol.DefinitionParams{})
-	if !isMethodNotFoundError(err) {
-		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
-
 	_, err = s.References(context.Background(), &protocol.ReferenceParams{})
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
@@ -143,11 +138,6 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	}
 
 	_, err = s.Symbol(context.Background(), &protocol.WorkspaceSymbolParams{})
-	if !isMethodNotFoundError(err) {
-		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
-
-	_, err = s.CodeLens(context.Background(), &protocol.CodeLensParams{})
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
@@ -178,11 +168,6 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	}
 
 	_, err = s.PrepareRename(context.Background(), &protocol.PrepareRenameParams{})
-	if !isMethodNotFoundError(err) {
-		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
-	}
-
-	_, err = s.DocumentLink(context.Background(), &protocol.DocumentLinkParams{})
 	if !isMethodNotFoundError(err) {
 		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
@@ -240,15 +225,10 @@ func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 
 // dummyStream is a fake jsonrpc2.Stream for Test purposes.
 type dummyStream struct {
-	readQueue *jsonrpc2.Message
 }
 
 func (d *dummyStream) Read(_ context.Context) (jsonrpc2.Message, int64, error) {
-	defer func() {
-		d.readQueue = nil
-	}()
-
-	return *d.readQueue, 0, nil
+	return nil, 0, nil
 }
 
 func (d *dummyStream) Write(_ context.Context, text jsonrpc2.Message) (int64, error) {
@@ -257,11 +237,6 @@ func (d *dummyStream) Write(_ context.Context, text jsonrpc2.Message) (int64, er
 
 func (d *dummyStream) Close() error {
 	return nil
-}
-
-// Push adds a text to the readQueue.
-func (d *dummyStream) Push(message jsonrpc2.Message) {
-	d.readQueue = &message
 }
 
 type dummyWriter struct{}
