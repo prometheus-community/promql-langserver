@@ -26,7 +26,6 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -38,6 +37,8 @@ import (
 // otherwise you need to provide your own implementation of the interface.
 //
 // The provided Logger should be synchronized.
+//
+// interval is the period of time (in second) used to retrieve data such as label and metrics from metrics.
 func CreateHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
 	return createHandler(ctx, metadataService, logger, false)
 }
@@ -53,10 +54,13 @@ func CreateHandler(ctx context.Context, metadataService promClient.MetadataServi
 // otherwise you need to provide your own implementation of the interface.
 //
 // The provided Logger should be synchronized.
+//
+// interval is the period of time (in second) used to retrieve data such as label and metrics from metrics.
 func CreateInstHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger) (http.Handler, error) {
 	return createHandler(ctx, metadataService, logger, true)
 }
-func createHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, metricsEnpoint bool) (http.Handler, error) {
+
+func createHandler(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, metricsEndpoint bool) (http.Handler, error) {
 	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
 	if err != nil {
 		return nil, err
@@ -64,7 +68,7 @@ func createHandler(ctx context.Context, metadataService promClient.MetadataServi
 
 	ls := &langserverHandler{langserver: lgs}
 	ls.m = make(map[string]http.Handler)
-	ls.createHandlers(metricsEnpoint)
+	ls.createHandlers(metricsEndpoint)
 
 	return ls, nil
 }

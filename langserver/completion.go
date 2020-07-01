@@ -20,7 +20,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -312,7 +311,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	if vs != nil {
 		metricName = vs.Name
 	}
-	allNames, err := s.metadataService.LabelNames(ctx, metricName, time.Now().Add(-100*time.Hour), time.Now())
+	allNames, err := s.metadataService.LabelNames(ctx, metricName)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -355,7 +354,7 @@ OUTER:
 
 // nolint: funlen
 func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, labelName string) error {
-	labelValues, err := s.metadataService.LabelValues(ctx, labelName, time.Now().Add(-100*time.Hour), time.Now())
+	labelValues, err := s.metadataService.LabelValues(ctx, labelName)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

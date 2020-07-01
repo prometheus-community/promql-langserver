@@ -16,6 +16,7 @@ activate_rpc_log: false # It's a boolean in order to activate or deactivate the 
 log_format: "text" # The format of the log printed. Possible value: json, text. Default value: "text"
 prometheus_url: "http://localhost:9090" # the HTTP URL of the prometheus server.
 rest_api_port: 8080 # When set, the server will be started as an HTTP server that provides a REST API instead of the language server protocol. Default value: 0
+metadata_lookback_interval: 2d # Interval used to retrieve data such as label and metrics from prometheus. Default value: 12h
 ```
 
 In case the file is not provided, it will read the configuration from the environment variables with the following structure:
@@ -23,8 +24,9 @@ In case the file is not provided, it will read the configuration from the enviro
 ```bash
 export LANGSERVER_ACTIVATERPCLOG="true"
 export LANGSERVER_PROMETHEUSURL="http://localhost:9090"
-export LANGSERVER_RESTAPIPORT"="8080"
-export LANGSERVER_LOGFORMAT"="json"
+export LANGSERVER_RESTAPIPORT="8080"
+export LANGSERVER_LOGFORMAT="json"
+export LANGSERVER_METADATALOOKBACKINTERVAL="1w"
 ```
 
 Note: documentation and default value are the same for both configuration (yaml and environment)
@@ -37,7 +39,8 @@ It has the following structure:
 ```json
 {
   "promql": {
-    "url": "http://localhost:9090" # the HTTP URL of the prometheus server.
+    "url": "http://localhost:9090", # the HTTP URL of the prometheus server.
+    "metadataLookbackInterval": "2h"
   }
 }
 ```

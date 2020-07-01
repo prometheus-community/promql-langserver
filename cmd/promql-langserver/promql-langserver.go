@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/prometheus-community/promql-langserver/config"
@@ -41,7 +42,7 @@ func main() {
 	}
 	if conf.RESTAPIPort != 0 {
 		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", conf.RESTAPIPort)
-		prometheusClient, err := promClient.NewClient(conf.PrometheusURL)
+		prometheusClient, err := promClient.NewClient(conf.PrometheusURL, time.Duration(conf.MetadataLookbackInterval))
 		if err != nil {
 			log.Fatal(err)
 		}

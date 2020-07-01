@@ -25,6 +25,7 @@ import (
 type compatibleHTTPClient struct {
 	MetadataService
 	prometheusClient v1.API
+	lookbackInterval time.Duration
 }
 
 func (c *compatibleHTTPClient) MetricMetadata(ctx context.Context, metric string) (v1.Metadata, error) {
@@ -46,13 +47,12 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string,
-	startTime time.Time, endTime time.Time) ([]string, error) {
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
 	if len(name) == 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx, startTime, endTime)
+		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, startTime, endTime)
+	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -70,14 +70,17 @@ func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string,
 	return result, nil
 }
 
-func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string,
-	startTime time.Time, endTime time.Time) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label, startTime, endTime)
+func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
+	values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
 	return values, err
 }
 
 func (c *compatibleHTTPClient) ChangeDataSource(_ string) error {
 	return fmt.Errorf("method not supported")
+}
+
+func (c *compatibleHTTPClient) SetLookbackInterval(interval time.Duration) {
+	c.lookbackInterval = interval
 }
 
 func (c *compatibleHTTPClient) GetURL() string {
