@@ -20,6 +20,7 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
@@ -52,7 +53,7 @@ func (s *server) DidClose(_ context.Context, params *protocol.DidCloseTextDocume
 func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
 	//options := s.session.Options()
 	if len(params.ContentChanges) < 1 {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "no content changes provided")
+		return fmt.Errorf("%w: no content changes provided", jsonrpc2.ErrInvalidParams)
 	}
 
 	uri := params.TextDocument.URI
