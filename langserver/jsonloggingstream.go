@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
+	"k8s.io/apimachinery/pkg/util/json"
 )
 
 type jsonLogStream struct {
@@ -82,9 +83,15 @@ func (s *jsonLogStream) log(msg jsonrpc2.Message, incoming bool) {
 		return
 	}
 
+	msgText, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
 	timestamp := time.Now().UnixNano() / 1000000
 	tmformat := time.Now().Format("03:04:15.000 PM")
 	// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
 	fmt.Fprintf(s.logWriter, `[LSP-%s] {"type":"%s","message":%s,"timestamp":%d}%s`,
-		tmformat, typ, msg, timestamp, " \r\n")
+		tmformat, typ, msgText, timestamp, " \r\n")
 }
