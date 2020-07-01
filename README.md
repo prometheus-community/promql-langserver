@@ -62,7 +62,7 @@ The following Language Clients have been tested with this language server. More 
 
 Feel free to reach out if you want to use it with another Editor/Tool.
 
-Reading this [documentation](./doc/developing_editor.md) can help you in your work
+Reading this [documentation](./doc/developing_editor.md) can help you in your work.
 
 ### VS Code
 
