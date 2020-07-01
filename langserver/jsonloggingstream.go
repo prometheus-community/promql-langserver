@@ -20,8 +20,9 @@ import (
 	"os"
 	"time"
 
+	"encoding/json"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"k8s.io/apimachinery/pkg/util/json"
 )
 
 type jsonLogStream struct {
