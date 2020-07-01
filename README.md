@@ -62,6 +62,8 @@ The following Language Clients have been tested with this language server. More 
 
 Feel free to reach out if you want to use it with another Editor/Tool.
 
+Reading this [documentation](./doc/developing_editor.md) can help you in your work.
+
 ### VS Code
 
 There exists a VS Code extension based on this language server: <https://github.com/slrtbtfs/vscode-prometheus>
@@ -100,3 +102,11 @@ The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
 
 1. Install package `LSP`, `LSP-promql` via `Package Control`.
 2. Follow the [installation instruction](https://github.com/nevill/lsp-promql#installation).
+
+## Contributing
+
+Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## License
+
+Apache License 2.0, see [LICENSE](./LICENSE).

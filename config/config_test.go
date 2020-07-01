@@ -1,4 +1,4 @@
-// Copyright 2019 The Prometheus Authors
+// Copyright 2020 The Prometheus Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package langserver
+package config
 
 import (
 	"os"
@@ -30,25 +30,24 @@ func TestUnmarshalENV(t *testing.T) {
 			title:     "empty config",
 			variables: map[string]string{},
 			expected: &Config{
-				LogFormat:                TextFormat,
-				MetadataLookbackInterval: defaultInterval,
+				ActivateRPCLog: false,
+				LogFormat:      TextFormat,
 			},
 		},
 		{
 			title: "full config",
 			variables: map[string]string{
-				"LANGSERVER_RPCTRACE":                 "text",
-				"LANGSERVER_PROMETHEUSURL":            "http://localhost:9090",
-				"LANGSERVER_RESTAPIPORT":              "8080",
-				"LANGSERVER_LOGFORMAT":                "json",
+				"LANGSERVER_ACTIVATERPCLOG": "true",
+				"LANGSERVER_PROMETHEUSURL":  "http://localhost:9090",
+				"LANGSERVER_RESTAPIPORT":    "8080",
+				"LANGSERVER_LOGFORMAT":      "json",
 				"LANGSERVER_METADATALOOKBACKINTERVAL": "1w",
 			},
 			expected: &Config{
-				RPCTrace:                 "text",
-				PrometheusURL:            "http://localhost:9090",
-				RESTAPIPort:              8080,
-				LogFormat:                JSONFormat,
-				MetadataLookbackInterval: 604800000000000,
+				ActivateRPCLog: true,
+				PrometheusURL:  "http://localhost:9090",
+				RESTAPIPort:    8080,
+				LogFormat:      JSONFormat,
 			},
 		},
 	}
