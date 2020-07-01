@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/prometheus-community/promql-langserver/config"
 	"github.com/prometheus-community/promql-langserver/langserver"
 )
 
@@ -95,7 +96,7 @@ func WebSocketHandler(addr string) (func(http.ResponseWriter, *http.Request), er
 
 		var s langserver.Server
 
-		_, s = langserver.ServerFromStream(ctx, wsConn{ws}, &langserver.Config{})
+		_, s = langserver.ServerFromStream(ctx, wsConn{ws}, &config.Config{LogFormat: config.TextFormat})
 
 		if err := s.Run(); err != nil {
 			// If the client disconnects, the above will fail
