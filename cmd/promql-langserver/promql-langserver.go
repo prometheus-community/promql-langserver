@@ -22,6 +22,7 @@ import (
 	"os"
 
 	kitlog "github.com/go-kit/kit/log"
+	"github.com/prometheus-community/promql-langserver/config"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
 	"github.com/prometheus-community/promql-langserver/langserver"
@@ -33,27 +34,27 @@ func main() {
 
 	flag.Parse()
 
-	config, err := langserver.ReadConfig(*configFilePath)
+	conf, err := config.ReadConfig(*configFilePath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error reading config file:", err.Error())
 		os.Exit(1)
 	}
-	if config.RESTAPIPort != 0 {
-		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", config.RESTAPIPort)
-		prometheusClient, err := promClient.NewClient(config.PrometheusURL)
+	if conf.RESTAPIPort != 0 {
+		fmt.Fprintln(os.Stderr, "REST API: Listening on port ", conf.RESTAPIPort)
+		prometheusClient, err := promClient.NewClient(conf.PrometheusURL)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		var logger kitlog.Logger
 
-		switch config.LogFormat {
-		case langserver.JSONFormat:
+		switch conf.LogFormat {
+		case config.JSONFormat:
 			logger = kitlog.NewJSONLogger(os.Stderr)
-		case langserver.TextFormat:
+		case config.TextFormat:
 			logger = kitlog.NewLogfmtLogger(os.Stderr)
 		default:
-			log.Fatalf(`invalid log format: "%s"`, config.LogFormat)
+			log.Fatalf(`invalid log format: "%s"`, conf.LogFormat)
 		}
 
 		logger = kitlog.NewSyncLogger(logger)
@@ -63,12 +64,12 @@ func main() {
 			log.Fatal(err)
 		}
 
-		err = http.ListenAndServe(fmt.Sprint(":", config.RESTAPIPort), handler)
+		err = http.ListenAndServe(fmt.Sprint(":", conf.RESTAPIPort), handler)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		_, s := langserver.StdioServer(context.Background(), config)
+		_, s := langserver.StdioServer(context.Background(), conf)
 		if err := s.Run(); err != nil {
 			log.Fatal(err)
 		}

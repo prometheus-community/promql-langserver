@@ -19,6 +19,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus-community/promql-langserver/config"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
@@ -264,7 +265,7 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	var stream jsonrpc2.Stream = &dummyStream{}
 	stream = jSONLogStream(stream, &dummyWriter{})
-	_, server := ServerFromStream(context.Background(), stream, &Config{})
+	_, server := ServerFromStream(context.Background(), stream, &config.Config{LogFormat: config.TextFormat})
 	s := server.server
 
 	// Initialize Server
