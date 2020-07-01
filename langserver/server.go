@@ -59,6 +59,10 @@ type server struct {
 	cache cache.DocumentCache
 
 	metadataService promClient.MetadataService
+	// prometheusURL is the url to the prometheus datasource
+	// this attribute shouldn't be used or set by other things except the configuration and the method server#Initialized
+	// it shouldn't be used basically when the server is used as an HTTP server
+	prometheusURL string
 
 	lifetime context.Context
 	exit     func()
@@ -130,7 +134,9 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
-	prometheusClient, err := promClient.NewClient(conf.PrometheusURL)
+	// In order to have an error message in the IDE/editor, we are going to set the prometheusURL in the method server#Initialized.
+	s.prometheusURL = conf.PrometheusURL
+	prometheusClient, err := promClient.NewClient("")
 	if err != nil {
 		// nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
