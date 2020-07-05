@@ -25,6 +25,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/prometheus-community/promql-langserver/config"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
+	"github.com/prometheus/common/route"
 
 	"github.com/prometheus-community/promql-langserver/langserver"
 	"github.com/prometheus-community/promql-langserver/rest"
@@ -59,13 +60,17 @@ func main() {
 		}
 
 		logger = kitlog.NewSyncLogger(logger)
-
-		handler, err := rest.CreateInstHandler(context.Background(), prometheusClient, logger)
+		// create the http router
+		router := route.New()
+		// create the api
+		api, err := rest.NewLangServerAPI(context.Background(), prometheusClient, logger, true)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		err = http.ListenAndServe(fmt.Sprint(":", conf.RESTAPIPort), handler)
+		// register the different route
+		api.Register(router, "")
+		// start the http server
+		err = http.ListenAndServe(fmt.Sprint(":", conf.RESTAPIPort), router)
 		if err != nil {
 			log.Fatal(err)
 		}
