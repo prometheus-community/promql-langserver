@@ -79,6 +79,16 @@ type API struct {
 	enableMetrics bool
 }
 
+// NewLangServerAPI create a new instance of the Stateless API to use the LangServer through HTTP.
+//
+// If metadata is fetched from a remote Prometheus, the metadataService
+// implementation from the promql-langserver/prometheus package can be used,
+// otherwise you need to provide your own implementation of the interface.
+//
+// The provided Logger should be synchronized.
+//
+// In case "enableMetrics" is set to true, endpoint /metrics is then available and a middleware that instrument the different endpoints provided is instantiated.
+// Don't use it in case you have already in place such middleware.
 func NewLangServerAPI(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, enableMetrics bool) (*API, error) {
 	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
 	if err != nil {
