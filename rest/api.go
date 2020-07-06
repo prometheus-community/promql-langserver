@@ -22,6 +22,8 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/route"
 )
 
@@ -73,6 +75,7 @@ func (d *lspData) returnPosition() (protocol.Position, error) {
 
 type API struct {
 	langServer    langserver.HeadlessServer
+	mdws          []middlewareFunc
 	enableMetrics bool
 }
 
@@ -81,8 +84,15 @@ func NewLangServerAPI(ctx context.Context, metadataService promClient.MetadataSe
 	if err != nil {
 		return nil, err
 	}
+	mdws := []middlewareFunc{manageDocumentMiddleware(lgs)}
+	if enableMetrics {
+		apiMetric := newAPIMetrics()
+		prometheus.MustRegister(apiMetric)
+		mdws = append(mdws, apiMetric.instrumentHTTPRequest)
+	}
 	return &API{
 		langServer:    lgs,
+		mdws:          mdws,
 		enableMetrics: enableMetrics,
 	}, nil
 }
@@ -93,10 +103,16 @@ func (a *API) Register(r *route.Router, prefix string) {
 	r.Post(prefix+"/completion", a.handle(a.completion))
 	r.Post(prefix+"/hover", a.handle(a.hover))
 	r.Post(prefix+"/signatureHelp", a.handle(a.signature))
+	if a.enableMetrics {
+		r.Get("/metrics", promhttp.Handler().ServeHTTP)
+	}
 }
 
 func (a *API) handle(h http.HandlerFunc) http.HandlerFunc {
-	endpoint := manageDocumentMiddleware(a.langServer)(h)
+	endpoint := h
+	for _, mdw := range a.mdws {
+		endpoint = mdw(endpoint)
+	}
 	return endpoint
 }
 

@@ -17,11 +17,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type key int
@@ -127,5 +129,62 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 			}()
 			next(w, r)
 		}
+	}
+}
+
+const (
+	defaultMetricNamespace = "langserver"
+	labelHandler           = "handler"
+)
+
+type apiMetrics struct {
+	totalHTTPRequest    *prometheus.CounterVec
+	durationHTTPRequest *prometheus.SummaryVec
+}
+
+func newAPIMetrics() *apiMetrics {
+	return &apiMetrics{
+		totalHTTPRequest: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: defaultMetricNamespace,
+			Name:      "http_request_total",
+			Help:      "Total of HTTP requests received by the API",
+		}, []string{labelHandler}),
+		durationHTTPRequest: prometheus.NewSummaryVec(prometheus.SummaryOpts{
+			Namespace: defaultMetricNamespace,
+			Name:      "http_request_duration_second",
+			Help:      "HTTP request latencies in second",
+		}, []string{labelHandler}),
+	}
+}
+
+func (m *apiMetrics) Collect(ch chan<- prometheus.Metric) {
+	m.totalHTTPRequest.Collect(ch)
+	m.durationHTTPRequest.Collect(ch)
+}
+
+func (m *apiMetrics) Describe(ch chan<- *prometheus.Desc) {
+	m.totalHTTPRequest.Describe(ch)
+	m.durationHTTPRequest.Describe(ch)
+}
+
+func (m *apiMetrics) instrumentHTTPRequest(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		// Call the next middleware.
+		// This middleware should be executed in the first in the chain of the middleware in order to have an accurate execution time.
+		next(w, r)
+
+		elaspsed := time.Since(start).Seconds()
+
+		counter, err := m.totalHTTPRequest.GetMetricWith(prometheus.Labels{labelHandler: r.URL.Path})
+		if err != nil {
+			return
+		}
+		counter.Inc()
+		sum, err := m.durationHTTPRequest.GetMetricWith(prometheus.Labels{labelHandler: r.URL.Path})
+		if err != nil {
+			return
+		}
+		sum.Observe(elaspsed)
 	}
 }
