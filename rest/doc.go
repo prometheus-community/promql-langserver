@@ -26,10 +26,10 @@ Supported endpoints:
 All endpoint are only available through the HTTP method POST. For each request, you have to provide the following JSON:
 
 {
-  "expr": "a promQL expression" # Mandatory for all available endpoint
-  "limit": 45 # Optional. It will be used only for the endpoint /diagnostics and /completion. It's the maximum number of result returned.
+  "expr": "a PromQL expression" # Mandatory for all available endpoints
+  "limit": 45  # Optional. It will be used only for the endpoints /diagnostics and /completion. It's the maximum number of result returned.
   "positionLine": 0 # Mandatory for the endpoints /signatureHelp, /hover and /completion. The line (0 based) for which the metadata is queried.
-  "positionChar": 2 # Mandatory for the endpoints /signatureHelp, /hover and /completion. The column (0 based) for which the metadata is queried. Characters are counted as UTF16 Codepoints.
+  "positionChar": 2 # Mandatory for the endpoints /signatureHelp, /hover and /completion. The column (0 based) for which the metadata is queried. Characters are counted as UTF-16 code points.
 }
 
 

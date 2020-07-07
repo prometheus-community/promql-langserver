@@ -46,7 +46,7 @@ func getRequestID(ctx context.Context) (protocol.DocumentURI, error) {
 	return "", fmt.Errorf("unable to retrieve the requestID")
 }
 
-// injectRequestData will create a new context and add to this new one the data passed as parameter.
+// injectRequestData will create a new context and add to this new one to the data passed as parameter.
 func injectRequestData(ctx context.Context, data *lspData) context.Context {
 	return context.WithValue(ctx, contextKeyRequestData, data)
 }
@@ -81,7 +81,7 @@ type middlewareFunc func(http.HandlerFunc) http.HandlerFunc
 func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			// start to generate an unique ID for the given request
+			// start to generate a unique ID for the given request
 			id, err := uuid.NewRandom()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +91,7 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 			// then inject it in the http request context
 			r = r.WithContext(injectRequestID(r.Context(), requestID))
 
-			// then unmarshall the body to the proper struct to be able to retrieve the promQL expr
+			// then unmarshal the body to the proper struct to be able to retrieve the PromQL expr
 			data := &lspData{}
 			if err := json.NewDecoder(r.Body).Decode(data); err != nil {
 				if err == io.EOF {

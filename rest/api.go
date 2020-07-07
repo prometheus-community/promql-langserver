@@ -37,13 +37,13 @@ func returnJSON(w http.ResponseWriter, content interface{}) {
 }
 
 type lspData struct {
-	// Expr is the promQL expression and is required for all endpoint available.
+	// Expr is the PromQL expression and is required for all endpoints available.
 	Expr string `json:"expr"`
-	// Limit is the number max of result returned to the client. It will be used for the autocompletion and the diagnostics.
+	// Limit is the maximum number of results returned to the client. It will be used for autocompletion and diagnostics.
 	Limit *uint64 `json:"limit,omitempty"`
 	// PositionLine is the number of the line for which the metadata is queried.
 	PositionLine *float64 `json:"positionLine,omitempty"`
-	// PositionChar for which the metadata is queried. Characters are counted as UTF16 Codepoints.
+	// PositionChar for which the metadata is queried. Characters are counted as UTF-16 code points.
 	PositionChar *float64 `json:"positionChar,omitempty"`
 }
 
@@ -54,7 +54,7 @@ func (d *lspData) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if len(tmp.Expr) == 0 {
-		return fmt.Errorf("promQL expression is not specified")
+		return fmt.Errorf("PromQL expression is not specified")
 	}
 	*d = tmp
 	return nil
@@ -73,13 +73,15 @@ func (d *lspData) returnPosition() (protocol.Position, error) {
 	}, nil
 }
 
+// API is the struct that manages the different endpoint provided by the langServer.
+// It also takes care of creating all necessary HTTP middleware.
 type API struct {
 	langServer    langserver.HeadlessServer
 	mdws          []middlewareFunc
 	enableMetrics bool
 }
 
-// NewLangServerAPI create a new instance of the Stateless API to use the LangServer through HTTP.
+// NewLangServerAPI creates a new instance of the Stateless API to use the LangServer through HTTP.
 //
 // If metadata is fetched from a remote Prometheus, the metadataService
 // implementation from the promql-langserver/prometheus package can be used,
@@ -87,8 +89,8 @@ type API struct {
 //
 // The provided Logger should be synchronized.
 //
-// In case "enableMetrics" is set to true, endpoint /metrics is then available and a middleware that instrument the different endpoints provided is instantiated.
-// Don't use it in case you have already in place such middleware.
+// In case "enableMetrics" is set to true, endpoint /metrics is then available and a middleware that instruments the different endpoints provided is instantiated.
+// Don't use it in case you already have such middleware in place.
 func NewLangServerAPI(ctx context.Context, metadataService promClient.MetadataService, logger log.Logger, enableMetrics bool) (*API, error) {
 	lgs, err := langserver.CreateHeadlessServer(ctx, metadataService, logger)
 	if err != nil {
