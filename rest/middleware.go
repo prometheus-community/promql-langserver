@@ -84,7 +84,7 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 			// start to generate an unique ID for the given request
 			id, err := uuid.NewRandom()
 			if err != nil {
-				http.Error(w, err.Error(), 500)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			requestID := protocol.DocumentURI(id.String())
@@ -96,10 +96,10 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 			if err := json.NewDecoder(r.Body).Decode(data); err != nil {
 				if err == io.EOF {
 					// this case is used just in order to have a proper error message instead of just "EOF"
-					http.Error(w, fmt.Sprint("body not present"), 400)
+					http.Error(w, fmt.Sprint("body not present"), http.StatusBadRequest)
 					return
 				}
-				http.Error(w, err.Error(), 400)
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 			// inject the data unmarshalled to avoid to have to decode it later

@@ -130,13 +130,13 @@ func (a *API) diagnostics(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, requestData, err := getRequestDataAndID(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	diagnostics, err := a.langServer.GetDiagnostics(requestID)
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), 500)
+		http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -153,12 +153,12 @@ func (a *API) hover(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, requestData, err := getRequestDataAndID(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	position, err := requestData.returnPosition()
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -171,7 +171,7 @@ func (a *API) hover(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -182,12 +182,12 @@ func (a *API) completion(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, requestData, err := getRequestDataAndID(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	position, err := requestData.returnPosition()
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -217,12 +217,12 @@ func (a *API) signature(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, requestData, err := getRequestDataAndID(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	position, err := requestData.returnPosition()
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
