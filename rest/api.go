@@ -71,7 +71,7 @@ func (d *lspData) position() (protocol.Position, error) {
 	}, nil
 }
 
-// API is the struct that manages the different endpoint provided by the langServer.
+// API is the struct that manages the different endpoints provided by the language server REST API.
 // It also takes care of creating all necessary HTTP middleware.
 type API struct {
 	langServer    langserver.HeadlessServer
