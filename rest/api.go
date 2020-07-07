@@ -27,12 +27,12 @@ import (
 	"github.com/prometheus/common/route"
 )
 
-func returnJSON(w http.ResponseWriter, content interface{}) {
+func respondJSON(w http.ResponseWriter, content interface{}) {
 	encoder := json.NewEncoder(w)
 
 	err := encoder.Encode(content)
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to write response").Error(), 500)
+		http.Error(w, errors.Wrapf(err, "failed to write response").Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -48,19 +48,17 @@ type lspData struct {
 }
 
 func (d *lspData) UnmarshalJSON(data []byte) error {
-	var tmp lspData
 	type plain lspData
-	if err := json.Unmarshal(data, (*plain)(&tmp)); err != nil {
+	if err := json.Unmarshal(data, (*plain)(d)); err != nil {
 		return err
 	}
-	if len(tmp.Expr) == 0 {
+	if len(d.Expr) == 0 {
 		return fmt.Errorf("PromQL expression is not specified")
 	}
-	*d = tmp
 	return nil
 }
 
-func (d *lspData) returnPosition() (protocol.Position, error) {
+func (d *lspData) position() (protocol.Position, error) {
 	if d.PositionLine == nil {
 		return protocol.Position{}, errors.New("positionLine is not specified")
 	}
@@ -148,7 +146,7 @@ func (a *API) diagnostics(w http.ResponseWriter, r *http.Request) {
 		items = items[:*limit]
 	}
 
-	returnJSON(w, items)
+	respondJSON(w, items)
 }
 
 func (a *API) hover(w http.ResponseWriter, r *http.Request) {
@@ -158,7 +156,7 @@ func (a *API) hover(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	position, err := requestData.returnPosition()
+	position, err := requestData.position()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -177,7 +175,7 @@ func (a *API) hover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnJSON(w, hover)
+	respondJSON(w, hover)
 }
 
 func (a *API) completion(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +185,7 @@ func (a *API) completion(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	position, err := requestData.returnPosition()
+	position, err := requestData.position()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -212,7 +210,7 @@ func (a *API) completion(w http.ResponseWriter, r *http.Request) {
 		items = items[:*limit]
 	}
 
-	returnJSON(w, items)
+	respondJSON(w, items)
 }
 
 func (a *API) signature(w http.ResponseWriter, r *http.Request) {
@@ -222,7 +220,7 @@ func (a *API) signature(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	position, err := requestData.returnPosition()
+	position, err := requestData.position()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -241,5 +239,5 @@ func (a *API) signature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnJSON(w, signature)
+	respondJSON(w, signature)
 }
