@@ -37,11 +37,11 @@ dockers:
     binaries:
       - promql-langserver
     image_templates:
-    - "docker.io/prometheuscommunity/promql_langserver:latest"
-    - "docker.io/prometheuscommunity/promql_langserver:{{ .Tag }}"
-    - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}"
-    - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}.{{ .Minor }}"
-    - "quay.io/prometheuscommunity/promql_langserver:latest"
-    - "quay.io/prometheuscommunity/promql_langserver:{{ .Tag }}"
-    - "quay.io/prometheuscommunity/promql_langserver:v{{ .Major }}"
-    - "quay.io/prometheuscommunity/promql_langserver:v{{ .Major }}.{{ .Minor }}"
+    - "docker.io/prometheuscommunity/promql-langserver:latest"
+    - "docker.io/prometheuscommunity/promql-langserver:{{ .Tag }}"
+    - "docker.io/prometheuscommunity/promql-langserver:v{{ .Major }}"
+    - "docker.io/prometheuscommunity/promql-langserver:v{{ .Major }}.{{ .Minor }}"
+    - "quay.io/prometheuscommunity/promql-langserver:latest"
+    - "quay.io/prometheuscommunity/promql-langserver:{{ .Tag }}"
+    - "quay.io/prometheuscommunity/promql-langserver:v{{ .Major }}"
+    - "quay.io/prometheuscommunity/promql-langserver:v{{ .Major }}.{{ .Minor }}"
