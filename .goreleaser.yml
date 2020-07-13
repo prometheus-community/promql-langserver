@@ -41,3 +41,7 @@ dockers:
     - "docker.io/prometheuscommunity/promql_langserver:{{ .Tag }}"
     - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}"
     - "docker.io/prometheuscommunity/promql_langserver:v{{ .Major }}.{{ .Minor }}"
+    - "quay.io/prometheuscommunity/promql_langserver:latest"
+    - "quay.io/prometheuscommunity/promql_langserver:{{ .Tag }}"
+    - "quay.io/prometheuscommunity/promql_langserver:v{{ .Major }}"
+    - "quay.io/prometheuscommunity/promql_langserver:v{{ .Major }}.{{ .Minor }}"
