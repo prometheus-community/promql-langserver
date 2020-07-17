@@ -50,13 +50,13 @@ func initializeFunctionDocumentation() http.FileSystem {
 func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil || location.Node == nil {
-		return nil, nil
+		return nil, err
 	}
 
 	markdown := s.nodeToDocMarkdown(ctx, location)
 	hoverRange, err := getEditRange(location, "")
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return &protocol.Hover{

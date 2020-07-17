@@ -22,20 +22,20 @@ import (
 )
 
 // SignatureHelp is required by the protocol.Server interface.
-func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
+func (s *server) SignatureHelp(_ context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	call, ok := location.Node.(*promql.Call)
 	if !ok {
-		return nil, nil
+		return nil, errors.New("no node find for the given query")
 	}
 
 	signature, err := getSignature(call.Func.Name)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	activeParameter := 0.

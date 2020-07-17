@@ -34,7 +34,7 @@ import (
 func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	ret = &protocol.CompletionList{}
