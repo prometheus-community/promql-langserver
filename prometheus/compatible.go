@@ -97,7 +97,6 @@ func (c *compatibleHTTPClient) LabelValues(
 	}
 
 	return result, nil
-
 }
 
 func (c *compatibleHTTPClient) ChangeDataSource(_ string) error {
