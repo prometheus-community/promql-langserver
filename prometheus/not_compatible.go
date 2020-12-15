@@ -57,15 +57,15 @@ func (c *notCompatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[st
 
 func (c *notCompatibleHTTPClient) LabelNames(
 	ctx context.Context,
-	selection model.LabelSet,
+	currLabelsSelected model.LabelSet,
 ) ([]string, error) {
-	if selection == nil {
+	if currLabelsSelected == nil {
 		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), selection)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +81,15 @@ func (c *notCompatibleHTTPClient) LabelNames(
 func (c *notCompatibleHTTPClient) LabelValues(
 	ctx context.Context,
 	label string,
-	selection model.LabelSet,
+	currLabelsSelected model.LabelSet,
 ) ([]model.LabelValue, error) {
-	if selection == nil {
+	if currLabelsSelected == nil {
 		values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return values, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), selection)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
 	if err != nil {
 		return nil, err
 	}
@@ -124,11 +124,11 @@ func uniqueLabelNameAndValues(
 	ctx context.Context,
 	prometheusClient v1.API,
 	start, end time.Time,
-	selection model.LabelSet,
+	currLabelsSelected model.LabelSet,
 ) (map[string]map[string]struct{}, error) {
 	metricName := ""
 	metricLabels := model.LabelSet{}
-	for k, v := range selection {
+	for k, v := range currLabelsSelected {
 		if k == model.MetricNameLabel {
 			metricName = string(v)
 		} else {
