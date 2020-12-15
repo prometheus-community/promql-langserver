@@ -47,32 +47,57 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
-	if len(name) == 0 {
+func (c *compatibleHTTPClient) LabelNames(
+	ctx context.Context,
+	selection model.LabelSet,
+) ([]string, error) {
+	if selection == nil {
 		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-1*c.lookbackInterval), time.Now())
+
+	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), selection)
 	if err != nil {
 		return nil, err
 	}
-	// subResult is used as a set of label. Like that we are sure we don't have any duplication
-	subResult := make(map[string]bool)
-	for _, ln := range labelNames {
-		for l := range ln {
-			subResult[string(l)] = true
-		}
-	}
-	result := make([]string, 0, len(subResult))
-	for l := range subResult {
+
+	result := make([]string, 0, len(labelNameAndValues))
+	for l := range labelNameAndValues {
 		result = append(result, l)
 	}
+
 	return result, nil
 }
 
-func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
-	return values, err
+func (c *compatibleHTTPClient) LabelValues(
+	ctx context.Context,
+	label string,
+	selection model.LabelSet,
+) ([]model.LabelValue, error) {
+	if selection == nil {
+		values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
+		return values, err
+	}
+
+	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), selection)
+	if err != nil {
+		return nil, err
+	}
+
+	labelValues, ok := labelNameAndValues[label]
+	if !ok {
+		return nil, nil
+	}
+
+	result := make([]model.LabelValue, 0, len(labelValues))
+	for l := range labelValues {
+		result = append(result, model.LabelValue(l))
+	}
+
+	return result, nil
+
 }
 
 func (c *compatibleHTTPClient) ChangeDataSource(_ string) error {

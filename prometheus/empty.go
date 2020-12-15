@@ -34,11 +34,11 @@ func (c *emptyHTTPClient) AllMetricMetadata(_ context.Context) (map[string][]v1.
 	return make(map[string][]v1.Metadata), nil
 }
 
-func (c *emptyHTTPClient) LabelNames(_ context.Context, _ string) ([]string, error) {
+func (c *emptyHTTPClient) LabelNames(_ context.Context, _ model.LabelSet) ([]string, error) {
 	return []string{}, nil
 }
 
-func (c *emptyHTTPClient) LabelValues(_ context.Context, _ string) ([]model.LabelValue, error) {
+func (c *emptyHTTPClient) LabelValues(_ context.Context, _ string, _ model.LabelSet) ([]model.LabelValue, error) {
 	return []model.LabelValue{}, nil
 }
 
