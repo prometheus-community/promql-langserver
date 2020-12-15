@@ -27,6 +27,7 @@ import (
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/labels"
 )
 
 var (
@@ -92,13 +93,13 @@ type MetadataService interface {
 	// AllMetricMetadata returns metadata about metrics currently scraped for all existing metrics.
 	AllMetricMetadata(ctx context.Context) (map[string][]v1.Metadata, error)
 	// LabelNames returns all the unique label names present in the block in sorted order.
-	// If currLabelsSelected is not nil, then it will return all unique label
+	// If currMatchers is not nil, then it will return all unique label
 	// names that are relevant to the currently specified labels for a query.
-	LabelNames(ctx context.Context, currLabelsSelected model.LabelSet) ([]string, error)
+	LabelNames(ctx context.Context, currMatchers []*labels.Matcher) ([]string, error)
 	// LabelValues performs a query for the values of the given label.
-	// If currLabelsSelected is not nil, then it will return all unique label
+	// If currMatchers is not nil, then it will return all unique label
 	// values that are relevant to the currently specified labels for a query.
-	LabelValues(ctx context.Context, label string, currLabelsSelected model.LabelSet) ([]model.LabelValue, error)
+	LabelValues(ctx context.Context, label string, currMatchers []*labels.Matcher) ([]model.LabelValue, error)
 	// ChangeDataSource is used if the prometheusURL is changing.
 	// The client should re init its own parameter accordingly if necessary
 	ChangeDataSource(prometheusURL string) error
@@ -144,16 +145,16 @@ func (c *httpClient) AllMetricMetadata(ctx context.Context) (map[string][]v1.Met
 	return c.subClient.AllMetricMetadata(ctx)
 }
 
-func (c *httpClient) LabelNames(ctx context.Context, currLabelsSelected model.LabelSet) ([]string, error) {
+func (c *httpClient) LabelNames(ctx context.Context, currMatchers []*labels.Matcher) ([]string, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelNames(ctx, currLabelsSelected)
+	return c.subClient.LabelNames(ctx, currMatchers)
 }
 
-func (c *httpClient) LabelValues(ctx context.Context, label string, currLabelsSelected model.LabelSet) ([]model.LabelValue, error) {
+func (c *httpClient) LabelValues(ctx context.Context, label string, currMatchers []*labels.Matcher) ([]model.LabelValue, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	return c.subClient.LabelValues(ctx, label, currLabelsSelected)
+	return c.subClient.LabelValues(ctx, label, currMatchers)
 }
 
 func (c *httpClient) GetURL() string {

@@ -25,6 +25,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/labels"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/sahilm/fuzzy"
@@ -316,25 +317,33 @@ func depthFirstVectorSelector(node promql.Node) (*promql.VectorSelector, bool) {
 	return nil, false
 }
 
-func labelsSelectionFromVectorSelector(vs *promql.VectorSelector) model.LabelSet {
+func matchersFromVectorSelector(vs *promql.VectorSelector) ([]*labels.Matcher, error) {
 	if vs == nil {
-		return nil
+		return nil, nil
 	}
-	selection := model.LabelSet{}
+	var matchers []*labels.Matcher
 	if vs.Name != "" {
-		selection[model.MetricNameLabel] = model.LabelValue(vs.Name)
+		m, err := labels.NewMatcher(labels.MatchEqual, model.MetricNameLabel, vs.Name)
+		if err != nil {
+			return nil, err
+		}
+		matchers = append(matchers, m)
 	}
-	for _, elem := range vs.LabelMatchers {
-		selection[model.LabelName(elem.Name)] = model.LabelValue(elem.Value)
+	for _, m := range vs.LabelMatchers {
+		matchers = append(matchers, m)
 	}
-	return selection
+	return matchers, nil
 }
 
 func (s *server) completeLabel(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, vs *promql.VectorSelector) error {
 	labelName := location.Node.(*promql.Item).Val
 
-	selection := labelsSelectionFromVectorSelector(vs)
-	allNames, err := s.metadataService.LabelNames(ctx, selection)
+	matchers, err := matchersFromVectorSelector(vs)
+	if err != nil {
+		return err
+	}
+
+	allNames, err := s.metadataService.LabelNames(ctx, matchers)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
@@ -383,15 +392,25 @@ func (s *server) completeLabelValue(
 	vs *promql.VectorSelector,
 ) error {
 	// Current selection from selector if not nil.
-	selection := labelsSelectionFromVectorSelector(vs)
-
-	// Delete the current label from selection, it is incomplete and we are
-	// trying to complete values for it.
-	if _, ok := selection[model.LabelName(labelName)]; ok {
-		delete(selection, model.LabelName(labelName))
+	matchers, err := matchersFromVectorSelector(vs)
+	if err != nil {
+		return err
 	}
 
-	labelValues, err := s.metadataService.LabelValues(ctx, labelName, selection)
+	// Delete the current label from matchers if present, it is incomplete and
+	// we are trying to complete values for it.
+	if len(matchers) != 0 {
+		filtering := matchers[:]
+		matchers = matchers[:0]
+		for _, m := range filtering {
+			if m.Name == labelName {
+				continue // Filter out.
+			}
+			matchers = append(matchers, m)
+		}
+	}
+
+	labelValues, err := s.metadataService.LabelValues(ctx, labelName, matchers)
 	if err != nil {
 		// nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{

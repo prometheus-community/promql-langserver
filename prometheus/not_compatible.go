@@ -15,10 +15,12 @@ package prometheus
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/labels"
 )
 
 // notCompatibleHTTPClient must be used to contact a distant prometheus with a version < v2.15.
@@ -57,15 +59,15 @@ func (c *notCompatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[st
 
 func (c *notCompatibleHTTPClient) LabelNames(
 	ctx context.Context,
-	currLabelsSelected model.LabelSet,
+	currMatchers []*labels.Matcher,
 ) ([]string, error) {
-	if currLabelsSelected == nil {
+	if len(currMatchers) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currMatchers)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +83,15 @@ func (c *notCompatibleHTTPClient) LabelNames(
 func (c *notCompatibleHTTPClient) LabelValues(
 	ctx context.Context,
 	label string,
-	currLabelsSelected model.LabelSet,
+	currMatchers []*labels.Matcher,
 ) ([]model.LabelValue, error) {
-	if currLabelsSelected == nil {
+	if len(currMatchers) == 0 {
 		values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return values, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currMatchers)
 	if err != nil {
 		return nil, err
 	}
@@ -123,24 +125,45 @@ func uniqueLabelNameAndValues(
 	ctx context.Context,
 	prometheusClient v1.API,
 	start, end time.Time,
-	currLabelsSelected model.LabelSet,
+	currMatchers []*labels.Matcher,
 ) (map[string]map[string]struct{}, error) {
-	metricName := ""
-	metricLabels := model.LabelSet{}
-	for k, v := range currLabelsSelected {
-		if k == model.MetricNameLabel {
-			metricName = string(v)
+	var (
+		metricName   string
+		metricLabels []*labels.Matcher
+	)
+	for _, matcher := range currMatchers {
+		if matcher.Name == model.MetricNameLabel {
+			metricName = string(matcher.Value)
 		} else {
-			metricLabels[k] = v
+			metricLabels = append(metricLabels, matcher)
 		}
 	}
 
-	match := metricName
+	var match strings.Builder
+	if _, err := match.WriteString(metricName); err != nil {
+		return nil, err
+	}
 	if len(metricLabels) > 0 {
-		match += metricLabels.String()
+		if _, err := match.WriteString("{"); err != nil {
+			return nil, err
+		}
+		for i, matcher := range metricLabels {
+			if i != 0 {
+				if _, err := match.WriteString(","); err != nil {
+					return nil, err
+				}
+			}
+			if _, err := match.WriteString(matcher.String()); err != nil {
+				return nil, err
+			}
+		}
+		if _, err := match.WriteString("}"); err != nil {
+			return nil, err
+		}
 	}
 
-	results, _, err := prometheusClient.Series(ctx, []string{match}, start, end)
+	results, _, err := prometheusClient.Series(ctx, []string{match.String()},
+		start, end)
 	if err != nil {
 		return nil, err
 	}

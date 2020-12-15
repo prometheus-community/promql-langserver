@@ -726,7 +726,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		require.Equal(t, expected, actual)
 	})
 
-	t.Run("completion label name: sum(metric_name{foo_name=\"foo_value\",baz_name=\"\"})", func(t *testing.T) {
+	t.Run("completion label name: sum(metric_name{foo_name=~\"foo_value\",baz_name=\"\"})", func(t *testing.T) {
 		// Apply a Full Change to the document.
 		err := s.server.DidChange(context.Background(),
 			&protocol.DidChangeTextDocumentParams{
@@ -735,7 +735,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 					{
 						Range:       nil,
 						RangeLength: 0,
-						Text:        "sum(metric_name{foo_name=\"foo_value\",baz_name=\"\"})",
+						Text:        "sum(metric_name{foo_name=~\"foo_value\",baz_name=\"\"})",
 					},
 				},
 			})
@@ -748,7 +748,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		metaServer.HandleFunc("/api/v1/series",
 			func(w http.ResponseWriter, r *http.Request) {
 				assert.NoError(t, r.ParseForm())
-				assert.Equal(t, []string{"metric_name{foo_name=\"foo_value\"}"}, r.Form["match[]"])
+				assert.Equal(t, []string{"metric_name{foo_name=~\"foo_value\"}"}, r.Form["match[]"])
 
 				json.NewEncoder(w).Encode(map[string]interface{}{
 					"status": "success",
@@ -788,7 +788,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		require.Equal(t, expected, actual)
 	})
 
-	t.Run("completion label name: sum(metric_name{foo_name=\"foo_value\"}) by ()", func(t *testing.T) {
+	t.Run("completion label name: sum(metric_name{foo_name=~\"foo_value\"}) by ()", func(t *testing.T) {
 		// Apply a Full Change to the document.
 		err := s.server.DidChange(context.Background(),
 			&protocol.DidChangeTextDocumentParams{
@@ -797,7 +797,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 					{
 						Range:       nil,
 						RangeLength: 0,
-						Text:        "sum(metric_name{foo_name=\"foo_value\"}) by ()",
+						Text:        "sum(metric_name{foo_name=~\"foo_value\"}) by ()",
 					},
 				},
 			})
@@ -810,7 +810,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		metaServer.HandleFunc("/api/v1/series",
 			func(w http.ResponseWriter, r *http.Request) {
 				assert.NoError(t, r.ParseForm())
-				assert.Equal(t, []string{"metric_name{foo_name=\"foo_value\"}"}, r.Form["match[]"])
+				assert.Equal(t, []string{"metric_name{foo_name=~\"foo_value\"}"}, r.Form["match[]"])
 
 				json.NewEncoder(w).Encode(map[string]interface{}{
 					"status": "success",
@@ -837,7 +837,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 					TextDocument: s.doc.ID(),
 					Position: protocol.Position{
 						Line:      0.0,
-						Character: 43.0,
+						Character: 44.0,
 					},
 				},
 			})

@@ -19,6 +19,7 @@ import (
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/labels"
 )
 
 // compatibleHTTPClient must be used to contact a distant prometheus with a version >= v2.15.
@@ -49,15 +50,15 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 
 func (c *compatibleHTTPClient) LabelNames(
 	ctx context.Context,
-	currLabelsSelected model.LabelSet,
+	currMatchers []*labels.Matcher,
 ) ([]string, error) {
-	if currLabelsSelected == nil {
+	if len(currMatchers) == 0 {
 		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currMatchers)
 	if err != nil {
 		return nil, err
 	}
@@ -73,15 +74,15 @@ func (c *compatibleHTTPClient) LabelNames(
 func (c *compatibleHTTPClient) LabelValues(
 	ctx context.Context,
 	label string,
-	currLabelsSelected model.LabelSet,
+	currMatchers []*labels.Matcher,
 ) ([]model.LabelValue, error) {
-	if currLabelsSelected == nil {
+	if len(currMatchers) == 0 {
 		values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return values, err
 	}
 
 	labelNameAndValues, err := uniqueLabelNameAndValues(ctx, c.prometheusClient,
-		time.Now().Add(-1*c.lookbackInterval), time.Now(), currLabelsSelected)
+		time.Now().Add(-1*c.lookbackInterval), time.Now(), currMatchers)
 	if err != nil {
 		return nil, err
 	}
