@@ -330,6 +330,10 @@ func matchersFromVectorSelector(vs *promql.VectorSelector) ([]*labels.Matcher, e
 		matchers = append(matchers, m)
 	}
 	for _, m := range vs.LabelMatchers {
+		if m == nil {
+			// Sometimes the label matcher is nil.
+			continue
+		}
 		if m.Name == model.MetricNameLabel {
 			// Only add the metric name label once, sometimes this is set
 			// just as name, sometimes as both name and as a matcher.
