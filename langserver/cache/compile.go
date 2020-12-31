@@ -93,8 +93,8 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 		return err
 	}
 
-	for _, e := range parseErr {
-		diagnostic, err := d.promQLErrToProtocolDiagnostic(pos, &e) //nolint:scopelint
+	for i := range parseErr {
+		diagnostic, err := d.promQLErrToProtocolDiagnostic(pos, &parseErr[i])
 		if err != nil {
 			return err
 		}
