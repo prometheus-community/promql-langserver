@@ -96,7 +96,7 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 			if err := json.NewDecoder(r.Body).Decode(data); err != nil {
 				if err == io.EOF {
 					// this case is used just in order to have a proper error message instead of just "EOF"
-					http.Error(w, fmt.Sprint("body not present"), http.StatusBadRequest)
+					http.Error(w, "body not present", http.StatusBadRequest)
 					return
 				}
 				http.Error(w, err.Error(), http.StatusBadRequest)

@@ -57,7 +57,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 		// nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
 			Type:    protocol.Error,
-			Message: fmt.Sprint("unable to serialize the configuration"),
+			Message: "unable to serialize the configuration",
 		})
 		return nil
 	}
