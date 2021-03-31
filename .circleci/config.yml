@@ -1,23 +1,17 @@
----
 version: 2.1
-
 # Whenever the versions here are increased, also increment the versions of the build caches
 executors:
   golang:
     docker:
       - image: circleci/golang:1.14-node
-
 jobs:
   test:
     executor: golang
-
     steps:
       - checkout
       - run: make test
-
   build:
     executor: golang
-
     steps:
       - checkout
       - setup_remote_docker
@@ -36,10 +30,8 @@ jobs:
           paths:
             - go/pkg
             - ~/.cache/go-build
-
   publish_release:
     executor: golang
-
     steps:
       - checkout
       - setup_remote_docker
@@ -50,71 +42,66 @@ jobs:
       - run: docker login quay.io -u $QUAY_LOGIN -p $QUAY_PASSWORD
       - run: cd ..; GO111MODULE=on go get github.com/goreleaser/goreleaser@v0.131.1
       - run: git reset --hard
-      - run: make release 
-
+      - run: make release
   check_repo_consistency:
     executor: golang
-    
     steps:
       - checkout
-    # - run: go get github.com/rakyll/statik@v0.1.7
-    # - run: make clean
-    # - run: make generated
-    # - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"
+      # - run: go get github.com/rakyll/statik@v0.1.7
+      # - run: make clean
+      # - run: make generated
+      # - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make generated' and commit again ; exit 1 )"
       - run: make fmt
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make fmt' and commit again ; exit 1 )"
       - run: make update_internal_packages
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'make update_internal_packages' and commit again ; exit 1 )"
       - run: go mod tidy
       - run: bash -c "[[ `(git diff ; git add -fAn) | wc -l` -eq 0 ]] || ( git --no-pager diff; git add -fAn; echo Please run 'go mod tidy' and commit again ; exit 1 )"
-
 workflows:
-    version: 2
-    default:
-      jobs:
-        - build
-        - test
-        - check_repo_consistency
-      
-    release:
-      jobs:
-        - build:
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-        - test:
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-        - check_repo_consistency:
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-        - hold:
-            type:
-              approval
-            requires:
-              - build
-              - test
-              - check_repo_consistency
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-      
-        - publish_release:
-            requires:
-              - hold
-            filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /v[0-9]+(\.[0-9]+)*(-.*)*/
-      
+  version: 2
+  default:
+    jobs:
+      - build
+      - test
+      - check_repo_consistency
+  release:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - test:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - check_repo_consistency:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - hold:
+          type: approval
+          requires:
+            - build
+            - test
+            - check_repo_consistency
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - publish_release:
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+orbs:
+  prometheus: prometheus/prometheus@0.11.0
