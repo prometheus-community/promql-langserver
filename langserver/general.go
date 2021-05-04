@@ -16,6 +16,7 @@ package langserver
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
@@ -28,7 +29,7 @@ func (s *server) Initialize(_ context.Context, _ *protocol.ParamInitialize) (*pr
 	defer s.stateMu.Unlock()
 
 	if s.state != serverCreated {
-		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
+		return nil, fmt.Errorf("%w: server already initialized", jsonrpc2.ErrInvalidRequest)
 	}
 
 	s.state = serverInitializing
@@ -93,7 +94,7 @@ func (s *server) Shutdown(_ context.Context) error {
 	defer s.stateMu.Unlock()
 
 	if s.state != serverInitialized {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not initialized")
+		return fmt.Errorf("%w: server not initialized", jsonrpc2.ErrInvalidRequest)
 	}
 
 	s.state = serverShutDown
@@ -108,7 +109,7 @@ func (s *server) Exit(_ context.Context) error {
 	defer s.stateMu.Unlock()
 
 	if s.state != serverShutDown {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not shutdown")
+		return fmt.Errorf("%w: server not shutdown", jsonrpc2.ErrInvalidRequest)
 	}
 
 	s.exit()

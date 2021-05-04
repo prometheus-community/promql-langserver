@@ -1,6 +1,9 @@
+event
+fakenet
 jsonrpc2
 lsp/debug/tag
 lsp/protocol
 span
+stack
 telemetry
 xcontext

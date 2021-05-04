@@ -33,6 +33,7 @@ import (
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 
 	"github.com/go-kit/kit/log"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/fakenet"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
@@ -51,7 +52,7 @@ type HeadlessServer interface {
 
 // server is a language server instance that can connect to exactly one client.
 type server struct {
-	Conn   *jsonrpc2.Conn
+	Conn   jsonrpc2.Conn
 	client protocol.Client
 
 	state   serverState
@@ -79,9 +80,10 @@ const (
 	serverShutDown
 )
 
-// Run starts the language server instance.
+// Run starts the language server instance
 func (s Server) Run() error {
-	return s.server.Conn.Run(s.server.lifetime)
+	<-s.server.Conn.Done()
+	return s.server.Conn.Err()
 }
 
 // CreateHeadlessServer creates a locked down server instance for the REST API.
@@ -131,7 +133,9 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 	s.Conn = jsonrpc2.NewConn(stream)
 	s.client = protocol.ClientDispatcher(s.Conn)
 
-	s.Conn.AddHandler(protocol.ServerHandler(s))
+	ctx = protocol.WithClient(ctx, s.client)
+
+	s.Conn.Go(ctx, protocol.ServerHandler(s, jsonrpc2.MethodNotFound))
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
@@ -165,12 +169,13 @@ func RunTCPServer(ctx context.Context, addr string, conf *config.Config) error {
 			return err
 		}
 
-		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn, conn), conf)
+		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn), conf)
 	}
 }
 
 // StdioServer generates a Server instance talking to stdio.
 func StdioServer(ctx context.Context, conf *config.Config) (context.Context, Server) {
-	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
+	conn := fakenet.NewConn("stdio", os.Stdin, os.Stdout)
+	stream := jsonrpc2.NewHeaderStream(conn)
 	return ServerFromStream(ctx, stream, conf)
 }

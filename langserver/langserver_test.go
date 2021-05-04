@@ -24,235 +24,219 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
+func isMethodNotFoundError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "method not found")
+}
+
 // TestNotImplemented checks whether unimplemented functions return the approbiate Error.
 func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
 	s := &server{}
 
 	err := s.DidChangeWorkspaceFolders(context.Background(), &protocol.DidChangeWorkspaceFoldersParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.DidSave(context.Background(), &protocol.DidSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.WillSave(context.Background(), &protocol.WillSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.DidChangeWatchedFiles(context.Background(), &protocol.DidChangeWatchedFilesParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.Progress(context.Background(), &protocol.ProgressParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.SelectionRange(context.Background(), &protocol.SelectionRangeParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.SetTraceNotification(context.Background(), &protocol.SetTraceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.LogTraceNotification(context.Background(), &protocol.LogTraceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Implementation(context.Background(), &protocol.ImplementationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.TypeDefinition(context.Background(), &protocol.TypeDefinitionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.DocumentColor(context.Background(), &protocol.DocumentColorParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.ColorPresentation(context.Background(), &protocol.ColorPresentationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.FoldingRange(context.Background(), &protocol.FoldingRangeParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.NonstandardRequest(context.Background(), "", nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Declaration(context.Background(), &protocol.DeclarationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.WillSaveWaitUntil(context.Background(), &protocol.WillSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Resolve(context.Background(), &protocol.CompletionItem{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
-	}
-
-	_, err = s.Definition(context.Background(), &protocol.DefinitionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.References(context.Background(), &protocol.ReferenceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.DocumentHighlight(context.Background(), &protocol.DocumentHighlightParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.DocumentSymbol(context.Background(), &protocol.DocumentSymbolParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.CodeAction(context.Background(), &protocol.CodeActionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Symbol(context.Background(), &protocol.WorkspaceSymbolParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
-	}
-
-	_, err = s.CodeLens(context.Background(), &protocol.CodeLensParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.ResolveCodeLens(context.Background(), &protocol.CodeLens{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Formatting(context.Background(), &protocol.DocumentFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.RangeFormatting(context.Background(), &protocol.DocumentRangeFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.OnTypeFormatting(context.Background(), &protocol.DocumentOnTypeFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.Rename(context.Background(), &protocol.RenameParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.PrepareRename(context.Background(), &protocol.PrepareRenameParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
-	}
-
-	_, err = s.DocumentLink(context.Background(), &protocol.DocumentLinkParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.ResolveDocumentLink(context.Background(), &protocol.DocumentLink{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.ExecuteCommand(context.Background(), &protocol.ExecuteCommandParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.IncomingCalls(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.OutgoingCalls(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.PrepareCallHierarchy(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.SemanticTokens(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.SemanticTokensEdits(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	_, err = s.SemanticTokensRange(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.WorkDoneProgressCancel(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 
 	err = s.WorkDoneProgressCreate(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
-		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
+	if !isMethodNotFoundError(err) {
+		panic("Expected a jsonrpc2 Error with that contains ErrMethodNotFound")
 	}
 }
 
 // dummyStream is a fake jsonrpc2.Stream for Test purposes.
 type dummyStream struct {
-	readQueue []byte
 }
 
-func (d *dummyStream) Read(_ context.Context) ([]byte, int64, error) {
-	ret := d.readQueue
-	d.readQueue = []byte{}
-
-	return ret, int64(len(ret)), nil
+func (d *dummyStream) Read(_ context.Context) (jsonrpc2.Message, int64, error) {
+	return nil, 0, nil
 }
 
-func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
-	return int64(len(text)), nil
+func (d *dummyStream) Write(_ context.Context, text jsonrpc2.Message) (int64, error) {
+	return 0, nil
 }
 
-// Push adds a text to the readQueue.
-func (d *dummyStream) Push(text []byte) {
-	d.readQueue = append(d.readQueue, text...)
+func (d *dummyStream) Close() error {
+	return nil
 }
 
 type dummyWriter struct{}

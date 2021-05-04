@@ -15,14 +15,14 @@ package langserver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
+	"encoding/json"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 type jsonLogStream struct {
@@ -38,29 +38,26 @@ func jSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
 	return ret
 }
 
-func (s *jsonLogStream) Read(ctx context.Context) ([]byte, int64, error) {
+func (s *jsonLogStream) Read(ctx context.Context) (jsonrpc2.Message, int64, error) {
 	data, count, err := s.mainStream.Read(ctx)
 	s.log(data, true)
 
 	return data, count, err
 }
 
-func (s *jsonLogStream) Write(ctx context.Context, data []byte) (int64, error) {
-	count, err := s.mainStream.Write(ctx, data)
-	s.log(data, false)
+func (s *jsonLogStream) Write(ctx context.Context, msg jsonrpc2.Message) (int64, error) {
+	count, err := s.mainStream.Write(ctx, msg)
+	s.log(msg, false)
 
 	return count, err
 }
 
-func getType(msg []byte, incoming bool) (string, error) {
-	var v protocol.Combined
+func (s *jsonLogStream) Close() error {
+	return s.mainStream.Close()
+}
 
+func getType(msg jsonrpc2.Message, incoming bool) (string, error) {
 	var msgType string
-
-	err := json.Unmarshal(msg, &v)
-	if err != nil {
-		return "", err
-	}
 
 	if incoming {
 		msgType = "send-"
@@ -68,20 +65,26 @@ func getType(msg []byte, incoming bool) (string, error) {
 		msgType = "receive-"
 	}
 
-	switch {
-	case v.ID != nil && v.Method != "" && (v.Params != nil || v.Method == "shutdown"):
+	switch msg.(type) {
+	case *jsonrpc2.Call:
 		msgType += "request"
-	case v.ID != nil && v.Method == "" && v.Params == nil:
+	case *jsonrpc2.Response:
 		msgType += "response"
-	default:
+	case *jsonrpc2.Notification:
 		msgType += "notification"
 	}
 
 	return msgType, nil
 }
 
-func (s *jsonLogStream) log(msg []byte, incoming bool) {
+func (s *jsonLogStream) log(msg jsonrpc2.Message, incoming bool) {
 	typ, err := getType(msg, incoming)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	msgText, err := json.Marshal(msg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -91,5 +94,5 @@ func (s *jsonLogStream) log(msg []byte, incoming bool) {
 	tmformat := time.Now().Format("03:04:15.000 PM")
 	// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
 	fmt.Fprintf(s.logWriter, `[LSP-%s] {"type":"%s","message":%s,"timestamp":%d}%s`,
-		tmformat, typ, msg, timestamp, " \r\n")
+		tmformat, typ, msgText, timestamp, " \r\n")
 }

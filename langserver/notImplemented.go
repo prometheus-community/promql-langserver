@@ -15,13 +15,14 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
-func notImplemented(method string) *jsonrpc2.Error {
-	err := jsonrpc2.NewErrorf(jsonrpc2.CodeMethodNotFound, "method %q no yet implemented", method)
+func notImplemented(method string) error {
+	err := fmt.Errorf("%w: method %q no yet implemented", jsonrpc2.ErrMethodNotFound, method)
 
 	return err
 }
