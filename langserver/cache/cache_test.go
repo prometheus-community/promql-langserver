@@ -16,6 +16,8 @@ package cache
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
@@ -265,4 +267,39 @@ groups:
 	if err == nil {
 		panic("File update without version update should have failed")
 	}
+}
+
+func TestCacheConcurrent(t *testing.T) {
+	c := &DocumentCache{}
+	c.Init()
+
+	docs := make([]*protocol.TextDocumentItem, 5)
+	for i := range docs {
+		docs[i] = &protocol.TextDocumentItem{
+			URI:        "test_file",
+			LanguageID: "yaml",
+			Version:    0,
+			Text:       "test_text",
+		}
+	}
+
+	// Add documents from multiple goroutines to trigger races.
+	var wg sync.WaitGroup
+	for i := 0; i < len(docs)*3; i++ {
+		go func(i int) {
+			doc := docs[i%len(docs)]
+			_, err := c.AddDocument(context.Background(), doc)
+			if err != nil && !strings.Contains(err.Error(), "already exists") {
+				t.Errorf("AddDocument failed with unexpected error: %v", err)
+				return
+			}
+
+			_, err = c.GetDocument(doc.URI)
+			if err != nil {
+				t.Error("GetDocument failed")
+				return
+			}
+		}(i)
+	}
+	wg.Wait()
 }

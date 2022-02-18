@@ -46,7 +46,7 @@ func (c *DocumentCache) Init() {
 //
 // This triggers async parsing of the document.
 func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protocol.TextDocumentItem) (*DocumentHandle, error) {
-	if _, ok := c.documents[doc.URI]; ok {
+	if _, err := c.GetDocument(doc.URI); err == nil {
 		return nil, errors.New("document already exists")
 	}
 
