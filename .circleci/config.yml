@@ -3,7 +3,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.14-node
+      - image: cimg/go:1.18
 jobs:
   test:
     executor: golang
