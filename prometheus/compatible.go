@@ -49,7 +49,7 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 
 func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
 	if len(name) == 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx, time.Now().Add(-1*c.lookbackInterval), time.Now())
+		names, _, err := c.prometheusClient.LabelNames(ctx, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
 	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-1*c.lookbackInterval), time.Now())
@@ -71,7 +71,7 @@ func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]s
 }
 
 func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label, time.Now().Add(-1*c.lookbackInterval), time.Now())
+	values, _, err := c.prometheusClient.LabelValues(ctx, label, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 	return values, err
 }
 
