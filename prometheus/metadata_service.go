@@ -31,7 +31,7 @@ import (
 
 var (
 	// defining this global variable will avoid to initialized it each time
-	// and it will crash immediately the server during the initialization in case the version is not well defined
+	// and it will crash immediately the server during the initialization in case the version is not well defined.
 	requiredVersion = semver.MustParse("2.15.0") // nolint: gochecknoglobals
 )
 

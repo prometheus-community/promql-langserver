@@ -31,7 +31,7 @@ import (
 )
 
 // Completion is required by the protocol.Server interface.
-func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) {
+func (s *server) Completion(ctx context.Context, params *protocol.CompletionParams) (ret *protocol.CompletionList, err error) { // nolint: gocognit
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
 	if err != nil {
 		return nil, nil
@@ -111,7 +111,7 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		item := protocol.CompletionItem{
 			Label:         match.Str,
 			SortText:      fmt.Sprintf("__3__%09d", match.Score),
-			Kind:          12, //Value
+			Kind:          12, // Value
 			Documentation: allMetadata[match.Str][0].Help,
 			Detail:        string(allMetadata[match.Str][0].Type),
 			TextEdit: &protocol.TextEdit{
