@@ -541,7 +541,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 	})
 
-	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[1].Label != "rate" {
 		fmt.Println(completion)
 		panic("Failed to get completion")
 	}
