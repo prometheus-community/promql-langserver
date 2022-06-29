@@ -17,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/prometheus/prometheus/util/testutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshalENV(t *testing.T) {
@@ -62,8 +62,8 @@ func TestUnmarshalENV(t *testing.T) {
 				os.Setenv(k, v)
 			}
 			conf, err := ReadConfig("")
-			testutil.Ok(t, err)
-			testutil.Equals(t, testSuite.expected, conf)
+			assert.NoError(t, err)
+			assert.Equal(t, testSuite.expected, conf)
 		})
 	}
 }
