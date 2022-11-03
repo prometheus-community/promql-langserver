@@ -9,8 +9,8 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.12.2
-	github.com/prometheus/common v0.35.0
+	github.com/prometheus/client_golang v1.13.1
+	github.com/prometheus/common v0.37.0
 	github.com/prometheus/prometheus v0.36.2
 	github.com/rakyll/statik v0.1.7
 	github.com/sahilm/fuzzy v0.1.0
