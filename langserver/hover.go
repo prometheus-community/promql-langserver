@@ -29,7 +29,7 @@ import (
 	"github.com/rakyll/statik/fs"
 
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	// Do not remove! Side effects of init() needed
+	// Do not remove! Side effects of init() needed.
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 )
 
@@ -68,7 +68,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 	}, nil
 }
 
-func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: funlen
+func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location) string { //nolint: funlen, gocognit
 	var ret bytes.Buffer
 
 	switch n := location.Node.(type) {
