@@ -33,7 +33,7 @@ import (
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 )
 
-//nolint: gochecknoglobals
+// nolint: gochecknoglobals
 var functionDocumentationFS = initializeFunctionDocumentation()
 
 func initializeFunctionDocumentation() http.FileSystem {
