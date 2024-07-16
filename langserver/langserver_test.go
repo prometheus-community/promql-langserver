@@ -25,7 +25,7 @@ import (
 )
 
 // TestNotImplemented checks whether unimplemented functions return the approbiate Error.
-func TestNotImplemented(*testing.T) { // nolint: gocognit, funlen, gocyclo
+func TestNotImplemented(*testing.T) { //nolint: gocognit, funlen, gocyclo
 	s := &server{}
 
 	err := s.DidChangeWorkspaceFolders(context.Background(), &protocol.DidChangeWorkspaceFoldersParams{})

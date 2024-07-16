@@ -7,44 +7,33 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - dogsled
     - errcheck
     - funlen
     - gochecknoinits
     - goconst
-    - gocritic
     - gocyclo
     - gofmt
     - goimports
-    - golint
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - misspell
-    - nakedret
-    - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
     - asciicheck
     - gochecknoglobals
-    - gocognit
     - godot
     - godox
-    - maligned
     - prealloc
   # don't enable:
   # - testpackage
@@ -53,3 +42,11 @@ linters:
   # - gomnd
   # - nestif
   # - goerr113
+  #
+linters-settings:
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: "golang.org/x/exp/slices"
+            desc: "Use 'slices' instead."

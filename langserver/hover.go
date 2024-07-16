@@ -29,7 +29,7 @@ import (
 	"github.com/rakyll/statik/fs"
 
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
-	// Do not remove! Side effects of init() needed
+	// Do not remove! Side effects of init() needed.
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 )
 
@@ -106,7 +106,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 		if metric != "" {
 			doc, err := s.getRecordingRuleDocs(location.Doc, metric)
 			if err != nil {
-				// nolint: errcheck
+				//nolint: errcheck
 				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 					Type:    protocol.Error,
 					Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
@@ -116,7 +116,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 			if doc == "" {
 				doc, err = s.getMetricDocs(ctx, metric)
 				if err != nil {
-					// nolint: errcheck
+					//nolint: errcheck
 					s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 						Type:    protocol.Error,
 						Message: errors.Wrapf(err, "failed to get metric data").Error(),
