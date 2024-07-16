@@ -22,7 +22,7 @@ import (
 	"os"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
+	kitlog "github.com/go-kit/log"
 	"github.com/prometheus-community/promql-langserver/config"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 	"github.com/prometheus/common/route"
@@ -70,7 +70,7 @@ func main() {
 		// register the different route
 		api.Register(router, "")
 		// start the http server
-		err = http.ListenAndServe(fmt.Sprint(":", conf.RESTAPIPort), router)
+		err = http.ListenAndServe(fmt.Sprint(":", conf.RESTAPIPort), router) //nolint: gosec
 		if err != nil {
 			log.Fatal(err)
 		}

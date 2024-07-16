@@ -14,7 +14,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strconv"
@@ -38,7 +37,7 @@ func ReadConfig(configFile string) (*Config, error) {
 }
 
 func readConfigFromYAML(configFile string) (*Config, error) {
-	b, err := ioutil.ReadFile(configFile)
+	b, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,7 @@ const (
 	TextFormat LogFormat = "text"
 )
 
-var mapLogFormat = map[LogFormat]bool{ // nolint: gochecknoglobals
+var mapLogFormat = map[LogFormat]bool{ //nolint: gochecknoglobals
 	JSONFormat: true,
 	TextFormat: true,
 }

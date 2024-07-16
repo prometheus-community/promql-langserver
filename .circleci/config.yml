@@ -3,7 +3,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: cimg/go:1.18
+      - image: cimg/go:1.22
 jobs:
   test:
     executor: golang
@@ -104,4 +104,4 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
 orbs:
-  prometheus: prometheus/prometheus@0.11.0
+  prometheus: prometheus/prometheus@0.17.1

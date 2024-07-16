@@ -50,7 +50,7 @@ func (s *server) DidClose(_ context.Context, params *protocol.DidCloseTextDocume
 // DidChange receives a call from the Client, telling that a files has been changed
 // required by the protocol.Server interface.
 func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
-	//options := s.session.Options()
+	// options := s.session.Options()
 	if len(params.ContentChanges) < 1 {
 		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "no content changes provided")
 	}

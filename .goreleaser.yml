@@ -18,6 +18,10 @@ builds:
     goarm:
       - 7
 
+    ignore:
+      - goos: windows
+        goarch: arm
+        goarm: 7
 
 archives:
 checksum:
