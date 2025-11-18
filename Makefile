@@ -6,6 +6,7 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
+GOLANGCI_LINT_VERSION ?= v2.6.0
 
 all: build test 
 
@@ -88,3 +89,7 @@ crossbuild:
 .PHONY: release
 release:
 	goreleaser
+
+.PHONY: golangci-lint-version
+golangci-lint-version:
+	@echo $(GOLANGCI_LINT_VERSION)
