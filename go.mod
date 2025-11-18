@@ -1,6 +1,6 @@
 module github.com/prometheus-community/promql-langserver
 
-go 1.21
+go 1.24.0
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
@@ -14,7 +14,7 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	gopkg.in/yaml.v3 v3.0.1
 )
 
