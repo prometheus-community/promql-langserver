@@ -1,52 +1,50 @@
-run:
-  skip-dirs:
-    - internal/vendored
+version: "2"
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
+  default: none
   enable:
+    - asciicheck
     - bodyclose
     - depguard
     - dogsled
     - errcheck
     - funlen
+    - gochecknoglobals
     - gochecknoinits
     - goconst
     - gocyclo
-    - gofmt
-    - goimports
+    - godot
+    - godox
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
+    - prealloc
     - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
-    - asciicheck
-    - gochecknoglobals
-    - godot
-    - godox
-    - prealloc
-  # don't enable:
-  # - testpackage
-  # - wsl
-  # - lll
-  # - gomnd
-  # - nestif
-  # - goerr113
-  #
-linters-settings:
-  depguard:
-    rules:
-      main:
-        deny:
-          - pkg: "golang.org/x/exp/slices"
-            desc: "Use 'slices' instead."
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: golang.org/x/exp/slices
+              desc: Use 'slices' instead.
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - internal/vendored
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
