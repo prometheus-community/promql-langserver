@@ -84,11 +84,11 @@ htmlcover:
 
 .PHONY: crossbuild
 crossbuild:
-	goreleaser --skip-publish --rm-dist --snapshot
+	goreleaser build --snapshot
 
 .PHONY: release
 release:
-	goreleaser
+	goreleaser release
 
 .PHONY: golangci-lint-version
 golangci-lint-version:
