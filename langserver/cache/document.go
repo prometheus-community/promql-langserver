@@ -131,7 +131,7 @@ func (d *DocumentHandle) SetContent(serverLifetime context.Context, content stri
 		d.doc.obsoleteVersion()
 	}
 
-	d.doc.versionCtx, d.doc.obsoleteVersion = context.WithCancel(serverLifetime)
+	d.doc.versionCtx, d.doc.obsoleteVersion = context.WithCancel(serverLifetime) //nolint:gosec
 
 	d.doc.content = content
 	d.doc.version = version
