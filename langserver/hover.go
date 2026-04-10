@@ -132,7 +132,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 	}
 
 	if expr, ok := location.Node.(promql.Expr); ok {
-		_, err := ret.WriteString(fmt.Sprintf("\n\n__PromQL Type:__ %s\n\n", promql.DocumentedType(expr.Type())))
+		_, err := fmt.Fprintf(&ret, "\n\n__PromQL Type:__ %s\n\n", promql.DocumentedType(expr.Type()))
 		if err != nil {
 			return ""
 		}
@@ -193,7 +193,7 @@ func funcDocStrings(name string) string {
 
 func (s *server) getMetricDocs(ctx context.Context, metric string) (string, error) {
 	var ret strings.Builder
-	ret.WriteString(fmt.Sprintf("### %s\n\n", metric))
+	fmt.Fprintf(&ret, "### %s\n\n", metric)
 
 	metadata, err := s.metadataService.MetricMetadata(ctx, metric)
 	if err != nil {
@@ -201,15 +201,15 @@ func (s *server) getMetricDocs(ctx context.Context, metric string) (string, erro
 	}
 
 	if len(metadata.Help) > 0 {
-		ret.WriteString(fmt.Sprintf("__Metric Help:__ %s\n\n", metadata.Help))
+		fmt.Fprintf(&ret, "__Metric Help:__ %s\n\n", metadata.Help)
 	}
 
 	if len(metadata.Type) > 0 {
-		ret.WriteString(fmt.Sprintf("__Metric Type:__  %s\n\n", metadata.Type))
+		fmt.Fprintf(&ret, "__Metric Type:__  %s\n\n", metadata.Type)
 	}
 
 	if len(metadata.Unit) > 0 {
-		ret.WriteString(fmt.Sprintf("__Metric Unit:__  %s\n\n", metadata.Unit))
+		fmt.Fprintf(&ret, "__Metric Unit:__  %s\n\n", metadata.Unit)
 	}
 
 	return ret.String(), nil

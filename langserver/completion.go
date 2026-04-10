@@ -452,15 +452,14 @@ func getEditRange(location *cache.Location, oldname string) (editRange protocol.
 // getMatches returns fuzzy matches for a slice of string and a pattern.
 func getMatches(pattern string, names []string) fuzzy.Matches {
 	if pattern == "" {
-		var matches fuzzy.Matches
+		matches := make(fuzzy.Matches, len(names))
 		sort.Strings(names)
 		for i, name := range names {
-			matches = append(matches,
-				fuzzy.Match{
-					Str:   name,
-					Index: i,
-					Score: len(names) - i,
-				})
+			matches[i] = fuzzy.Match{
+				Str:   name,
+				Index: i,
+				Score: len(names) - i,
+			}
 		}
 		return matches
 	}
