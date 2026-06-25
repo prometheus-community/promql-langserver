@@ -19,6 +19,9 @@ import (
 	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
+// yamlLanguageID is the language ID used for YAML documents.
+const yamlLanguageID = "yaml"
+
 // CompiledQuery stores the results of compiling one query.
 type CompiledQuery struct {
 	Pos     token.Pos
@@ -36,7 +39,7 @@ func (d *DocumentHandle) compile() error {
 	case "promql":
 		d.doc.compilers.Add(1)
 		return d.compileQuery(true, 0, 0, "")
-	case "yaml":
+	case yamlLanguageID:
 		err := d.parseYamls()
 		if err != nil {
 			return err

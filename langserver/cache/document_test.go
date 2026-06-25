@@ -51,7 +51,7 @@ func TestDocumentContext(t *testing.T) { //nolint: funlen
 	// Necessary since compile() will call d.compilers.Done()
 	d.doc.compilers.Add(1)
 
-	d.doc.languageID = "yaml"
+	d.doc.languageID = yamlLanguageID
 
 	if err := d.compile(); err == nil {
 		panic("Expecexpiredted compile to fail with expired context (languageID: promql)")
