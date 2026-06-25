@@ -90,6 +90,6 @@ crossbuild:
 release:
 	goreleaser release
 
-.PHONY: golangci-lint-version
-golangci-lint-version:
+.PHONY: print-golangci-lint-version
+print-golangci-lint-version:
 	@echo $(GOLANGCI_LINT_VERSION)
