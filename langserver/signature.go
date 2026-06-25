@@ -21,6 +21,17 @@ import (
 	promql "github.com/prometheus/prometheus/promql/parser"
 )
 
+// Parameter labels reused across multiple PromQL function signatures.
+const (
+	paramInstantVector     = "v instant-vector"
+	paramRangeVector       = "v range-vector"
+	paramVectorTimeInstant = "v=vector(time()) instant-vector"
+)
+
+// rateFuncName is the name of the PromQL rate function. It is also referenced
+// from the tests.
+const rateFuncName = "rate"
+
 // SignatureHelp is required by the protocol.Server interface.
 func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (*protocol.SignatureHelp, error) {
 	location, err := s.cache.Find(&params.TextDocumentPositionParams)
@@ -68,75 +79,75 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"abs": {
 			Label: "abs(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"absent": {
 			Label: "absent(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"ceil": {
 			Label: "ceil(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"clamp_max": {
 			Label: "clamp_max(v instant-vector, max scalar)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 				{Label: "max scalar"},
 			},
 		},
 		"clamp_min": {
 			Label: "clamp_min(v instant-vector, min scalar)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 				{Label: "min scalar"},
 			},
 		},
 		"day_of_month": {
 			Label: "day_of_month(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"day_of_week": {
 			Label: "day_of_week(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"day_in_month": {
 			Label: "day_in_month(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"delta": {
 			Label: "delta(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"deriv": {
 			Label: "deriv(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"exp": {
 			Label: "exp(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"floor": {
 			Label: "floor(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"histogram_quantile": {
@@ -149,7 +160,7 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"holt_winters": {
 			Label: "holt_winters(v range-vector, sf scalar, tf scalar)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 				{Label: "sf scalar"},
 				{Label: "tf scalar"},
 			},
@@ -157,31 +168,31 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"hour": {
 			Label: "hour(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"idelta": {
 			Label: "idelta(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"increase": {
 			Label: "increase(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"irate": {
 			Label: "irate(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"label_join": {
 			Label: "label_join(v instant-vector, dst_label string, separator string, src_label_1 string, src_label_2 string, ...)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 				{Label: "dst_label string"},
 				{Label: "separator string"},
 				{Label: "src_label_1 string"},
@@ -192,7 +203,7 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"label_replace": {
 			Label: "label_replace(v instant-vector, dst_label string, replacement string, src_label string, regex string)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 				{Label: "dst_label string"},
 				{Label: "replacement string"},
 				{Label: "src_label string"},
@@ -202,75 +213,75 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"ln": {
 			Label: "ln(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"log2": {
 			Label: "log2(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"log10": {
 			Label: "log10(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"minute": {
 			Label: "minute(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"month": {
 			Label: "month(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"predict_linear": {
 			Label: "predict_linear(v range-vector, t scalar)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 				{Label: "t scalar"},
 			},
 		},
 		"rate": {
 			Label: "rate(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"resets": {
 			Label: "resets(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"round": {
 			Label: "round(v instant-vector, to_nearest=1 scalar)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 				{Label: " to_nearest=1 scalar"},
 			},
 		},
 		"scalar": {
 			Label: "scalar(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"sort": {
 			Label: "sort(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"sort_desc": {
 			Label: "sort_desc(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"time": {
@@ -280,7 +291,7 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"timestamp": {
 			Label: "timestamp(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v instant-vector"},
+				{Label: paramInstantVector},
 			},
 		},
 		"vector": {
@@ -292,56 +303,56 @@ func getSignature(name string) (protocol.SignatureInformation, error) {
 		"year": {
 			Label: "year(v=vector(time()) instant-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v=vector(time()) instant-vector"},
+				{Label: paramVectorTimeInstant},
 			},
 		},
 		"avg_over_time": {
 			Label: "avg_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"sum_over_time": {
 			Label: "sum_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"min_over_time": {
 			Label: "min_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"max_over_time": {
 			Label: "max_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"count_over_time": {
 			Label: "count_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"stddev_over_time": {
 			Label: "stddev_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"stdvar_over_time": {
 			Label: "stdvar_over_time(v range-vector)",
 			Parameters: []protocol.ParameterInformation{
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 		"qunatile_over_time": {
 			Label: "quantile_over_time(s scalar, v range-vector)",
 			Parameters: []protocol.ParameterInformation{
 				{Label: "s scalar"},
-				{Label: "v range-vector"},
+				{Label: paramRangeVector},
 			},
 		},
 	}

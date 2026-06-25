@@ -23,6 +23,13 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
+// Document URIs and contents reused across the cache tests.
+const (
+	testFileURI  = "test_file"
+	testText     = "test_text"
+	rulesFileURI = "rules_file"
+)
+
 func TestCache(t *testing.T) { //nolint:funlen
 	c := &DocumentCache{}
 
@@ -31,10 +38,10 @@ func TestCache(t *testing.T) { //nolint:funlen
 	doc, err := c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
-			URI:        "test_file",
-			LanguageID: "yaml",
+			URI:        testFileURI,
+			LanguageID: yamlLanguageID,
 			Version:    0,
-			Text:       "test_text",
+			Text:       testText,
 		})
 	if err != nil {
 		panic("Failed to AddDocument() to cache")
@@ -44,16 +51,16 @@ func TestCache(t *testing.T) { //nolint:funlen
 		context.Background(),
 		&protocol.TextDocumentItem{
 
-			URI:        "test_file",
-			LanguageID: "yaml",
+			URI:        testFileURI,
+			LanguageID: yamlLanguageID,
 			Version:    1,
-			Text:       "test_text",
+			Text:       testText,
 		})
 	if err == nil {
 		panic("Should not be able to add same document twice")
 	}
 
-	doc1, err := c.GetDocument("test_file")
+	doc1, err := c.GetDocument(testFileURI)
 	if err != nil {
 		panic("Failed to GetDocument() from cache")
 	}
@@ -62,12 +69,12 @@ func TestCache(t *testing.T) { //nolint:funlen
 		panic("Cache returned wrong document")
 	}
 
-	err = c.RemoveDocument("test_file")
+	err = c.RemoveDocument(testFileURI)
 	if err != nil {
 		panic("Failed to RemoveDocument() from cache")
 	}
 
-	err = c.RemoveDocument("test_file")
+	err = c.RemoveDocument(testFileURI)
 	if err == nil {
 		panic("should have failed to RemoveDocument() twice")
 	}
@@ -76,8 +83,8 @@ func TestCache(t *testing.T) { //nolint:funlen
 		context.Background(),
 		&protocol.TextDocumentItem{
 
-			URI:        "test_file",
-			LanguageID: "yaml",
+			URI:        testFileURI,
+			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       "test_text:",
 		})
@@ -92,7 +99,7 @@ func TestCache(t *testing.T) { //nolint:funlen
 		&protocol.TextDocumentItem{
 
 			URI:        "wrong_yaml_file",
-			LanguageID: "yaml",
+			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       wrongYaml,
 		})
@@ -126,8 +133,8 @@ groups:
 		context.Background(),
 		&protocol.TextDocumentItem{
 
-			URI:        "rules_file",
-			LanguageID: "yaml",
+			URI:        rulesFileURI,
+			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       rulesFile,
 		})
@@ -135,7 +142,7 @@ groups:
 		panic("adding rules file failed")
 	}
 
-	doc, err = c.GetDocument("rules_file")
+	doc, err = c.GetDocument(rulesFileURI)
 	if err != nil {
 		panic("failed to get rules file")
 	}
@@ -172,7 +179,7 @@ groups:
 
 	_, err = c.Find(&protocol.TextDocumentPositionParams{
 		TextDocument: protocol.TextDocumentIdentifier{
-			URI: "rules_file",
+			URI: rulesFileURI,
 		},
 		Position: protocol.Position{
 			Line:      5,
@@ -185,7 +192,7 @@ groups:
 
 	_, err = c.Find(&protocol.TextDocumentPositionParams{
 		TextDocument: protocol.TextDocumentIdentifier{
-			URI: "rules_file",
+			URI: rulesFileURI,
 		},
 		Position: protocol.Position{
 			Line:      4,
@@ -276,10 +283,10 @@ func TestCacheConcurrent(t *testing.T) {
 	docs := make([]*protocol.TextDocumentItem, 5)
 	for i := range docs {
 		docs[i] = &protocol.TextDocumentItem{
-			URI:        "test_file",
-			LanguageID: "yaml",
+			URI:        testFileURI,
+			LanguageID: yamlLanguageID,
 			Version:    0,
-			Text:       "test_text",
+			Text:       testText,
 		}
 	}
 

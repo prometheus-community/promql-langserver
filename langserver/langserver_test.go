@@ -24,6 +24,9 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
+// testDocumentURI is the document URI used throughout the language server tests.
+const testDocumentURI = "test.promql"
+
 // TestNotImplemented checks whether unimplemented functions return the approbiate Error.
 func TestNotImplemented(*testing.T) { //nolint: gocognit, funlen, gocyclo
 	s := &server{}
@@ -292,7 +295,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	// Add a document to the server
 	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{
-			URI:        "test.promql",
+			URI:        testDocumentURI,
 			LanguageID: "promql",
 			Version:    0,
 			Text:       "",
@@ -307,7 +310,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 2,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -325,7 +328,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	hover, err := s.Hover(context.Background(), &protocol.HoverParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0.0,
@@ -348,7 +351,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 3,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -366,7 +369,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0.0,
@@ -388,7 +391,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 4,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -413,7 +416,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	}
 
 	// Wait for diagnostics
-	doc, err := s.cache.GetDocument("test.promql")
+	doc, err := s.cache.GetDocument(testDocumentURI)
 	if err != nil {
 		panic("Failed to get document")
 	}
@@ -427,7 +430,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 5,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -452,7 +455,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	}
 
 	// Wait for diagnostics
-	doc, err = s.cache.GetDocument("test.promql")
+	doc, err = s.cache.GetDocument(testDocumentURI)
 	if err != nil {
 		panic("Failed to get document")
 	}
@@ -477,7 +480,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 6,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -495,7 +498,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	completion, err := s.Completion(context.Background(), &protocol.CompletionParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0.0,
@@ -504,7 +507,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 	})
 
-	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != "rate" {
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[0].Label != rateFuncName {
 		fmt.Println(completion)
 		panic("Failed to get completion")
 	}
@@ -514,7 +517,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		TextDocument: protocol.VersionedTextDocumentIdentifier{
 			Version: 7,
 			TextDocumentIdentifier: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
@@ -532,7 +535,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	completion, err = s.Completion(context.Background(), &protocol.CompletionParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0.0,
@@ -541,7 +544,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 	})
 
-	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[1].Label != "rate" {
+	if err != nil || completion == nil || len(completion.Items) == 0 || completion.Items[1].Label != rateFuncName {
 		fmt.Println(completion)
 		panic("Failed to get completion")
 	}
@@ -549,14 +552,14 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	// Close a document
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
-			URI: "test.promql",
+			URI: testDocumentURI,
 		},
 	})
 	if err != nil {
 		panic("Failed to close document")
 	}
 
-	_, err = s.cache.GetDocument("test.promql")
+	_, err = s.cache.GetDocument(testDocumentURI)
 	if err == nil {
 		panic("getting a closed document should have failed")
 	}
@@ -564,7 +567,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	// Close a document twice
 	err = s.DidClose(context.Background(), &protocol.DidCloseTextDocumentParams{
 		TextDocument: protocol.TextDocumentIdentifier{
-			URI: "test.promql",
+			URI: testDocumentURI,
 		},
 	})
 	if err == nil {
@@ -574,7 +577,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	// Reopen a closed document
 	err = s.DidOpen(context.Background(), &protocol.DidOpenTextDocumentParams{
 		TextDocument: protocol.TextDocumentItem{
-			URI:        "test.promql",
+			URI:        testDocumentURI,
 			LanguageID: "promql",
 			Version:    0,
 			Text:       "abs()",
@@ -587,7 +590,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	signature, err := s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      1.0,
@@ -608,7 +611,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	signature, err = s.SignatureHelp(context.Background(), &protocol.SignatureHelpParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0,
@@ -629,7 +632,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 	hover, err = s.Hover(context.Background(), &protocol.HoverParams{
 		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
 			TextDocument: protocol.TextDocumentIdentifier{
-				URI: "test.promql",
+				URI: testDocumentURI,
 			},
 			Position: protocol.Position{
 				Line:      0.0,
