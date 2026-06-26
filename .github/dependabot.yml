@@ -1,21 +1,14 @@
 version: 2
 updates:
-- package-ecosystem: gomod
-  directory: "/"
-  schedule:
-    interval: monthly
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: github.com/prometheus/common
-    versions:
-    - 0.16.0
-    - 0.17.0
-    - 0.18.0
-    - 0.19.0
-    - 0.20.0
-    - 0.21.0
-- package-ecosystem: github-actions
-  directory: "/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: monthly
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+      # Exclude configs synced from upstream prometheus/prometheus.
+    exclude-paths:
+      - .github/workflows/container_description.yml
+      - .github/workflows/golangci-lint.yml
