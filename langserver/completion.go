@@ -26,6 +26,7 @@ import (
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	promql "github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/promql/parser/posrange"
 	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/sahilm/fuzzy"
 )
@@ -235,7 +236,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 		lastItem = item
 		l.NextItem(&item)
 
-		if overscan := item.Pos + offset + promql.Pos(location.Query.Pos) - promql.Pos(location.Pos); overscan >= 0 {
+		if overscan := item.Pos + offset + posrange.Pos(location.Query.Pos) - posrange.Pos(location.Pos); overscan >= 0 {
 			item = lastItem
 			break
 		}
@@ -298,7 +299,7 @@ func (s *server) completeLabels(ctx context.Context, completions *[]protocol.Com
 	}
 
 	if item.Typ == promql.EQL || item.Typ == promql.NEQ {
-		loc.Node = &promql.Item{Pos: item.Pos + promql.Pos(len(item.Val))}
+		loc.Node = &promql.Item{Pos: item.Pos + posrange.Pos(len(item.Val))}
 		return s.completeLabelValue(ctx, completions, &loc, lastLabel)
 	}
 
