@@ -81,7 +81,9 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 		return expired
 	}
 
-	ast, err := promql.ParseExpr(content)
+	parser := promql.NewParser(promql.Options{})
+
+	ast, err := parser.ParseExpr(content)
 
 	var parseErr promql.ParseErrors
 

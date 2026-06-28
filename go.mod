@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.69.0
-	github.com/prometheus/prometheus v0.310.0
+	github.com/prometheus/prometheus v0.312.0
 	github.com/rakyll/statik v0.1.8
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/stretchr/testify v1.11.1

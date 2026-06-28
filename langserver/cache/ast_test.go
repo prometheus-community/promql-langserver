@@ -36,8 +36,10 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 		},
 	}
 
+	parser := promql.NewParser(promql.Options{})
+
 	for _, test := range shouldMatchFull {
-		parseResult, err := promql.ParseExpr(test.input)
+		parseResult, err := parser.ParseExpr(test.input)
 		if err != nil {
 			panic("Parser should not have failed on " + test.input)
 		}
@@ -261,7 +263,7 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 	}
 
 	for _, test := range testExpressions {
-		parseResult, _ := promql.ParseExpr(test)
+		parseResult, _ := parser.ParseExpr(test)
 
 		for pos := 1; pos <= len(test)+1; pos++ {
 			node := getSmallestSurroundingNode(&CompiledQuery{Ast: parseResult}, token.Pos(pos))
