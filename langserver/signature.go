@@ -19,6 +19,7 @@ import (
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/promql/parser/posrange"
 )
 
 // Parameter labels reused across multiple PromQL function signatures.
@@ -52,7 +53,7 @@ func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 	activeParameter := 0.
 
 	for i, arg := range call.Args {
-		if arg != nil && arg.PositionRange().End < promql.Pos(location.Pos-location.Query.Pos) {
+		if arg != nil && arg.PositionRange().End < posrange.Pos(location.Pos-location.Query.Pos) {
 			activeParameter = float64(i) + 1
 		}
 	}

@@ -17,6 +17,7 @@ import (
 	"go/token"
 
 	promql "github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/promql/parser/posrange"
 )
 
 // getSmallestSurroundingNode searches the syntax tree of the provided PromQL
@@ -24,7 +25,7 @@ import (
 func getSmallestSurroundingNode(query *CompiledQuery, tokenPos token.Pos) promql.Node {
 	ast := query.Ast
 
-	pos := promql.Pos(tokenPos - query.Pos)
+	pos := posrange.Pos(tokenPos - query.Pos)
 
 	if ast == nil || pos < ast.PositionRange().Start || pos > ast.PositionRange().End {
 		return nil
