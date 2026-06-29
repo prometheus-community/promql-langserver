@@ -30,10 +30,10 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 
 	"github.com/prometheus-community/promql-langserver/config"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 )

@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/rakyll/statik/fs"
+	"go.lsp.dev/protocol"
 
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache" //nolint:goimports
