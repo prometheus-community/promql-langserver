@@ -21,9 +21,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type key int

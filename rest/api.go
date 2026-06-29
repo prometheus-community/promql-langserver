@@ -19,12 +19,13 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/pkg/errors"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus-community/promql-langserver/langserver"
-	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/route"
+
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/langserver"
+	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 )
 
 func respondJSON(w http.ResponseWriter, content interface{}) {

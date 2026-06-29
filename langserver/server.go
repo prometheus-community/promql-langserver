@@ -29,13 +29,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus-community/promql-langserver/config"
-	promClient "github.com/prometheus-community/promql-langserver/prometheus"
-
 	"github.com/go-kit/log"
+
+	"github.com/prometheus-community/promql-langserver/config"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
+	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 )
 
 // Server wraps language server instance that can connect to exactly one client.

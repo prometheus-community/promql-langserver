@@ -51,7 +51,7 @@ func TestSmallestSurroundingNode(t *testing.T) { //nolint:funlen
 		}
 	}
 
-	var testExpressions = []string{
+	testExpressions := []string{
 		"1",
 		" 1",
 		"-1",

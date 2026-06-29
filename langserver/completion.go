@@ -22,13 +22,13 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/promql/parser/posrange"
 	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/sahilm/fuzzy"
+
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 )
 
 // Completion is required by the protocol.Server interface.
@@ -63,35 +63,35 @@ func (s *server) Completion(ctx context.Context, params *protocol.CompletionPara
 		name = name[:i]
 
 		if err != nil {
-			return
+			return ret, err
 		}
 		if err = s.completeFunctionName(completions, location, name); err != nil {
-			return
+			return ret, err
 		}
 	case *promql.VectorSelector:
 		metricName := n.Name
 
 		if posRange := n.PositionRange(); int(posRange.End-posRange.Start) == len(n.Name) {
 			if err = s.completeFunctionName(completions, location, metricName); err != nil {
-				return
+				return ret, err
 			}
 		}
 		if location.Query.Pos+token.Pos(location.Node.PositionRange().Start)+token.Pos(len(metricName)) >= location.Pos {
 			if err = s.completeMetricName(ctx, completions, location, metricName); err != nil {
-				return
+				return ret, err
 			}
 		} else {
 			if err = s.completeLabels(ctx, completions, location); err != nil {
-				return
+				return ret, err
 			}
 		}
 	case *promql.AggregateExpr, *promql.BinaryExpr:
 		if err = s.completeLabels(ctx, completions, location); err != nil {
-			return
+			return ret, err
 		}
 	}
 
-	return //nolint: nakedret
+	return ret, err //nolint: nakedret
 }
 
 func (s *server) completeMetricName(ctx context.Context, completions *[]protocol.CompletionItem, location *cache.Location, metricName string) error {
@@ -434,20 +434,20 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 func getEditRange(location *cache.Location, oldname string) (editRange protocol.Range, err error) {
 	editRange.Start, err = location.Doc.PosToProtocolPosition(location.Query.Pos + token.Pos(location.Node.PositionRange().Start))
 	if err != nil {
-		return
+		return editRange, err
 	}
 
 	if oldname == "" {
 		editRange.End, err = location.Doc.PosToProtocolPosition(location.Query.Pos + token.Pos(location.Node.PositionRange().End))
 		if err != nil {
-			return
+			return editRange, err
 		}
 	} else {
 		editRange.End = editRange.Start
 		editRange.End.Character += float64(len(oldname))
 	}
 
-	return
+	return editRange, err
 }
 
 // getMatches returns fuzzy matches for a slice of string and a pattern.

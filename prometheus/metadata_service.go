@@ -29,11 +29,9 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-var (
-	// Defining this global variable will avoid to initialized it each time
-	// and it will crash immediately the server during the initialization in case the version is not well defined.
-	requiredVersion = semver.MustParse("2.15.0") //nolint: gochecknoglobals
-)
+// Defining this global variable will avoid to initialized it each time
+// and it will crash immediately the server during the initialization in case the version is not well defined.
+var requiredVersion = semver.MustParse("2.15.0") //nolint: gochecknoglobals
 
 func buildGenericRoundTripper(connectionTimeout time.Duration) *http.Transport {
 	return &http.Transport{

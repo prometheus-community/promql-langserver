@@ -16,8 +16,9 @@ package cache
 import (
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
+
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 // promQLErrToProtocolDiagnostic converts a promql.ParseErr to a protocol.Diagnostic
@@ -51,7 +52,7 @@ func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQ
 
 // warnQuotedYaml adds a warnign about a quoted PromQL expression to the diagnostics
 // of a document.
-func (d *DocumentHandle) warnQuotedYaml(start token.Pos, end token.Pos) error {
+func (d *DocumentHandle) warnQuotedYaml(start, end token.Pos) error {
 	var startPosition token.Position
 
 	var endPosition token.Position

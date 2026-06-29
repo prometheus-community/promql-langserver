@@ -17,9 +17,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/promql/parser/posrange"
+
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 // Parameter labels reused across multiple PromQL function signatures.
@@ -76,7 +77,7 @@ func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 
 // nolint: funlen
 func getSignature(name string) (protocol.SignatureInformation, error) {
-	var signatures = map[string]protocol.SignatureInformation{
+	signatures := map[string]protocol.SignatureInformation{
 		"abs": {
 			Label: "abs(v instant-vector)",
 			Parameters: []protocol.ParameterInformation{

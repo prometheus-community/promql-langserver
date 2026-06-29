@@ -42,9 +42,23 @@ linters:
       - std-error-handling
     paths:
       - internal/vendored
+
 formatters:
   enable:
-    - gofmt
+    - gci
+    - gofumpt
     - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/prometheus-community/promql-langserver)
+    gofumpt:
+      extra-rules: true
+    goimports:
+      local-prefixes:
+        - github.com/prometheus-community/promql-langserver
   exclusions:
-    generated: lax
+    paths:
+      - "internal/vendored/.*"

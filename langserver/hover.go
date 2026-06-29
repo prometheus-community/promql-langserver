@@ -24,11 +24,11 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/rakyll/statik/fs"
 
-	"github.com/prometheus-community/promql-langserver/langserver/cache"
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"github.com/prometheus-community/promql-langserver/langserver/cache" //nolint:goimports
 	// Do not remove! Side effects of init() needed.
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 )
@@ -169,7 +169,6 @@ func funcDocStrings(name string) string {
 	name = strings.ToLower(name)
 
 	file, err := functionDocumentationFS.Open(fmt.Sprintf("/%s.md", name))
-
 	if err != nil {
 		return ""
 	}
