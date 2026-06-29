@@ -16,8 +16,8 @@ package langserver
 import (
 	"context"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 )
 
 func notImplemented(method string) *jsonrpc2.Error {
