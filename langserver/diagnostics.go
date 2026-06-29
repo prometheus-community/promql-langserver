@@ -17,8 +17,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
 )
 
 func (s *server) GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error) {

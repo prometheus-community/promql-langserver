@@ -20,7 +20,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
 )
 
 // Document URIs and contents reused across the cache tests.
@@ -234,14 +234,14 @@ groups:
 
 	newContent, err := doc.ApplyIncrementalChanges([]protocol.TextDocumentContentChangeEvent{
 		{
-			Range: &protocol.Range{
+			Range: protocol.Range{
 				Start: protocol.Position{
 					Line:      9.0,
-					Character: 0.0,
+					Character: 0,
 				},
 				End: endOfLine(protocol.Position{
 					Line:      10.0,
-					Character: 0.1,
+					Character: 1,
 				}),
 			},
 			Text: "",

@@ -22,8 +22,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
 )
 
 // localLSPConfiguration is the configuration that should be used by the client such as VSCode.

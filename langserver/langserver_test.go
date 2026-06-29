@@ -19,9 +19,10 @@ import (
 	"strings"
 	"testing"
 
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+
 	"github.com/prometheus-community/promql-langserver/config"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 // testDocumentURI is the document URI used throughout the language server tests.

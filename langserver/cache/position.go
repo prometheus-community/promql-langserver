@@ -18,7 +18,8 @@ import (
 	"fmt"
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
@@ -61,8 +62,8 @@ func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (pr
 		}
 
 		return protocol.Position{
-			Line:      float64(line),
-			Character: float64(char),
+			Line:      uint32(line),
+			Character: uint32(char),
 		}, nil
 	}
 }

@@ -20,8 +20,9 @@ import (
 	"go/token"
 	"sync"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
@@ -30,8 +31,8 @@ type document struct {
 	posData *token.File
 
 	uri        protocol.DocumentURI
-	languageID string
-	version    float64
+	languageID protocol.LanguageIdentifier
+	version    int32
 	content    string
 
 	mu sync.RWMutex
@@ -65,12 +66,12 @@ type DocumentHandle struct {
 
 // ApplyIncrementalChanges applies given changes to a given document content.
 // The context in the DocumentHandle is ignored.
-func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version float64) (string, error) {
+func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocumentContentChangeEvent, version int32) (string, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
 	if version <= d.doc.version {
-		return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
+		return "", jsonrpc2.Errorf(jsonrpc2.InvalidParams, "Update to file didn't increase version number")
 	}
 
 	content := []byte(d.doc.content)
@@ -85,18 +86,18 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 			Content:   content,
 		}
 
-		spn, err := m.RangeSpan(*change.Range)
+		spn, err := m.RangeSpan(change.Range)
 		if err != nil {
 			return "", err
 		}
 
 		if !spn.HasOffset() {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
+			return "", jsonrpc2.Errorf(jsonrpc2.InternalError, "invalid range for content change")
 		}
 
 		start, end := spn.Start().Offset(), spn.End().Offset()
 		if end < start {
-			return "", jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "invalid range for content change")
+			return "", jsonrpc2.Errorf(jsonrpc2.InternalError, "invalid range for content change")
 		}
 
 		var buf bytes.Buffer
@@ -114,16 +115,16 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 // SetContent sets the content of a document.
 //
 // This triggers async parsing of the document.
-func (d *DocumentHandle) SetContent(serverLifetime context.Context, content string, version float64, new bool) error {
+func (d *DocumentHandle) SetContent(serverLifetime context.Context, content string, version int32, new bool) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 
 	if !new && version <= d.doc.version {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidParams, "Update to file didn't increase version number")
+		return jsonrpc2.Errorf(jsonrpc2.InvalidParams, "Update to file didn't increase version number")
 	}
 
 	if len(content) > maxDocumentSize {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/SetContent: Provided.document to large.")
+		return jsonrpc2.Errorf(jsonrpc2.InternalError, "cache/SetContent: Provided.document to large.")
 	}
 
 	if !new {
@@ -228,7 +229,7 @@ func (d *DocumentHandle) getQuery(pos token.Pos) (*CompiledQuery, error) {
 }
 
 // GetVersion returns the version of a document.
-func (d *DocumentHandle) GetVersion() (float64, error) {
+func (d *DocumentHandle) GetVersion() (int32, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 
@@ -243,7 +244,7 @@ func (d *DocumentHandle) GetVersion() (float64, error) {
 // GetLanguageID returns the language ID of a document.
 //
 // Since the languageID never changes, it does not block or return errors.
-func (d *DocumentHandle) GetLanguageID() string {
+func (d *DocumentHandle) GetLanguageID() protocol.LanguageIdentifier {
 	return d.doc.languageID
 }
 

@@ -19,8 +19,8 @@ import (
 	"go/token"
 	"sync"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 )
 
 // We need this so we can reserve a certain position range in the FileSet
@@ -56,7 +56,7 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 
 	if r := recover(); r != nil {
 		if err, ok := r.(error); !ok {
-			return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/addDocument: %v", err)
+			return nil, jsonrpc2.Errorf(jsonrpc2.InternalError, "cache/addDocument: %v", err)
 		}
 	}
 
@@ -89,7 +89,7 @@ func (c *DocumentCache) GetDocument(uri protocol.DocumentURI) (*DocumentHandle, 
 	ret, ok := c.documents[uri]
 
 	if !ok {
-		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "cache/getDocument: Document not found: %v", uri)
+		return nil, jsonrpc2.Errorf(jsonrpc2.InternalError, "cache/getDocument: Document not found: %v", uri)
 	}
 
 	ret.mu.RLock()
