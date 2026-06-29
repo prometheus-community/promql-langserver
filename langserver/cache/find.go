@@ -16,8 +16,9 @@ package cache
 import (
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	promql "github.com/prometheus/prometheus/promql/parser"
+
+	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 // Location bundles all the context that the cache can provide for a given protocol.Location.
@@ -35,18 +36,18 @@ func (c *DocumentCache) Find(where *protocol.TextDocumentPositionParams) (there 
 	there = &Location{}
 
 	if there.Doc, err = c.GetDocument(where.TextDocument.URI); err != nil {
-		return
+		return there, err
 	}
 
 	if there.Pos, err = there.Doc.protocolPositionToTokenPos(where.Position); err != nil {
-		return
+		return there, err
 	}
 
 	if there.Query, err = there.Doc.getQuery(there.Pos); err != nil {
-		return
+		return there, err
 	}
 
 	there.Node = getSmallestSurroundingNode(there.Query, there.Pos)
 
-	return
+	return there, err
 }

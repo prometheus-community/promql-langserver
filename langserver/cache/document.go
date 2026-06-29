@@ -86,7 +86,6 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 		}
 
 		spn, err := m.RangeSpan(*change.Range)
-
 		if err != nil {
 			return "", err
 		}
@@ -169,7 +168,7 @@ func (d *DocumentHandle) GetContent() (string, error) {
 //
 // The parameters are the start and end of the substring, encoded
 // as token.Pos.
-func (d *DocumentHandle) GetSubstring(pos token.Pos, endPos token.Pos) (string, error) {
+func (d *DocumentHandle) GetSubstring(pos, endPos token.Pos) (string, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 

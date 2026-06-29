@@ -214,7 +214,6 @@ func (d *DocumentHandle) foundRelevantYamlPath(node *yaml.Node, nodeEnd token.Po
 	}
 
 	err := d.foundQuery(expr, exprEnd, record, lineOffset)
-
 	if err != nil {
 		return err
 	}

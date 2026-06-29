@@ -23,11 +23,11 @@ import (
 	"time"
 
 	kitlog "github.com/go-kit/log"
-	"github.com/prometheus-community/promql-langserver/config"
-	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 	"github.com/prometheus/common/route"
 
+	"github.com/prometheus-community/promql-langserver/config"
 	"github.com/prometheus-community/promql-langserver/langserver"
+	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 	"github.com/prometheus-community/promql-langserver/rest"
 )
 

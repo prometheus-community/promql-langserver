@@ -336,7 +336,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 			},
 		},
 	})
-
 	if err != nil {
 		panic("Failed to get hovertext")
 	}
@@ -377,7 +376,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 			},
 		},
 	})
-
 	if err != nil {
 		panic("Failed to get hovertext")
 	}
@@ -598,7 +596,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 			},
 		},
 	})
-
 	if err != nil {
 		panic("Failed to get signature")
 	}
@@ -619,7 +616,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 			},
 		},
 	})
-
 	if err != nil {
 		panic("Failed to get signature")
 	}
@@ -640,7 +636,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 			},
 		},
 	})
-
 	if err != nil {
 		panic("Failed to get hovertext")
 	}

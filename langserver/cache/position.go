@@ -106,7 +106,7 @@ func (d *DocumentHandle) protocolPositionToTokenPos(pos protocol.Position) (toke
 }
 
 // yamlPositionToTokenPos converts a position of the format used by the yaml parser to a token.Pos.
-func (d *DocumentHandle) yamlPositionToTokenPos(line int, column int, lineOffset int) (token.Pos, error) {
+func (d *DocumentHandle) yamlPositionToTokenPos(line, column, lineOffset int) (token.Pos, error) {
 	d.doc.mu.RLock()
 	defer d.doc.mu.RUnlock()
 	select {

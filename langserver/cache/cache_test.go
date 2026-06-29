@@ -50,7 +50,6 @@ func TestCache(t *testing.T) { //nolint:funlen
 	_, err = c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
-
 			URI:        testFileURI,
 			LanguageID: yamlLanguageID,
 			Version:    1,
@@ -82,7 +81,6 @@ func TestCache(t *testing.T) { //nolint:funlen
 	_, err = c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
-
 			URI:        testFileURI,
 			LanguageID: yamlLanguageID,
 			Version:    0,
@@ -97,7 +95,6 @@ func TestCache(t *testing.T) { //nolint:funlen
 	_, err = c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
-
 			URI:        "wrong_yaml_file",
 			LanguageID: yamlLanguageID,
 			Version:    0,
@@ -132,7 +129,6 @@ groups:
 	_, err = c.AddDocument(
 		context.Background(),
 		&protocol.TextDocumentItem{
-
 			URI:        rulesFileURI,
 			LanguageID: yamlLanguageID,
 			Version:    0,
@@ -251,7 +247,6 @@ groups:
 			Text: "",
 		},
 	}, 2)
-
 	if err != nil {
 		panic("Failed to apply incremental changes: " + err.Error())
 	}

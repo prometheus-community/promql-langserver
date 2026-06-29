@@ -47,7 +47,6 @@ func (c *emptyHTTPClient) ChangeDataSource(_ string) error {
 }
 
 func (c *emptyHTTPClient) SetLookbackInterval(_ time.Duration) {
-
 }
 
 func (c *emptyHTTPClient) GetURL() string {

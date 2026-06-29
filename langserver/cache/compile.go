@@ -63,7 +63,7 @@ func (d *DocumentHandle) compile() error {
 // to be one query.
 //
 // d.compilers.Add(1) must be called before calling this.
-func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token.Pos, record string) error {
+func (d *DocumentHandle) compileQuery(fullFile bool, pos, endPos token.Pos, record string) error {
 	defer d.doc.compilers.Done()
 
 	var content string
@@ -116,7 +116,7 @@ func (d *DocumentHandle) compileQuery(fullFile bool, pos token.Pos, endPos token
 // addCompileResult adds a compiled query compilation results of a Document.
 //
 // If the DocumentHandle is expired, the result is discarded.
-func (d *DocumentHandle) addCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record string, content string) error {
+func (d *DocumentHandle) addCompileResult(pos token.Pos, ast promql.Node, err promql.ParseErrors, record, content string) error {
 	d.doc.mu.Lock()
 	defer d.doc.mu.Unlock()
 

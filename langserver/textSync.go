@@ -85,6 +85,7 @@ func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	return nil
 }
+
 func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool) {
 	if len(changes) > 1 {
 		return "", false

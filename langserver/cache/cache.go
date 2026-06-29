@@ -71,7 +71,6 @@ func (c *DocumentCache) AddDocument(serverLifetime context.Context, doc *protoco
 	d.compilers.initialize()
 
 	err := (&DocumentHandle{d, context.Background()}).SetContent(serverLifetime, doc.Text, doc.Version, true)
-
 	if err != nil {
 		return nil, err
 	}
