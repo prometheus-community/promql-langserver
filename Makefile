@@ -84,7 +84,7 @@ htmlcover:
 
 .PHONY: crossbuild
 crossbuild:
-	goreleaser build --snapshot
+	goreleaser build --clean --snapshot
 
 .PHONY: release
 release:
