@@ -1,0 +1,36 @@
+---
+version: 2
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    main: ./cmd/promql-langserver
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+dockers_v2:
+  - images:
+      - docker.io/prometheuscommunity/promql-langserver
+      - quay.io/prometheuscommunity/promql-langserver
+    tags:
+      - latest
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
