@@ -22,8 +22,6 @@ import (
 
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
 // document caches content, metadata and compile results of a document.
@@ -78,15 +76,9 @@ func (d *DocumentHandle) ApplyIncrementalChanges(changes []protocol.TextDocument
 	uri := d.doc.uri
 
 	for _, change := range changes {
-		// Update column mapper along with the content.
-		converter := span.NewContentConverter(string(uri), content)
-		m := &protocol.ColumnMapper{
-			URI:       span.URI(d.doc.uri),
-			Converter: converter,
-			Content:   content,
-		}
-
-		spn, err := m.RangeSpan(change.Range)
+		// A fresh converter is built per change because content is mutated below,
+		// so the document's cached posData cannot be reused here.
+		spn, err := rangeToSpan(uri, content, change.Range)
 		if err != nil {
 			return "", err
 		}

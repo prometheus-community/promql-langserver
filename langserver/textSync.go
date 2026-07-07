@@ -52,7 +52,7 @@ func (s *server) DidClose(_ context.Context, params *protocol.DidCloseTextDocume
 func (s *server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
 	// options := s.session.Options()
 	if len(params.ContentChanges) < 1 {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInternalError, "no content changes provided")
+		return jsonrpc2.Errorf(jsonrpc2.InternalError, "no content changes provided")
 	}
 
 	uri := params.TextDocument.URI
@@ -91,7 +91,9 @@ func fullChange(changes []protocol.TextDocumentContentChangeEvent) (string, bool
 		return "", false
 	}
 	// The length of the changes must be 1 at this point.
-	if changes[0].Range == nil && changes[0].RangeLength == 0 {
+	// go.lsp.dev/protocol models Range as a value, so a full-document change
+	// (no range) arrives as the zero Range rather than a nil pointer.
+	if changes[0].Range == (protocol.Range{}) && changes[0].RangeLength == 0 {
 		return changes[0].Text, true
 	}
 

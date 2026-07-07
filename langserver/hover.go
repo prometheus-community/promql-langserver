@@ -28,8 +28,7 @@ import (
 	"github.com/rakyll/statik/fs"
 	"go.lsp.dev/protocol"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
-	"github.com/prometheus-community/promql-langserver/langserver/cache" //nolint:goimports
+	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	// Do not remove! Side effects of init() needed.
 	_ "github.com/prometheus-community/promql-langserver/langserver/documentation/functions_statik"
 )
@@ -65,7 +64,7 @@ func (s *server) Hover(ctx context.Context, params *protocol.HoverParams) (*prot
 			Kind:  "markdown",
 			Value: markdown,
 		},
-		Range: hoverRange,
+		Range: &hoverRange,
 	}, nil
 }
 
@@ -109,7 +108,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 			if err != nil {
 				//nolint: errcheck
 				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-					Type:    protocol.Error,
+					Type:    protocol.MessageTypeError,
 					Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
 				})
 			}
@@ -119,7 +118,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 				if err != nil {
 					//nolint: errcheck
 					s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-						Type:    protocol.Error,
+						Type:    protocol.MessageTypeError,
 						Message: errors.Wrapf(err, "failed to get metric data").Error(),
 					})
 				}
