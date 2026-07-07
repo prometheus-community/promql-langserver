@@ -33,7 +33,7 @@ func (s *server) GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiag
 
 	reply := &protocol.PublishDiagnosticsParams{
 		URI:     uri,
-		Version: version,
+		Version: uint32(version), //nolint:gosec // G115: document version is non-negative and fits uint32.
 	}
 
 	diagnostics, err := d.GetDiagnostics()
@@ -51,7 +51,7 @@ func (s *server) diagnostics(uri protocol.DocumentURI) {
 	if err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: err.Error(),
 		})
 	}
@@ -59,13 +59,13 @@ func (s *server) diagnostics(uri protocol.DocumentURI) {
 	if err = s.client.PublishDiagnostics(s.lifetime, reply); err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
 		})
 	}
 }
 
-func (s *server) clearDiagnostics(ctx context.Context, uri protocol.DocumentURI, version float64) {
+func (s *server) clearDiagnostics(ctx context.Context, uri protocol.DocumentURI, version uint32) {
 	diagnostics := &protocol.PublishDiagnosticsParams{
 		URI:         uri,
 		Version:     version,
@@ -75,7 +75,7 @@ func (s *server) clearDiagnostics(ctx context.Context, uri protocol.DocumentURI,
 	if err := s.client.PublishDiagnostics(ctx, diagnostics); err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
 		})
 	}

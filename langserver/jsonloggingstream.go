@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"go.lsp.dev/jsonrpc2"
-	"go.lsp.dev/protocol"
 )
 
 type jsonLogStream struct {
@@ -33,55 +32,51 @@ type jsonLogStream struct {
 // jSONLogStream returns a stream that does log all communications in a format that
 // can be streamed into the LSP inspector.
 func jSONLogStream(str jsonrpc2.Stream, w io.Writer) jsonrpc2.Stream {
-	ret := &jsonLogStream{str, w}
-
-	return ret
+	return &jsonLogStream{str, w}
 }
 
-func (s *jsonLogStream) Read(ctx context.Context) ([]byte, int64, error) {
-	data, count, err := s.mainStream.Read(ctx)
-	s.log(data, true)
-
-	return data, count, err
-}
-
-func (s *jsonLogStream) Write(ctx context.Context, data []byte) (int64, error) {
-	count, err := s.mainStream.Write(ctx, data)
-	s.log(data, false)
-
-	return count, err
-}
-
-func getType(msg []byte, incoming bool) (string, error) {
-	var v protocol.Combined
-
-	var msgType string
-
-	err := json.Unmarshal(msg, &v)
-	if err != nil {
-		return "", err
+func (s *jsonLogStream) Read(ctx context.Context) (jsonrpc2.Message, int64, error) {
+	msg, count, err := s.mainStream.Read(ctx)
+	if err == nil {
+		s.log(msg, true)
 	}
 
+	return msg, count, err
+}
+
+func (s *jsonLogStream) Write(ctx context.Context, msg jsonrpc2.Message) (int64, error) {
+	s.log(msg, false)
+
+	return s.mainStream.Write(ctx, msg)
+}
+
+func (s *jsonLogStream) Close() error {
+	return s.mainStream.Close()
+}
+
+// messageType classifies a JSON-RPC message for the LSP inspector log.
+func messageType(msg jsonrpc2.Message, incoming bool) string {
+	direction := "receive-"
 	if incoming {
-		msgType = "send-"
-	} else {
-		msgType = "receive-"
+		direction = "send-"
 	}
 
-	switch {
-	case v.ID != nil && v.Method != "" && (v.Params != nil || v.Method == "shutdown"):
-		msgType += "request"
-	case v.ID != nil && v.Method == "" && v.Params == nil:
-		msgType += "response"
+	switch msg.(type) {
+	case *jsonrpc2.Call:
+		return direction + "request"
+	case *jsonrpc2.Response:
+		return direction + "response"
 	default:
-		msgType += "notification"
+		return direction + "notification"
 	}
-
-	return msgType, nil
 }
 
-func (s *jsonLogStream) log(msg []byte, incoming bool) {
-	typ, err := getType(msg, incoming)
+func (s *jsonLogStream) log(msg jsonrpc2.Message, incoming bool) {
+	if msg == nil {
+		return
+	}
+
+	data, err := json.Marshal(msg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -91,5 +86,5 @@ func (s *jsonLogStream) log(msg []byte, incoming bool) {
 	tmformat := time.Now().Format("03:04:15.000 PM")
 	// The LSP inspector expects the [LSP - <time>] part to be exactly 21 bytes
 	fmt.Fprintf(s.logWriter, `[LSP-%s] {"type":"%s","message":%s,"timestamp":%d}%s`,
-		tmformat, typ, msg, timestamp, " \r\n")
+		tmformat, messageType(msg, incoming), data, timestamp, " \r\n")
 }

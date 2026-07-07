@@ -67,8 +67,8 @@ func (d *lspData) position() (protocol.Position, error) {
 		return protocol.Position{}, errors.New("positionChar is not specified")
 	}
 	return protocol.Position{
-		Line:      *d.PositionLine,
-		Character: *d.PositionChar,
+		Line:      uint32(*d.PositionLine),
+		Character: uint32(*d.PositionChar),
 	}, nil
 }
 
