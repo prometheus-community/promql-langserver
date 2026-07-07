@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.69.0
-	github.com/prometheus/prometheus v0.312.0
+	github.com/prometheus/prometheus v0.313.0
 	github.com/rakyll/statik v0.1.8
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/stretchr/testify v1.11.1
@@ -35,7 +35,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
