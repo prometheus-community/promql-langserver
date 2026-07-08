@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.lsp.dev/protocol"
 
@@ -115,7 +114,7 @@ func manageDocumentMiddleware(langServer langserver.HeadlessServer) middlewareFu
 					Text:       data.Expr,
 				},
 			}); err != nil {
-				http.Error(w, errors.Wrapf(err, "failed to open document").Error(), 500)
+				http.Error(w, fmt.Sprintf("failed to open document: %s", err), 500)
 				return
 			}
 

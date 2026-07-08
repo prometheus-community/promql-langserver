@@ -20,7 +20,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 	"go.lsp.dev/protocol"
 )
@@ -65,7 +64,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
 			Type:    protocol.MessageTypeError,
-			Message: errors.Wrap(err, "unexpected configuration format").Error(),
+			Message: fmt.Sprintf("unexpected configuration format: %s", err),
 		})
 		return nil
 	}

@@ -14,11 +14,11 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-kit/log"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/route"
@@ -33,7 +33,7 @@ func respondJSON(w http.ResponseWriter, content interface{}) {
 
 	err := encoder.Encode(content)
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to write response").Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("failed to write response: %s", err), http.StatusInternalServerError)
 	}
 }
 
@@ -54,7 +54,7 @@ func (d *lspData) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if len(d.Expr) == 0 {
-		return fmt.Errorf("PromQL expression is not specified")
+		return errors.New("PromQL expression is not specified")
 	}
 	return nil
 }
@@ -137,7 +137,7 @@ func (a *API) diagnostics(w http.ResponseWriter, r *http.Request) {
 
 	diagnostics, err := a.langServer.GetDiagnostics(requestID)
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get diagnostics").Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("failed to get diagnostics: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -176,7 +176,7 @@ func (a *API) hover(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("failed to get hover info: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (a *API) completion(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get completion info").Error(), 500)
+		http.Error(w, fmt.Sprintf("failed to get completion info: %s", err), 500)
 		return
 	}
 
@@ -243,7 +243,7 @@ func (a *API) signature(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, errors.Wrapf(err, "failed to get hover info").Error(), 500)
+		http.Error(w, fmt.Sprintf("failed to get hover info: %s", err), 500)
 		return
 	}
 
