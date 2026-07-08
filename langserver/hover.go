@@ -23,7 +23,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pkg/errors"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/rakyll/statik/fs"
 	"go.lsp.dev/protocol"
@@ -109,7 +108,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 				//nolint: errcheck
 				s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 					Type:    protocol.MessageTypeError,
-					Message: errors.Wrapf(err, "failed to get recording rule data").Error(),
+					Message: fmt.Sprintf("failed to get recording rule data: %s", err),
 				})
 			}
 
@@ -119,7 +118,7 @@ func (s *server) nodeToDocMarkdown(ctx context.Context, location *cache.Location
 					//nolint: errcheck
 					s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 						Type:    protocol.MessageTypeError,
-						Message: errors.Wrapf(err, "failed to get metric data").Error(),
+						Message: fmt.Sprintf("failed to get metric data: %s", err),
 					})
 				}
 			}

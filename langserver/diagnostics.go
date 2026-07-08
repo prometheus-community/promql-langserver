@@ -15,15 +15,15 @@ package langserver
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"go.lsp.dev/protocol"
 )
 
 func (s *server) GetDiagnostics(uri protocol.DocumentURI) (*protocol.PublishDiagnosticsParams, error) {
 	d, err := s.cache.GetDocument(uri)
 	if err != nil {
-		return nil, errors.Wrapf(err, "document not found in cache")
+		return nil, fmt.Errorf("document not found in cache: %w", err)
 	}
 
 	version, expired := d.GetVersion()
@@ -60,7 +60,7 @@ func (s *server) diagnostics(uri protocol.DocumentURI) {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 			Type:    protocol.MessageTypeError,
-			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
+			Message: fmt.Sprintf("failed to publish diagnostics: %s", err),
 		})
 	}
 }
@@ -76,7 +76,7 @@ func (s *server) clearDiagnostics(ctx context.Context, uri protocol.DocumentURI,
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 			Type:    protocol.MessageTypeError,
-			Message: errors.Wrapf(err, "failed to publish diagnostics").Error(),
+			Message: fmt.Sprintf("failed to publish diagnostics: %s", err),
 		})
 	}
 }

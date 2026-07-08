@@ -7,7 +7,6 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/google/uuid v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.69.0
 	github.com/prometheus/prometheus v0.313.0
@@ -17,7 +16,6 @@ require (
 	go.lsp.dev/jsonrpc2 v0.10.0
 	go.lsp.dev/protocol v0.12.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	gopkg.in/yaml.v3 v3.0.1
 )
 

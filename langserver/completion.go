@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/promql/parser/posrange"
 	"github.com/prometheus/prometheus/util/strutil"
@@ -317,7 +316,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 			Type:    protocol.MessageTypeError,
-			Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
+			Message: fmt.Sprintf("could not get label data from prometheus: %s", err),
 		})
 		return err
 	}
@@ -360,7 +359,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
 			Type:    protocol.MessageTypeError,
-			Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
+			Message: fmt.Sprintf("could not get label value data from Prometheus: %s", err),
 		})
 		return err
 	}
