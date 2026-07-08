@@ -16,12 +16,15 @@ package langserver
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
+	"sync"
 	"testing"
 
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+
 	"github.com/prometheus-community/promql-langserver/config"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 )
 
 // testDocumentURI is the document URI used throughout the language server tests.
@@ -32,230 +35,239 @@ func TestNotImplemented(*testing.T) { //nolint: gocognit, funlen, gocyclo
 	s := &server{}
 
 	err := s.DidChangeWorkspaceFolders(context.Background(), &protocol.DidChangeWorkspaceFoldersParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	err = s.DidSave(context.Background(), &protocol.DidSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	err = s.WillSave(context.Background(), &protocol.WillSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	err = s.DidChangeWatchedFiles(context.Background(), &protocol.DidChangeWatchedFilesParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	err = s.Progress(context.Background(), &protocol.ProgressParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	err = s.DidCreateFiles(context.Background(), &protocol.CreateFilesParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.SelectionRange(context.Background(), &protocol.SelectionRangeParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.Moniker(context.Background(), &protocol.MonikerParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	err = s.SetTraceNotification(context.Background(), &protocol.SetTraceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	err = s.SetTrace(context.Background(), &protocol.SetTraceParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	err = s.LogTraceNotification(context.Background(), &protocol.LogTraceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	err = s.LogTrace(context.Background(), &protocol.LogTraceParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.Implementation(context.Background(), &protocol.ImplementationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.TypeDefinition(context.Background(), &protocol.TypeDefinitionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.DocumentColor(context.Background(), &protocol.DocumentColorParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.ColorPresentation(context.Background(), &protocol.ColorPresentationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.FoldingRange(context.Background(), &protocol.FoldingRangeParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.FoldingRanges(context.Background(), &protocol.FoldingRangeParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.NonstandardRequest(context.Background(), "", nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.Request(context.Background(), "", nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.Declaration(context.Background(), &protocol.DeclarationParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.WillSaveWaitUntil(context.Background(), &protocol.WillSaveTextDocumentParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.Resolve(context.Background(), &protocol.CompletionItem{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.CompletionResolve(context.Background(), &protocol.CompletionItem{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.Definition(context.Background(), &protocol.DefinitionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.References(context.Background(), &protocol.ReferenceParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.DocumentHighlight(context.Background(), &protocol.DocumentHighlightParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.DocumentSymbol(context.Background(), &protocol.DocumentSymbolParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.CodeAction(context.Background(), &protocol.CodeActionParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.Symbol(context.Background(), &protocol.WorkspaceSymbolParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.Symbols(context.Background(), &protocol.WorkspaceSymbolParams{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.CodeLens(context.Background(), &protocol.CodeLensParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.ResolveCodeLens(context.Background(), &protocol.CodeLens{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.CodeLensResolve(context.Background(), &protocol.CodeLens{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.Formatting(context.Background(), &protocol.DocumentFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.RangeFormatting(context.Background(), &protocol.DocumentRangeFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.OnTypeFormatting(context.Background(), &protocol.DocumentOnTypeFormattingParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.Rename(context.Background(), &protocol.RenameParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.PrepareRename(context.Background(), &protocol.PrepareRenameParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.DocumentLink(context.Background(), &protocol.DocumentLinkParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.ResolveDocumentLink(context.Background(), &protocol.DocumentLink{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.DocumentLinkResolve(context.Background(), &protocol.DocumentLink{})
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.ExecuteCommand(context.Background(), &protocol.ExecuteCommandParams{})
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.IncomingCalls(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.OutgoingCalls(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.PrepareCallHierarchy(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.SemanticTokens(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.SemanticTokensFull(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	_, err = s.SemanticTokensEdits(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	_, err = s.SemanticTokensFullDelta(context.Background(), nil)
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	_, err = s.SemanticTokensRange(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
 	err = s.WorkDoneProgressCancel(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 
-	err = s.WorkDoneProgressCreate(context.Background(), nil)
-	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.CodeMethodNotFound {
+	err = s.SemanticTokensRefresh(context.Background())
+	if err != nil && err.(*jsonrpc2.Error).Code != jsonrpc2.MethodNotFound {
 		panic("Expected a jsonrpc2 Error with CodeMethodNotFound")
 	}
 }
 
-// dummyStream is a fake jsonrpc2.Stream for Test purposes.
+// dummyStream is a fake jsonrpc2.Stream for test purposes. The tests drive the
+// server methods directly rather than over the wire, so Read only needs to
+// block until the connection is torn down (via context cancellation or Close).
 type dummyStream struct {
-	readQueue []byte
+	closed    chan struct{}
+	closeOnce sync.Once
 }
 
-func (d *dummyStream) Read(_ context.Context) ([]byte, int64, error) {
-	ret := d.readQueue
-	d.readQueue = []byte{}
-
-	return ret, int64(len(ret)), nil
+func newDummyStream() *dummyStream {
+	return &dummyStream{closed: make(chan struct{})}
 }
 
-func (d *dummyStream) Write(_ context.Context, text []byte) (int64, error) {
-	return int64(len(text)), nil
+func (d *dummyStream) Read(ctx context.Context) (jsonrpc2.Message, int64, error) {
+	select {
+	case <-ctx.Done():
+		return nil, 0, ctx.Err()
+	case <-d.closed:
+		return nil, 0, io.EOF
+	}
 }
 
-// Push adds a text to the readQueue.
-func (d *dummyStream) Push(text []byte) {
-	d.readQueue = append(d.readQueue, text...)
+func (d *dummyStream) Write(_ context.Context, _ jsonrpc2.Message) (int64, error) {
+	return 0, nil
+}
+
+func (d *dummyStream) Close() error {
+	d.closeOnce.Do(func() { close(d.closed) })
+	return nil
 }
 
 type dummyWriter struct{}
@@ -266,18 +278,18 @@ func (d *dummyWriter) Write(text []byte) (int, error) {
 
 // TestServerState tries to emulate a full server lifetime.
 func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
-	var stream jsonrpc2.Stream = &dummyStream{}
+	var stream jsonrpc2.Stream = newDummyStream()
 	stream = jSONLogStream(stream, &dummyWriter{})
 	_, server := ServerFromStream(context.Background(), stream, &config.Config{LogFormat: config.TextFormat})
 	s := server.server
 
 	// Initialize Server
-	_, err := s.Initialize(context.Background(), &protocol.ParamInitialize{})
+	_, err := s.Initialize(context.Background(), &protocol.InitializeParams{})
 	if err != nil {
 		panic("Failed to initialize Server")
 	}
 
-	_, err = s.Initialize(context.Background(), &protocol.ParamInitialize{})
+	_, err = s.Initialize(context.Background(), &protocol.InitializeParams{})
 	if err == nil {
 		panic("cannot initialize server twice")
 	}
@@ -315,7 +327,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range:       nil,
 				RangeLength: 0,
 				Text:        "sum()",
 			},
@@ -355,7 +366,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range:       nil,
 				RangeLength: 0,
 				Text:        "metric_name",
 			},
@@ -394,7 +404,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range: &protocol.Range{
+				Range: protocol.Range{
 					Start: protocol.Position{
 						Line:      0.0,
 						Character: 0.0,
@@ -433,7 +443,7 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range: &protocol.Range{
+				Range: protocol.Range{
 					Start: protocol.Position{
 						Line:      0.0,
 						Character: 11.0,
@@ -483,7 +493,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range:       nil,
 				RangeLength: 0,
 				Text:        "rat",
 			},
@@ -520,7 +529,6 @@ func TestServer(t *testing.T) { //nolint:funlen, gocognit, gocyclo
 		},
 		ContentChanges: []protocol.TextDocumentContentChangeEvent{
 			{
-				Range:       nil,
 				RangeLength: 0,
 				Text:        "rat()",
 			},

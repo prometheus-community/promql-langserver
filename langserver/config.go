@@ -22,8 +22,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
 )
 
 // localLSPConfiguration is the configuration that should be used by the client such as VSCode.
@@ -44,7 +43,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 	s.client.LogMessage(
 		s.lifetime,
 		&protocol.LogMessageParams{
-			Type:    protocol.Info,
+			Type:    protocol.MessageTypeInfo,
 			Message: fmt.Sprintf("Received notification change: %v\n", params),
 		})
 
@@ -57,7 +56,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 	if marshallError != nil {
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: "unable to serialize the configuration",
 		})
 		return nil
@@ -65,7 +64,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 	if err := json.Unmarshal(rawData, &config); err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: errors.Wrap(err, "unexpected configuration format").Error(),
 		})
 		return nil
@@ -74,7 +73,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 	if err := s.setURLFromChangeConfiguration(config); err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
-			Type:    protocol.Info,
+			Type:    protocol.MessageTypeInfo,
 			Message: err.Error(),
 		})
 	}
@@ -82,7 +81,7 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 	if err := s.setMetadataLookbackInterval(config); err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
-			Type:    protocol.Info,
+			Type:    protocol.MessageTypeInfo,
 			Message: err.Error(),
 		})
 	}
@@ -103,7 +102,7 @@ func (s *server) connectPrometheus(url string) error {
 	if err := s.metadataService.ChangeDataSource(url); err != nil {
 		//nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: fmt.Sprintf("Failed to connect to Prometheus at %s:\n\n%s ", url, err.Error()),
 		})
 		return err

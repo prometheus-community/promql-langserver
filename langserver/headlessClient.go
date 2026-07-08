@@ -19,8 +19,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
 )
 
 type headlessClient struct{ logger log.Logger }
@@ -29,13 +28,13 @@ func (c *headlessClient) log(typ protocol.MessageType, msg string) error {
 	var logLevel func(log.Logger) log.Logger
 
 	switch typ {
-	case protocol.Error:
+	case protocol.MessageTypeError:
 		logLevel = level.Error
-	case protocol.Warning:
+	case protocol.MessageTypeWarning:
 		logLevel = level.Warn
-	case protocol.Info:
+	case protocol.MessageTypeInfo:
 		logLevel = level.Info
-	case protocol.Log:
+	case protocol.MessageTypeLog:
 		logLevel = level.Debug
 	default:
 		if err := level.Error(c.logger).Log("msg", "Message with unknown log level: "+msg); err != nil {
@@ -55,7 +54,7 @@ func (c *headlessClient) LogMessage(_ context.Context, params *protocol.LogMessa
 	return c.log(params.Type, params.Message)
 }
 
-func (*headlessClient) Event(_ context.Context, _ *interface{}) error {
+func (*headlessClient) Telemetry(_ context.Context, _ interface{}) error {
 	// ignore
 	return nil
 }
@@ -70,7 +69,7 @@ func (*headlessClient) WorkspaceFolders(_ context.Context) ([]protocol.Workspace
 	return nil, nil
 }
 
-func (*headlessClient) Configuration(_ context.Context, _ *protocol.ParamConfiguration) ([]interface{}, error) {
+func (*headlessClient) Configuration(_ context.Context, _ *protocol.ConfigurationParams) ([]interface{}, error) {
 	// ignore
 	return nil, nil
 }
@@ -90,9 +89,9 @@ func (*headlessClient) ShowMessageRequest(_ context.Context, _ *protocol.ShowMes
 	return nil, nil
 }
 
-func (*headlessClient) ApplyEdit(_ context.Context, _ *protocol.ApplyWorkspaceEditParams) (*protocol.ApplyWorkspaceEditResponse, error) {
+func (*headlessClient) ApplyEdit(_ context.Context, _ *protocol.ApplyWorkspaceEditParams) (bool, error) {
 	// ignore
-	return nil, nil
+	return false, nil
 }
 
 func (*headlessClient) Progress(_ context.Context, _ *protocol.ProgressParams) error {

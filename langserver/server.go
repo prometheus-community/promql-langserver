@@ -30,10 +30,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+	"go.uber.org/zap"
 
 	"github.com/prometheus-community/promql-langserver/config"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 )
@@ -51,7 +52,7 @@ type HeadlessServer interface {
 
 // server is a language server instance that can connect to exactly one client.
 type server struct {
-	Conn   *jsonrpc2.Conn
+	Conn   jsonrpc2.Conn
 	client protocol.Client
 
 	state   serverState
@@ -80,8 +81,12 @@ const (
 )
 
 // Run starts the language server instance.
+//
+// The connection is already serving (started in ServerFromStream via Conn.Go);
+// Run blocks until it is closed and reports the terminating error.
 func (s Server) Run() error {
-	return s.server.Conn.Run(s.server.lifetime)
+	<-s.server.Conn.Done()
+	return s.server.Conn.Err()
 }
 
 // CreateHeadlessServer creates a locked down server instance for the REST API.
@@ -96,7 +101,7 @@ func CreateHeadlessServer(ctx context.Context, metadataService promClient.Metada
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
 
-	if _, err := s.Initialize(ctx, &protocol.ParamInitialize{}); err != nil {
+	if _, err := s.Initialize(ctx, &protocol.InitializeParams{}); err != nil {
 		return nil, err
 	}
 
@@ -121,7 +126,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 			err := fmt.Errorf("invalid log format: '%s'", conf.LogFormat)
 			//nolint: errcheck
 			s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-				Type:    protocol.Error,
+				Type:    protocol.MessageTypeError,
 				Message: err.Error(),
 			})
 			panic(err)
@@ -129,11 +134,13 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 	}
 
 	s.Conn = jsonrpc2.NewConn(stream)
-	s.client = protocol.ClientDispatcher(s.Conn)
-
-	s.Conn.AddHandler(protocol.ServerHandler(s))
+	s.client = protocol.ClientDispatcher(s.Conn, zap.NewNop())
 
 	s.lifetime, s.exit = context.WithCancel(ctx)
+
+	// Go starts the asynchronous read loop; Server.Run waits on Conn.Done.
+	// Unhandled methods fall through to MethodNotFoundHandler.
+	s.Conn.Go(s.lifetime, protocol.ServerHandler(s, jsonrpc2.MethodNotFoundHandler))
 
 	// In order to have an error message in the IDE/editor, we are going to set the prometheusURL in the method server#Initialized.
 	s.prometheusURL = conf.PrometheusURL
@@ -141,7 +148,7 @@ func ServerFromStream(ctx context.Context, stream jsonrpc2.Stream, conf *config.
 	if err != nil {
 		//nolint: errcheck
 		s.client.ShowMessage(s.lifetime, &protocol.ShowMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: fmt.Sprintf("Failed to inialized the prometheus client\n\n%s ", err.Error()),
 		})
 		panic(err)
@@ -165,12 +172,28 @@ func RunTCPServer(ctx context.Context, addr string, conf *config.Config) error {
 			return err
 		}
 
-		go ServerFromStream(ctx, jsonrpc2.NewHeaderStream(conn, conn), conf)
+		go ServerFromStream(ctx, jsonrpc2.NewStream(conn), conf)
 	}
+}
+
+// stdio adapts os.Stdin and os.Stdout into a single io.ReadWriteCloser.
+//
+// go.lsp.dev/jsonrpc2.NewStream takes one connection, unlike the previous
+// jsonrpc2.NewHeaderStream which accepted a separate reader and writer.
+type stdio struct{}
+
+func (stdio) Read(p []byte) (int, error)  { return os.Stdin.Read(p) }
+func (stdio) Write(p []byte) (int, error) { return os.Stdout.Write(p) }
+
+func (stdio) Close() error {
+	if err := os.Stdin.Close(); err != nil {
+		return err
+	}
+	return os.Stdout.Close()
 }
 
 // StdioServer generates a Server instance talking to stdio.
 func StdioServer(ctx context.Context, conf *config.Config) (context.Context, Server) {
-	stream := jsonrpc2.NewHeaderStream(os.Stdin, os.Stdout)
+	stream := jsonrpc2.NewStream(stdio{})
 	return ServerFromStream(ctx, stream, conf)
 }

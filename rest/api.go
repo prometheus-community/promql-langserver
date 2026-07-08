@@ -22,8 +22,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/route"
+	"go.lsp.dev/protocol"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver"
 	promClient "github.com/prometheus-community/promql-langserver/prometheus"
 )
@@ -67,8 +67,8 @@ func (d *lspData) position() (protocol.Position, error) {
 		return protocol.Position{}, errors.New("positionChar is not specified")
 	}
 	return protocol.Position{
-		Line:      *d.PositionLine,
-		Character: *d.PositionChar,
+		Line:      uint32(*d.PositionLine),
+		Character: uint32(*d.PositionChar),
 	}, nil
 }
 

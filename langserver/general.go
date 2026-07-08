@@ -17,18 +17,18 @@ import (
 	"context"
 	"errors"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/jsonrpc2"
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 )
 
 // Initialize handles a call from the client to initialize the server.
 // Required by the protocol.Server interface.
-func (s *server) Initialize(_ context.Context, _ *protocol.ParamInitialize) (*protocol.InitializeResult, error) {
+func (s *server) Initialize(_ context.Context, _ *protocol.InitializeParams) (*protocol.InitializeResult, error) {
 	s.stateMu.Lock()
 	defer s.stateMu.Unlock()
 
 	if s.state != serverCreated {
-		return nil, jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server already initialized")
+		return nil, jsonrpc2.Errorf(jsonrpc2.InvalidRequest, "server already initialized")
 	}
 
 	s.state = serverInitializing
@@ -43,12 +43,12 @@ func (s *server) Initialize(_ context.Context, _ *protocol.ParamInitialize) (*pr
 				Change: 2,
 			},
 			HoverProvider: true,
-			CompletionProvider: protocol.CompletionOptions{
+			CompletionProvider: &protocol.CompletionOptions{
 				TriggerCharacters: []string{
 					" ", "\n", "\t", "(", ")", "[", "]", "{", "}", "+", "-", "*", "/", "!", "=", "\"", ",", "'", "\"", "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "m", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "N", "M", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
 				},
 			},
-			SignatureHelpProvider: protocol.SignatureHelpOptions{
+			SignatureHelpProvider: &protocol.SignatureHelpOptions{
 				TriggerCharacters: []string{"(", ","},
 			},
 			DefinitionProvider: true,
@@ -70,14 +70,14 @@ func (s *server) Initialized(ctx context.Context, _ *protocol.InitializedParams)
 		if err := s.connectPrometheus(s.prometheusURL); err != nil {
 			//nolint: errcheck
 			s.client.LogMessage(ctx, &protocol.LogMessageParams{
-				Type:    protocol.Info,
+				Type:    protocol.MessageTypeInfo,
 				Message: err.Error(),
 			})
 		}
 	} else {
 		//nolint: errcheck
 		s.client.LogMessage(ctx, &protocol.LogMessageParams{
-			Type:    protocol.Info,
+			Type:    protocol.MessageTypeInfo,
 			Message: "No Prometheus",
 		})
 	}
@@ -93,7 +93,7 @@ func (s *server) Shutdown(_ context.Context) error {
 	defer s.stateMu.Unlock()
 
 	if s.state != serverInitialized {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not initialized")
+		return jsonrpc2.Errorf(jsonrpc2.InvalidRequest, "server not initialized")
 	}
 
 	s.state = serverShutDown
@@ -108,7 +108,7 @@ func (s *server) Exit(_ context.Context) error {
 	defer s.stateMu.Unlock()
 
 	if s.state != serverShutDown {
-		return jsonrpc2.NewErrorf(jsonrpc2.CodeInvalidRequest, "server not shutdown")
+		return jsonrpc2.Errorf(jsonrpc2.InvalidRequest, "server not shutdown")
 	}
 
 	s.exit()

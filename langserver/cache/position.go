@@ -18,7 +18,8 @@ import (
 	"fmt"
 	"go/token"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
+	"go.lsp.dev/protocol"
+
 	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/span"
 )
 
@@ -61,8 +62,8 @@ func (d *DocumentHandle) tokenPositionToProtocolPosition(pos token.Position) (pr
 		}
 
 		return protocol.Position{
-			Line:      float64(line),
-			Character: float64(char),
+			Line:      uint32(line), //nolint:gosec // G115: line numbers are bounded by document size and fit uint32.
+			Character: uint32(char), //nolint:gosec // G115: column numbers are bounded by document size and fit uint32.
 		}, nil
 	}
 }
@@ -159,4 +160,41 @@ func (d *DocumentHandle) tokenPosToTokenPosition(pos token.Pos) (token.Position,
 	default:
 		return d.doc.posData.Position(pos), nil
 	}
+}
+
+// rangeToSpan converts an LSP protocol.Range into a span.Span (byte offsets)
+// against the given content.
+//
+// It replaces the protocol.ColumnMapper.RangeSpan helper that the vendored
+// x/tools LSP package provided; go.lsp.dev/protocol is wire-only and has no
+// equivalent. The span package still supplies the UTF-16-to-byte-offset math.
+func rangeToSpan(uri protocol.DocumentURI, content []byte, r protocol.Range) (span.Span, error) {
+	converter := span.NewContentConverter(string(uri), content)
+
+	start, err := positionToPoint(converter, content, r.Start)
+	if err != nil {
+		return span.Span{}, err
+	}
+
+	end, err := positionToPoint(converter, content, r.End)
+	if err != nil {
+		return span.Span{}, err
+	}
+
+	return span.New(span.URI(uri), start, end).WithAll(converter)
+}
+
+// positionToPoint converts a zero-based LSP protocol.Position into a span.Point,
+// resolving the UTF-16 character offset against content.
+func positionToPoint(converter *span.TokenConverter, content []byte, p protocol.Position) (span.Point, error) {
+	line := int(p.Line) + 1
+
+	offset, err := converter.ToOffset(line, 1)
+	if err != nil {
+		return span.Point{}, err
+	}
+
+	lineStart := span.NewPoint(line, 1, offset)
+
+	return span.FromUTF16Column(lineStart, int(p.Character)+1, content)
 }

@@ -26,8 +26,8 @@ import (
 	"github.com/prometheus/prometheus/promql/parser/posrange"
 	"github.com/prometheus/prometheus/util/strutil"
 	"github.com/sahilm/fuzzy"
+	"go.lsp.dev/protocol"
 
-	"github.com/prometheus-community/promql-langserver/internal/vendored/go-tools/lsp/protocol"
 	"github.com/prometheus-community/promql-langserver/langserver/cache"
 )
 
@@ -316,7 +316,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 	if err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: errors.Wrapf(err, "could not get label data from prometheus").Error(),
 		})
 		return err
@@ -359,7 +359,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 	if err != nil {
 		//nolint: errcheck
 		s.client.LogMessage(s.lifetime, &protocol.LogMessageParams{
-			Type:    protocol.Error,
+			Type:    protocol.MessageTypeError,
 			Message: errors.Wrapf(err, "could not get label value data from Prometheus").Error(),
 		})
 		return err
@@ -444,7 +444,7 @@ func getEditRange(location *cache.Location, oldname string) (editRange protocol.
 		}
 	} else {
 		editRange.End = editRange.Start
-		editRange.End.Character += float64(len(oldname))
+		editRange.End.Character += uint32(len(oldname)) //nolint:gosec // G115: label length is bounded and fits uint32.
 	}
 
 	return editRange, err
