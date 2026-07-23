@@ -9,7 +9,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.70.0
-	github.com/prometheus/prometheus v0.313.0
+	github.com/prometheus/prometheus v0.313.1
 	github.com/rakyll/statik v0.1.8
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/stretchr/testify v1.11.1
