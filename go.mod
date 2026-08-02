@@ -1,6 +1,6 @@
 module github.com/prometheus-community/promql-langserver
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
@@ -13,8 +13,8 @@ require (
 	github.com/rakyll/statik v0.1.8
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/stretchr/testify v1.11.1
-	go.lsp.dev/jsonrpc2 v0.10.0
-	go.lsp.dev/protocol v0.12.0
+	go.lsp.dev/jsonrpc2 v1.0.1
+	go.lsp.dev/protocol v1.0.1
 	go.uber.org/zap v1.28.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -24,6 +24,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/grafana/regexp v0.0.0-20250905093917-f7b3be9d1853 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -34,10 +35,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/procfs v0.21.0 // indirect
-	github.com/segmentio/asm v1.1.3 // indirect
-	github.com/segmentio/encoding v0.3.4 // indirect
-	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
-	go.lsp.dev/uri v0.3.0 // indirect
+	go.lsp.dev/uri v1.0.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
