@@ -42,7 +42,8 @@ func TestCache(t *testing.T) { //nolint:funlen
 			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       testText,
-		})
+		},
+	)
 	if err != nil {
 		panic("Failed to AddDocument() to cache")
 	}
@@ -54,7 +55,8 @@ func TestCache(t *testing.T) { //nolint:funlen
 			LanguageID: yamlLanguageID,
 			Version:    1,
 			Text:       testText,
-		})
+		},
+	)
 	if err == nil {
 		panic("Should not be able to add same document twice")
 	}
@@ -85,7 +87,8 @@ func TestCache(t *testing.T) { //nolint:funlen
 			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       "test_text:",
-		})
+		},
+	)
 	if err != nil {
 		panic("Should be able to readd document after removing it")
 	}
@@ -99,7 +102,8 @@ func TestCache(t *testing.T) { //nolint:funlen
 			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       wrongYaml,
-		})
+		},
+	)
 	if err != nil {
 		panic("Should be able to handle yaml with syntax errors")
 	}
@@ -133,7 +137,8 @@ groups:
 			LanguageID: yamlLanguageID,
 			Version:    0,
 			Text:       rulesFile,
-		})
+		},
+	)
 	if err != nil {
 		panic("adding rules file failed")
 	}

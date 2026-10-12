@@ -6,7 +6,7 @@ STATIK_FILES := $(patsubst %, %_statik/statik.go, $(STATIK_SRCS))
 
 BINARYS := $(patsubst cmd/%.go, %, $(MAIN_GO_FILES)) 
 
-GOLANGCI_LINT_VERSION ?= v2.11.4
+GOLANGCI_LINT_VERSION ?= v2.14.0
 
 all: build test 
 
