@@ -25,13 +25,15 @@ import (
 // The position of the query must be passed as the first argument.
 func (d *DocumentHandle) promQLErrToProtocolDiagnostic(queryPos token.Pos, promQLErr *promql.ParseErr) (*protocol.Diagnostic, error) {
 	start, err := d.PosToProtocolPosition(
-		queryPos + token.Pos(promQLErr.PositionRange.Start))
+		queryPos + token.Pos(promQLErr.PositionRange.Start),
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	end, err := d.PosToProtocolPosition(
-		queryPos + token.Pos(promQLErr.PositionRange.End))
+		queryPos + token.Pos(promQLErr.PositionRange.End),
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 module github.com/prometheus-community/promql-langserver
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/blang/semver v3.5.1+incompatible

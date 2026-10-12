@@ -44,7 +44,8 @@ func (s *server) DidChangeConfiguration(ctx context.Context, params *protocol.Di
 		&protocol.LogMessageParams{
 			Type:    protocol.MessageTypeInfo,
 			Message: fmt.Sprintf("Received notification change: %v\n", params),
-		})
+		},
+	)
 
 	config := localLSPConfiguration{}
 
