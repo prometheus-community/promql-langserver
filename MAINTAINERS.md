@@ -1,5 +1,5 @@
 # Maintainers
 
-* Ben Kochie (@SuperQ)
-* Kemal Akkoyun (@kakkoyun)
-* Laura Guggenmos (@slrtbtfs)
+* Ben Kochie <superq@gmail.com> @SuperQ
+* Kemal Akkoyun <kakkoyun@gmail.com> @kakkoyun
+* Laura Guggenmos <guggenmos@dfn-cert.de> @slrtbtfs
