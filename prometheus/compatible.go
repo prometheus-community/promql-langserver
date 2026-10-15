@@ -47,12 +47,12 @@ func (c *compatibleHTTPClient) AllMetricMetadata(ctx context.Context) (map[strin
 	return c.prometheusClient.Metadata(ctx, "", "")
 }
 
-func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]string, error) {
+func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) (model.LabelNames, error) {
 	if len(name) == 0 {
-		names, _, err := c.prometheusClient.LabelNames(ctx, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
+		names, _, _, err := c.prometheusClient.LabelNames(ctx, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 		return names, err
 	}
-	labelNames, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-1*c.lookbackInterval), time.Now())
+	labelNames, _, _, err := c.prometheusClient.Series(ctx, []string{name}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -63,15 +63,15 @@ func (c *compatibleHTTPClient) LabelNames(ctx context.Context, name string) ([]s
 			subResult[string(l)] = true
 		}
 	}
-	result := make([]string, 0, len(subResult))
+	result := make([]model.LabelName, 0, len(subResult))
 	for l := range subResult {
-		result = append(result, l)
+		result = append(result, model.LabelName(l))
 	}
 	return result, nil
 }
 
 func (c *compatibleHTTPClient) LabelValues(ctx context.Context, label string) ([]model.LabelValue, error) {
-	values, _, err := c.prometheusClient.LabelValues(ctx, label, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
+	values, _, _, err := c.prometheusClient.LabelValues(ctx, label, []string{}, time.Now().Add(-1*c.lookbackInterval), time.Now())
 	return values, err
 }
 

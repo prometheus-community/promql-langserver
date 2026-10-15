@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/prometheus/common/model"
 	promql "github.com/prometheus/prometheus/promql/parser"
 	"github.com/prometheus/prometheus/promql/parser/posrange"
 	"github.com/prometheus/prometheus/util/strutil"
@@ -103,11 +104,11 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		return err
 	}
 
-	names := make([]string, 0, len(allMetadata))
+	names := make(model.LabelNames, 0, len(allMetadata))
 	for name := range allMetadata {
-		names = append(names, name)
+		names = append(names, model.LabelName(name))
 	}
-	for _, match := range getMatches(metricName, names) {
+	for _, match := range getMatches(metricName, labelNameStrings(names)) {
 		item := protocol.CompletionItem{
 			Label:         match.Str,
 			SortText:      fmt.Sprintf("__3__%09d", match.Score),
@@ -127,11 +128,11 @@ func (s *server) completeMetricName(ctx context.Context, completions *[]protocol
 		return err
 	}
 
-	names = make([]string, 0, len(queries))
+	names = make(model.LabelNames, 0, len(queries))
 	for _, q := range queries {
-		names = append(names, q.Record)
+		names = append(names, model.LabelName(q.Record))
 	}
-	for _, match := range getMatches(metricName, names) {
+	for _, match := range getMatches(metricName, labelNameStrings(names)) {
 		item := protocol.CompletionItem{
 			Label:            match.Str,
 			SortText:         fmt.Sprintf("__2__%09d", match.Score),
@@ -154,11 +155,11 @@ func (s *server) completeFunctionName(completions *[]protocol.CompletionItem, lo
 		return err
 	}
 
-	names := make([]string, 0, len(promql.Functions))
+	names := make(model.LabelNames, 0, len(promql.Functions))
 	for name := range promql.Functions {
-		names = append(names, name)
+		names = append(names, model.LabelName(name))
 	}
-	for _, match := range getMatches(metricName, names) {
+	for _, match := range getMatches(metricName, labelNameStrings(names)) {
 		item := protocol.CompletionItem{
 			Label:            match.Str,
 			SortText:         fmt.Sprintf("__1__%09d", match.Score),
@@ -176,11 +177,11 @@ func (s *server) completeFunctionName(completions *[]protocol.CompletionItem, lo
 		*completions = append(*completions, item)
 	}
 
-	names = make([]string, 0, len(aggregators))
+	names = make(model.LabelNames, 0, len(aggregators))
 	for name := range aggregators {
-		names = append(names, name)
+		names = append(names, model.LabelName(name))
 	}
-	for _, match := range getMatches(strings.ToLower(metricName), names) {
+	for _, match := range getMatches(strings.ToLower(metricName), labelNameStrings(names)) {
 		item := protocol.CompletionItem{
 			Label:            match.Str,
 			SortText:         fmt.Sprintf("__1__%09d", match.Score),
@@ -328,7 +329,7 @@ func (s *server) completeLabel(ctx context.Context, completions *[]protocol.Comp
 
 	labelName := location.Node.(*promql.Item).Val
 OUTER:
-	for _, match := range getMatches(labelName, allNames) {
+	for _, match := range getMatches(labelName, labelNameStrings(allNames)) {
 		// Skip labels that already have matchers
 		if vs != nil {
 			for _, m := range vs.LabelMatchers {
@@ -386,11 +387,7 @@ func (s *server) completeLabelValue(ctx context.Context, completions *[]protocol
 		quote = '"'
 	}
 
-	names := make([]string, 0, len(labelValues))
-	for _, v := range labelValues {
-		names = append(names, string(v))
-	}
-	for _, match := range getMatches(unquoted, names) {
+	for _, match := range getMatches(unquoted, labelValueStrings(labelValues)) {
 		var quoted string
 
 		if quote == '`' {
@@ -464,4 +461,20 @@ func getMatches(pattern string, names []string) fuzzy.Matches {
 		return matches
 	}
 	return fuzzy.Find(pattern, names)
+}
+
+func labelNameStrings(names model.LabelNames) []string {
+	s := make([]string, len(names))
+	for i, name := range names {
+		s[i] = string(name)
+	}
+	return s
+}
+
+func labelValueStrings(names model.LabelValues) []string {
+	s := make([]string, len(names))
+	for i, name := range names {
+		s[i] = string(name)
+	}
+	return s
 }
