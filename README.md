@@ -78,11 +78,11 @@ With Vim, currently only PromQL queries inside YAML files work without additiona
 #### Setup
 
 1. Install the [YouCompleteMe](https://github.com/ycm-core/YouCompleteMe) Plugin.
-2. Put the configuration following configuration file for the language server in `.vim/promql-lsp.yaml`.
+2. Put the configuration following configuration file for the language server in `~/.vim/promql-lsp.yaml`.
 
         # Change this adress to the address of the prometheus server you want to use for metadata
         prometheus_url: http://localhost:9090
-        rpc_trace: text
+        activate_rpc_log: true
 
 3. Add the following to your `.vimrc`
 
@@ -99,10 +99,8 @@ The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
 
 ### Sublime Text 3
 
-The `LSP-promql` package is unmaintained and its repository is archived.
-
 1. Install package `LSP`, `LSP-promql` via `Package Control`.
-2. Follow the [installation instruction](https://github.com/nevill/LSP-promql#installation).
+2. Follow the [installation instruction](https://github.com/prometheus-community/sublimelsp-promql#installation).
 
 ## Contributing
 
