@@ -65,7 +65,7 @@ Reading this [documentation](./doc/developing_editor.md) can help you in your wo
 
 ### VS Code
 
-There exists a VS Code extension based on this language server: <https://github.com/slrtbtfs/vscode-prometheus>
+There exists a VS Code extension based on this language server: <https://github.com/prometheus-community/vscode-promql>
 
 It is used as the main test platform for this language server.
 
@@ -99,8 +99,10 @@ The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
 
 ### Sublime Text 3
 
+The `LSP-promql` package is unmaintained and its repository is archived.
+
 1. Install package `LSP`, `LSP-promql` via `Package Control`.
-2. Follow the [installation instruction](https://github.com/nevill/lsp-promql#installation).
+2. Follow the [installation instruction](https://github.com/nevill/LSP-promql#installation).
 
 ## Contributing
 

@@ -12,7 +12,7 @@ PRs that improve the test situation are highly appreciated.
 
 ## Manually testing the language server
 
-The easiest way to test the language server is to use the [VS Code extension](https://github.com/redhat-developer/vscode-promql)
+The easiest way to test the language server is to use the [VS Code extension](https://github.com/prometheus-community/vscode-promql)
 
 To use your own build of the language server:
 
