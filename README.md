@@ -1,9 +1,8 @@
-[![CircleCI](https://circleci.com/gh/prometheus-community/promql-langserver.svg?style=svg)](https://circleci.com/gh/prometheus-community/promql-langserver)
-[![Go Report Card](https://goreportcard.com/badge/github.com/prometheus-community/promql-langserver)](https://goreportcard.com/report/github.com/slrtbtfs/promql-lsp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/prometheus-community/promql-langserver)](https://goreportcard.com/report/github.com/prometheus-community/promql-langserver)
 [![GoDoc](https://godoc.org/github.com/prometheus-community/promql-langserver?status.png)](https://pkg.go.dev/github.com/prometheus-community/promql-langserver)
 ![golangci-lint](https://github.com/prometheus-community/promql-langserver/workflows/golangci-lint/badge.svg)
 
-# promql-lsp
+# promql-langserver
 
 Implementation of the Language Server Protocol for PromQL.
 
@@ -66,7 +65,7 @@ Reading this [documentation](./doc/developing_editor.md) can help you in your wo
 
 ### VS Code
 
-There exists a VS Code extension based on this language server: <https://github.com/slrtbtfs/vscode-prometheus>
+There exists a VS Code extension based on this language server: <https://github.com/prometheus-community/vscode-promql>
 
 It is used as the main test platform for this language server.
 
@@ -79,11 +78,11 @@ With Vim, currently only PromQL queries inside YAML files work without additiona
 #### Setup
 
 1. Install the [YouCompleteMe](https://github.com/ycm-core/YouCompleteMe) Plugin.
-2. Put the configuration following configuration file for the language server in `.vim/promql-lsp.yaml`.
+2. Put the configuration following configuration file for the language server in `~/.vim/promql-lsp.yaml`.
 
         # Change this adress to the address of the prometheus server you want to use for metadata
         prometheus_url: http://localhost:9090
-        rpc_trace: text
+        activate_rpc_log: true
 
 3. Add the following to your `.vimrc`
 
@@ -101,7 +100,7 @@ The Vim command `:YcmDebugInfo` gives status information and points to logfiles.
 ### Sublime Text 3
 
 1. Install package `LSP`, `LSP-promql` via `Package Control`.
-2. Follow the [installation instruction](https://github.com/nevill/lsp-promql#installation).
+2. Follow the [installation instruction](https://github.com/prometheus-community/sublimelsp-promql#installation).
 
 ## Contributing
 
